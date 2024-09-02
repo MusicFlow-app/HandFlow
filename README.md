@@ -1,4 +1,6 @@
-![HandFlow Logo](./static/img/HandFlow.png)
+<p align="center">
+  <img src="./static/img/HandFlow.png" alt="HandFlow Logo" width="300px">
+</p>
 # HandFlow
 
 [![License](https://img.shields.io/github/license/MusicFlow-app/HandFlow)](https://www.gnu.org/licenses/agpl-3.0)
