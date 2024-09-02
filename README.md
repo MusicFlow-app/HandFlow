@@ -1,6 +1,7 @@
 <p align="center">
   <img src="./static/img/HandFlow.png" alt="HandFlow Logo" width="300px">
 </p>
+
 # HandFlow
 
 [![License](https://img.shields.io/github/license/MusicFlow-app/HandFlow)](https://www.gnu.org/licenses/agpl-3.0)
@@ -26,6 +27,10 @@ Hey there! 👋 Welcome to HandFlow, a fun little project that helps you create 
   - 📏 Resize your measures for that perfect view.
   - 👀 Toggle visibility for different elements to keep things clean.
   - 🎧 Real-time MIDI playback with custom waveform generation — because why not emulate ethereal sound with math?
+
+## Demo
+
+![handflow_demo](./static/img/demo.gif)
 
 ## Why Did We Make HandFlow? 🤔
 
