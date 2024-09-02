@@ -1,0 +1,76 @@
+<div class="information-container">
+    <h3>{{work_title}}</h3>
+    <h4>Composer: {{composer}} <span class="arranger">(Arranger: {{arranger}})</span></h4>
+</div>
+<div class="informations">
+    <div class="information-container">
+        <form action="/generate" method="post">
+            <input type="hidden" name="mscx_path" value="{{mscx_path}}">
+            <input type="hidden" id="part_name" name="part_name" value="">
+            <input type="hidden" id="play_only_inscale" name="play_only_inscale" value="0">
+            <label for="part_id">Select Part:</label>
+            <select name="part_id" id="part_id">
+                {{part_options}}
+            </select>
+            <label for="scale">Select Handpan Scale:</label>
+            <select name="scale" id="scale">
+                {{scale_options}}
+            </select>
+            <div class="toggle-switch">
+                <label for="transpose">Auto Transpose:</label>
+                <input type="checkbox" id="auto_transpose" name="auto_transpose">
+                <label class="toggle-label" for="auto_transpose"></label>
+            </div>
+            <div id="transpose_slider" style="display: block;">
+                <label for="transpose">Transpose:</label>
+                <input type="range" id="transpose" name="transpose" min="-25" max="25" value="0">
+                <span id="transpose_value" class="value-display" style="color: darkgreen;">0</span>
+            </div>
+            <button type="submit">Generate Tab</button>
+        </form>
+    </div>
+    <div  id="controls" class="information-container">
+        <h3>Controls</h3>
+        <div class="controls">
+            <div class="zoom">
+                <label for="transpose">Size handpan:</label>
+                <button id="decrease" class="decrease">-</button>
+                <button id="increase" class="increase">+</button>
+            </div>
+            <div class="toggle-container">  
+                <div class="toggle-switch">
+                    <label for="inlineDisplay">Display inline:</label>
+                    <input type="checkbox" id="inlineDisplay" name="inlineDisplay" checked>
+                    <label class="toggle-label" for="inlineDisplay"></label>
+                </div>
+                <div class="toggle-switch">
+                    <label for="showRestColor">show Rest Color:</label>
+                    <input type="checkbox" id="showRestColor" name="showRestColor" checked>
+                    <label class="toggle-label" for="showRestColor"></label>
+                </div>
+                <div class="toggle-switch">
+                    <label for="showSvg">Show Handpan:</label>
+                    <input type="checkbox" id="showSvg" name="showSvg" checked>
+                    <label class="toggle-label" for="showSvg"></label>
+                </div>
+            </div>
+            <div class="autoPlay">  
+                <label for="scrollRate">Scroll Rate (BPM):</label>
+                <input type="range" id="scrollRateBpm" name="scrollRateBpm" min="0" max="240" value="120">
+                <span id="scrollRateBpmValue" class="value-display">120 Bpm</span>
+            </div>
+            <div class="autoPlay">
+                <button id="playPause">▶ Play</button>
+                <button id="resetScroll">↪ Reset</button>
+                <div class="toggle-switch" style="display:inline-flex;">
+                    <label for="togglePlayInScale">Play only inscale notes:</label>
+                    <input type="checkbox" id="togglePlayInScale" name="togglePlayInScale">
+                    <label class="toggle-label" for="togglePlayInScale"></label>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{legend_html}}
+</div>
+<div class="generate-container" id="generate-container"></div>
+<script src="/static/scripts/control.js"></script>

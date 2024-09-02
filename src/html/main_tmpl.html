@@ -1,0 +1,10 @@
+<label for="file-input">Upload the MuseScore .mscz format</label>
+<form action="/upload" method="post" enctype="multipart/form-data" onsubmit="return validateFile()">
+    <div id="drop-zone" class="drop-zone">
+        <p>Drag & Drop your .mscz file here or click to upload</p>
+        <input class="fileinput" id="file-input" type="file" name="file" accept=".mscz">
+    </div>
+    <div id="file-name" class="file-name">No file selected</div>
+    <button type="submit">Upload File</button>
+</form>
+<script src="/static/scripts/main.js"></script>

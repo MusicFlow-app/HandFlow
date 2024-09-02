@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 635 635" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <radialGradient id="shadow" cx="30%" cy="30%" r="50%" fx="30%" fy="30%">
+      <stop offset="0%" style="stop-color:black; stop-opacity:0" />
+      <stop offset="100%" style="stop-color:black; stop-opacity:0.5" />
+    </radialGradient>
+  </defs>
+  <g id="body">
+    <path id="Frame" class="base-svg" d="M.11,322.62c9.69-440.09,659.2-411.79,631.19,26.88C583.05,749.52,14.87,723.2.11,322.62ZM269.58,583.13c328.34,59.04,439.77-424.61,125.87-526.09C39.69-42.31-101.46,508.18,269.58,583.13ZM248.73,578.8c.2-.52-.23-.16-.07.05l.07-.05ZM246.86,577.59c-.35.14-1.69,1.06-1.68,1.23.06-.03,2.74-1.47,1.68-1.23ZM125.47,532.85c-52.29-49.66-88.35-118.07-97.02-189.96-1.33-5.79-4.81-18.67-10.49-15.26-16.54,137.46,120.31,269.77,251.39,292.43,9.17,3.55,48.17,2.86,23.54-9.52-11.12-4.56-25.18-6.04-37.08-9.21-48.4-11.87-93.29-35.58-130.34-68.48ZM516.44,523.67c-28.67,27.68-61.62,50.5-99.07,65.28-7.41,8.03-120.62,25.16-72.8,33.67,140.05-10.1,288.43-154.63,270.06-297.92-7.53-3.93-11.35,18.27-12.08,23.98-8.29,65.44-39.88,128.45-86.11,174.99ZM22.47,299.09c5.34-4.03,8.85-18.73,10.38-27.36,21.63-119.03,125.62-217.46,244.6-236.25,14.1-.18,45.96-12.95,13.89-17.14C143,29.4,20.34,160.18,14.22,291.99c1.09,5.11,3.59,10.51,8.25,7.1ZM616.67,300.39c2.96-141.48-136.84-274.77-276.4-281.47-6.31.91-10.29,2.84-10.68,5.09,144.81,39.1,246.39,109.42,275.7,269.33,2.58,6.02,7.16,13.35,11.38,7.05ZM322.88,18.62c-1.45-11.81-16.66-3.24-10.59,5.2,3.72,5.07,11.28.37,10.6-5.21h-.01ZM316.34,623.44c7.47,1.04,9.05-11.51,1.96-12.96-7.81-1.15-9.73,11.63-1.96,12.96ZM19.96,306.26c-5.91.74-6.52,9.53-.36,10.57,7.91.88,8.16-10.97.36-10.58h0ZM616.17,313.12c1.67-5.07-7.55-7.42-8.14-2.05.07,3.67,6.55,6.36,8.13,2.04h.01ZM196.1,558.2c-.64-.43.03.66,0,0h0ZM128.58,509.72c-.61-.42-.09.64,0,0h0ZM249.74,579.85c.39.05.18-.15.02-.24-.05.09-.11.16,0,.23h-.01ZM251.91,580.61c-.05.32.16.18.24.02-.08-.04-.17-.1-.24-.02ZM253.82,580.59c-.04.3.19.26.26.01h-.26Z" />
+    <path id="Ding" class="base-svg" d="M416.86,309.59c5.93,125.92-182.06,143.63-200.66,20.06-6.52-39.54,6.8-79.65,41.62-100.18,66.97-39.01,158.14-4.9,159.04,79.88v.23h0ZM313.53,382.64c57.74,3.08,82.25-57.79,60.59-104.91-11.38-25.14-39.92-38.3-66.84-34.73-77.42,9.99-81.03,135.9,6.03,139.64h.22Z" />
+  </g>
+  <g id="note0">
+    <path id="note_0" class="note-svg" d="M313.94,382.46c87.54,8.25,91.07-139.05,6.87-139.4-85.91-10.2-103.35,138.23-6.87,139.4Z" />
+    <ellipse id="note_shadow_0" class="shadow-svg" cx="315.85" cy="312.74" rx="27.33" ry="29.34" />
+  </g>
+  <g id="note1">
+    <ellipse id="note_1" class="note-svg" cx="316.81" cy="515.69" rx="53.02" ry="69.24"/>
+    <ellipse id="note_shadow_1" class="shadow-svg" cx="316.81" cy="515.69" rx="20.63" ry="26.93"/>
+  </g>
+  <g id="note2">
+    <ellipse id="note_2" class="note-svg" cx="175.38" cy="453.35" rx="63.57" ry="48.68" transform="translate(-269.2 256.8) rotate(-45)"/>
+    <ellipse id="note_shadow_2" class="shadow-svg" cx="174.68" cy="452.71" rx="25.46" ry="19.5" transform="translate(-268.95 256.11) rotate(-45)"/>
+  </g>
+  <g id="note3">
+    <ellipse id="note_3" class="note-svg" cx="456.31" cy="452.46" rx="44.34" ry="57.9" transform="translate(-186.29 455.18) rotate(-45)"/>
+    <ellipse id="note_shadow_3" class="shadow-svg" cx="454.95" cy="452.04" rx="17.55" ry="22.91" transform="translate(-186.39 454.1) rotate(-45)"/>
+  </g>
+  <g id="note4">
+    <ellipse id="note_4" class="note-svg" cx="114.93" cy="312.56" rx="52.23" ry="40"/>
+    <ellipse id="note_shadow_4" class="shadow-svg" cx="115.17" cy="311.96" rx="20.72" ry="15.87"/>
+  </g>
+  <g id="note5">
+    <ellipse id="note_5" class="note-svg" cx="521.92" cy="311.96" rx="46.56" ry="35.66"/>
+    <ellipse id="note_shadow_5" class="shadow-svg" cx="522.57" cy="311.42" rx="18.58" ry="14.23"/>
+  </g>
+  <g id="note6">
+    <ellipse id="note_6" class="note-svg" cx="173.68" cy="162.6" rx="31.32" ry="40.89" transform="translate(-64.11 170.44) rotate(-45)"/>
+    <ellipse id="note_shadow_6" class="shadow-svg" cx="171.27" cy="160.57" rx="12.24" ry="15.98" transform="translate(-63.38 168.13) rotate(-45)"/>
+  </g>
+  <g id="note7">
+    <ellipse id="note_7" class="note-svg" cx="471.1" cy="160.57" rx="35.22" ry="26.97" transform="translate(24.44 380.15) rotate(-45)"/>
+    <ellipse id="note_shadow_7" class="shadow-svg" cx="472.2" cy="160.58" rx="14" ry="10.73" transform="translate(24.76 380.93) rotate(-45)"/>
+  </g>
+  <g id="note8">
+    <ellipse id="note_8" class="note-svg" cx="319.33" cy="88.78" rx="22.63" ry="29.55"/>
+    <ellipse id="note_shadow_8" class="shadow-svg" cx="319.33" cy="88.78" rx="8.68" ry="11.34"/>
+  </g>
+  <g id="note9">
+    <ellipse id="note_9" class="note-svg" cx="204.49" cy="232.74" rx="17.37" ry="22.68" transform="translate(-105.29 237.18) rotate(-49.52)"/>
+    <ellipse id="note_shadow_9" class="shadow-svg" cx="204.49" cy="232.74" rx="6.66" ry="8.7" transform="translate(-105.29 237.18) rotate(-49.52)"/>
+  </g>
+  <g id="note10">
+    <ellipse id="note_10" class="note-svg" cx="425.3" cy="234" rx="17.01" ry="13.02" transform="translate(-44.74 355.22) rotate(-43.28)"/>
+    <ellipse id="note_shadow_10" class="shadow-svg" cx="425.3" cy="234" rx="6.53" ry="5" transform="translate(-44.74 355.22) rotate(-43.28)"/>
+  </g>
+  <g id="note11">
+    <ellipse id="note_11" class="note-svg" cx="272.82" cy="179.96" rx="9.77" ry="12.76" transform="translate(-44.87 103.21) rotate(-19.83)"/>
+  </g>
+  <g id="note12">
+    <ellipse id="note_12" class="note-svg" cx="359.17" cy="177.83" rx="11.68" ry="8.95" transform="translate(59.57 444.03) rotate(-67.96)"/>
+  </g>
+</svg>
