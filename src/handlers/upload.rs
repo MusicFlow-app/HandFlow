@@ -31,38 +31,36 @@ use zip::ZipArchive;
 static UPLOAD_COUNTER: AtomicUsize = AtomicUsize::new(0);
 const MAX_UPLOADS: usize = 100;
 
-/**
- * Asynchronously handles the upload and processing of an MSCZ file (a compressed file format).
- *
- * This function performs the following steps:
- *
- * 1. **Upload Limit Check**: Increments the upload counter to track the number of active uploads.
- *    If the number of active uploads exceeds `MAX_UPLOADS`, the function returns a `429 Too Many Requests` response.
- *
- * 2. **File Handling**: Iterates through the uploaded file data:
- *    - If a file is detected, a unique file name is generated using a timestamp and random suffix.
- *    - The file is saved to a designated upload directory, ensuring the directory exists with appropriate permissions.
- *
- * 3. **File Writing**: The function writes the received chunks of data to the file asynchronously using `tokio::fs::File`.
- *
- * 4. **ZIP File Processing**:
- *    - Opens the saved MSCZ file as a ZIP archive.
- *    - Validates the ZIP file's integrity and size.
- *    - Searches for the `.mscx` file within the ZIP archive and reads its content.
- *    - Saves the extracted `.mscx` file to the upload directory.
- *
- * 5. **Response Preparation**:
- *    - Parses the MSCX file for available parts and generates HTML options for those parts.
- *    - Loads a template file, injects the necessary content, and generates the final HTML response.
- *
- * 6. **Clean-Up**: Decrements the upload counter after processing is complete or if an error occurs.
- *
- * 7. **Error Handling**:
- *    - Logs errors encountered during the file processing.
- *    - Returns appropriate HTTP responses (e.g., `InternalServerError`, `BadRequest`) based on the error context.
- *
- * 8. **Final Response**: Returns an HTTP response with the generated HTML content, including metadata about the uploaded and processed file.
- */
+/// Asynchronously handles the upload and processing of an MSCZ file (a compressed file format).
+///
+/// This function performs the following steps:
+///
+/// 1. **Upload Limit Check**: Increments the upload counter to track the number of active uploads.
+///    If the number of active uploads exceeds `MAX_UPLOADS`, the function returns a `429 Too Many Requests` response.
+///
+/// 2. **File Handling**: Iterates through the uploaded file data:
+///    - If a file is detected, a unique file name is generated using a timestamp and random suffix.
+///    - The file is saved to a designated upload directory, ensuring the directory exists with appropriate permissions.
+///
+/// 3. **File Writing**: The function writes the received chunks of data to the file asynchronously using `tokio::fs::File`.
+///
+/// 4. **ZIP File Processing**:
+///    - Opens the saved MSCZ file as a ZIP archive.
+///    - Validates the ZIP file's integrity and size.
+///    - Searches for the `.mscx` file within the ZIP archive and reads its content.
+///    - Saves the extracted `.mscx` file to the upload directory.
+///
+/// 5. **Response Preparation**:
+///    - Parses the MSCX file for available parts and generates HTML options for those parts.
+///    - Loads a template file, injects the necessary content, and generates the final HTML response.
+///
+/// 6. **Clean-Up**: Decrements the upload counter after processing is complete or if an error occurs.
+///
+/// 7. **Error Handling**:
+///    - Logs errors encountered during the file processing.
+///    - Returns appropriate HTTP responses (e.g., `InternalServerError`, `BadRequest`) based on the error context.
+///
+/// 8. **Final Response**: Returns an HTTP response with the generated HTML content, including metadata about the uploaded and processed file.
 pub async fn handle_mscz_upload(mut payload: Multipart) -> HttpResponse {
     let current_uploads = UPLOAD_COUNTER.fetch_add(1, Ordering::SeqCst);
 
@@ -80,9 +78,15 @@ pub async fn handle_mscz_upload(mut payload: Multipart) -> HttpResponse {
 
         if let Some(name) = name {
             if name == "file" {
-                let unique_suffix: String =
-                    rand::thread_rng().sample_iter(&Alphanumeric).take(8).map(char::from).collect();
-                let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+                let unique_suffix: String = rand::thread_rng()
+                    .sample_iter(&Alphanumeric)
+                    .take(8)
+                    .map(char::from)
+                    .collect();
+                let timestamp = SystemTime::now()
+                    .duration_since(UNIX_EPOCH)
+                    .unwrap()
+                    .as_secs();
                 let file_name = sanitize_file_name(&format!(
                     "uploaded_file_{}_{}.mscz",
                     timestamp, unique_suffix
@@ -183,7 +187,13 @@ pub async fn handle_mscz_upload(mut payload: Multipart) -> HttpResponse {
 
     let part_options = available_parts
         .into_iter()
-        .map(|(id, name)| format!("<option value=\"{}\">{}</option>", id, &sanitize_html(&name)))
+        .map(|(id, name)| {
+            format!(
+                "<option value=\"{}\">{}</option>",
+                id,
+                &sanitize_html(&name)
+            )
+        })
         .collect::<String>();
 
     let mut grouped_options = String::new();
@@ -244,5 +254,7 @@ pub async fn handle_mscz_upload(mut payload: Multipart) -> HttpResponse {
     let header_content = load_header_content().await;
     let response = header_content.replace("{{body}}", &body_content);
 
-    HttpResponse::Ok().content_type("text/html; charset=utf-8").body(response)
+    HttpResponse::Ok()
+        .content_type("text/html; charset=utf-8")
+        .body(response)
 }

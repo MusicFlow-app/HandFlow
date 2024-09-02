@@ -1,19 +1,18 @@
-/**
- * Generates a list of handpan scales with varying note counts.
- *
- * This function:
- *
- * 1. **Defines Full Scales**: A set of predefined handpan scales with their respective MIDI notes and TPC (Tonnetz Pitch Class) values.
- * 2. **Generates Variants**: For each scale, generates variants with note counts ranging from 9 to 13 notes by clipping the full scale.
- * 3. **Assigns IDs**: Each scale variant is assigned a unique ID.
- * 4. **Returns**: A vector of tuples containing the ID, scale name, MIDI notes, and TPC values.
- *
- * @return A vector of tuples where each tuple contains:
- *  - A unique ID (usize)
- *  - The scale name (&'static str)
- *  - A vector of MIDI notes (Vec<u8>)
- *  - A vector of TPC values (Vec<i8>)
- */
+/// Generates a list of handpan scales with varying note counts.
+///
+/// This function:
+///
+/// 1. **Defines Full Scales**: Initializes a set of predefined handpan scales, each with a name, a list of MIDI notes, and corresponding TPC (Tonnetz Pitch Class) values.
+/// 2. **Generates Variants**: For each scale, it generates variants with note counts ranging from 9 to 13 notes by clipping the full scale.
+/// 3. **Assigns IDs**: Each scale variant is assigned a unique ID to differentiate it.
+/// 4. **Returns**: A vector of tuples where each tuple contains:
+///     - A unique ID (`usize`)
+///     - The scale name (`&'static str`)
+///     - A vector of MIDI notes (`Vec<u8>`)
+///     - A vector of TPC values (`Vec<i8>`)
+///
+/// # Returns
+/// A `Vec<(usize, &'static str, Vec<u8>, Vec<i8>)>` containing the generated scale variants with their respective IDs, names, MIDI notes, and TPC values.
 pub fn scales_list() -> Vec<(usize, &'static str, Vec<u8>, Vec<i8>)> {
     let full_scales = vec![
         (
@@ -71,8 +70,16 @@ pub fn scales_list() -> Vec<(usize, &'static str, Vec<u8>, Vec<i8>)> {
         // Iterate over each full scale
         for (name, full_midi, full_tpc) in &full_scales {
             // Clip the full scale to the desired number of notes
-            let clipped_midi = full_midi.iter().take(note_count).cloned().collect::<Vec<_>>();
-            let clipped_tpc = full_tpc.iter().take(note_count).cloned().collect::<Vec<_>>();
+            let clipped_midi = full_midi
+                .iter()
+                .take(note_count)
+                .cloned()
+                .collect::<Vec<_>>();
+            let clipped_tpc = full_tpc
+                .iter()
+                .take(note_count)
+                .cloned()
+                .collect::<Vec<_>>();
 
             if full_midi.len() >= note_count {
                 // Append to the scales list with an auto-incrementing ID
@@ -85,18 +92,19 @@ pub fn scales_list() -> Vec<(usize, &'static str, Vec<u8>, Vec<i8>)> {
     scales
 }
 
-/**
- * Retrieves a handpan scale by its ID.
- *
- * This function:
- *
- * 1. **Fetches the Scale List**: Calls `scales_list` to get the list of all scales.
- * 2. **Finds the Scale**: Searches for the scale with the given ID.
- * 3. **Returns**: If found, returns the scale's name, MIDI notes, and TPC values as a tuple. Otherwise, returns `None`.
- *
- * @param scale_index The ID of the scale to retrieve.
- * @return An `Option` containing a tuple with the scale's name (String), MIDI notes (Vec<u8>), and TPC values (Vec<i8>).
- */
+/// Retrieves a handpan scale by its ID.
+///
+/// This function:
+///
+/// 1. **Fetches the Scale List**: Calls `scales_list` to get the list of all available scales.
+/// 2. **Finds the Scale**: Searches the list for the scale with the given ID.
+/// 3. **Returns**: If found, returns a tuple containing the scale's name, MIDI notes, and TPC values; otherwise, returns `None`.
+///
+/// # Parameters
+/// - `scale_index`: The ID of the scale to retrieve.
+///
+/// # Returns
+/// An `Option<(String, Vec<u8>, Vec<i8>)>` containing the scale's name, MIDI notes, and TPC values if found, or `None` if not.
 pub fn get_handpan_scale(scale_index: usize) -> Option<(String, Vec<u8>, Vec<i8>)> {
     scales_list()
         .into_iter()
@@ -104,20 +112,20 @@ pub fn get_handpan_scale(scale_index: usize) -> Option<(String, Vec<u8>, Vec<i8>
         .map(|(_, name, notes, tpc)| (name.to_string(), notes, tpc))
 }
 
-/**
- * Converts a MIDI note number and TPC value into a human-readable note name and octave.
- *
- * This function:
- *
- * 1. **Defines Mapping**: Maps TPC values to corresponding note names.
- * 2. **Calculates Octave**: Determines the octave number based on the MIDI note.
- * 3. **Adjusts Note Name**: Adjusts the note name based on the TPC value.
- * 4. **Returns**: A tuple containing the note name (String) and octave (i8).
- *
- * @param midi The MIDI note number.
- * @param tpc The Tonnetz Pitch Class (TPC) value.
- * @return A tuple containing the note name (String) and octave (i8).
- */
+/// Converts a MIDI note number and TPC value into a human-readable note name and octave.
+///
+/// This function:
+///
+/// 1. **Defines Mapping**: Maps TPC values to corresponding note names.
+/// 2. **Calculates Octave**: Determines the octave number based on the MIDI note value.
+/// 3. **Adjusts Note Name**: Adjusts the note name based on the TPC value.
+///
+/// # Parameters
+/// - `midi`: The MIDI note number.
+/// - `tpc`: The Tonnetz Pitch Class (TPC) value.
+///
+/// # Returns
+/// A tuple `(String, i8)` containing the note name and octave.
 pub fn midi_to_note_and_octave_with_tpc(midi: u8, tpc: i8) -> (String, i8) {
     // Mapping TPC to note names based on the provided array
     let tpc_to_note = [
@@ -139,20 +147,21 @@ pub fn midi_to_note_and_octave_with_tpc(midi: u8, tpc: i8) -> (String, i8) {
     (note_name, octave)
 }
 
-/**
- * Finds the best transposition for a set of notes to match a given scale.
- *
- * This function:
- *
- * 1. **Iterates Transpositions**: Tests transpositions from -12 to +12 semitones.
- * 2. **Matches Notes**: For each transposition, counts the number of notes that match the target scale.
- * 3. **Evaluates Intervals**: Considers the preservation of harmonic intervals and applies penalties for mismatches.
- * 4. **Returns**: The transposition value that yields the highest score.
- *
- * @param notes A slice of MIDI notes to be transposed.
- * @param scale_notes A slice of MIDI notes representing the target scale.
- * @return The best transposition value (i32).
- */
+/// Finds the best transposition for a set of notes to match a given scale.
+///
+/// This function:
+///
+/// 1. **Iterates Transpositions**: Tests transpositions from -12 to +12 semitones.
+/// 2. **Matches Notes**: Counts the number of notes that match the target scale for each transposition.
+/// 3. **Evaluates Intervals**: Considers harmonic interval preservation, applying penalties for mismatches.
+/// 4. **Returns**: The transposition value that yields the highest score.
+///
+/// # Parameters
+/// - `notes`: A slice of MIDI notes to be transposed.
+/// - `scale_notes`: A slice of MIDI notes representing the target scale.
+///
+/// # Returns
+/// The best transposition value (`i32`) that maximizes note matching and harmonic preservation.
 pub fn find_best_transposition_with_harmonic_context(notes: &[u8], scale_notes: &[u8]) -> i32 {
     let mut best_transpose = 0;
     let mut max_score = 0.0;
@@ -197,32 +206,32 @@ pub fn find_best_transposition_with_harmonic_context(notes: &[u8], scale_notes: 
     best_transpose
 }
 
-/**
- * Transposes a MIDI pitch and TPC value by a given number of semitones.
- *
- * This function:
- *
- * 1. **Applies Transposition**: Adjusts the MIDI pitch by the specified transposition value.
- * 2. **Determines New TPC**: Determines the new TPC value based on the transposition direction (positive for sharps, negative for flats).
- * 3. **Returns**: A tuple containing the transposed MIDI pitch and TPC value.
- *
- * @param pitch The original MIDI pitch.
- * @param tpc The original TPC value.
- * @param transpose The number of semitones to transpose.
- * @return An `Option` containing a tuple with the transposed MIDI pitch (u8) and TPC value (i8).
- */
+/// Transposes a MIDI pitch and TPC value by a given number of semitones.
+///
+/// This function:
+///
+/// 1. **Applies Transposition**: Adjusts the MIDI pitch by the specified transposition value.
+/// 2. **Determines New TPC**: Calculates the new TPC value based on the transposition direction (positive for sharps, negative for flats).
+///
+/// # Parameters
+/// - `pitch`: The original MIDI pitch.
+/// - `tpc`: The original TPC value.
+/// - `transpose`: The number of semitones to transpose.
+///
+/// # Returns
+/// An `Option<(u8, i8)>` containing the transposed MIDI pitch and TPC value. Returns `None` if the TPC is invalid.
 pub fn transpose_pitch_and_tpc(pitch: u8, tpc: Option<i8>, transpose: i32) -> Option<(u8, i8)> {
     let pitch = pitch;
     if let Some(tpc) = tpc {
-        // Appliquer la transposition au pitch
+        // Apply the transposition to the pitch
         let new_pitch = (pitch as i32 + transpose).clamp(0, 127) as u8;
 
-        // Calculer le modulo 12 pour obtenir la classe de note (note class)
+        // Calculate the note class (modulo 12)
         let note_class = (new_pitch % 12) as i8;
 
-        // Déterminer le nouveau TPC en fonction de la direction de la transposition
+        // Determine the new TPC based on the transposition direction
         let new_tpc = if transpose > 0 {
-            // Utilisation des sharp (dièses) pour les transpositions positives
+            // Use sharps for positive transpositions
             match note_class {
                 0 => 14,  // C
                 1 => 21,  // C#
@@ -239,7 +248,7 @@ pub fn transpose_pitch_and_tpc(pitch: u8, tpc: Option<i8>, transpose: i32) -> Op
                 _ => tpc,
             }
         } else if transpose < 0 {
-            // Utilisation des flats (bémols) pour les transpositions négatives
+            // Use flats for negative transpositions
             match note_class {
                 0 => 14,  // C
                 1 => 9,   // Db
@@ -256,7 +265,7 @@ pub fn transpose_pitch_and_tpc(pitch: u8, tpc: Option<i8>, transpose: i32) -> Op
                 _ => tpc,
             }
         } else {
-            // Si transpose est 0, renvoyer le TPC original
+            // If no transposition, return the original TPC
             tpc
         };
 

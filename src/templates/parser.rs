@@ -7,21 +7,17 @@ use quick_xml::events::Event;
 use quick_xml::name::QName;
 use quick_xml::Reader;
 
-/**
- * Extracts text content from the current position in the XML reader.
- *
- * This function:
- *
- * 1. **Loops Through Events**: Continuously reads events from the XML reader.
- * 2. **Handles Text Events**: When encountering a `Text` event, it extracts and returns the text content.
- * 3. **Handles End of Element**: Returns `None` when an `End` event is encountered.
- * 4. **Handles EOF**: Exits the loop if the end of the file (EOF) is reached.
- * 5. **Handles Errors**: If an error occurs during reading, it is returned as a boxed error.
- * 6. **Returns**: The extracted text as an `Option<String>`, or `None` if no text is found.
- *
- * @param reader A mutable reference to an XML `Reader` object.
- * @return A `Result<Option<String>, Box<dyn std::error::Error + Send + Sync>>` containing the extracted text or an error.
- */
+/// Extracts text content from the current position in the XML reader.
+///
+/// This function reads events from the XML reader until it encounters a `Text` event,
+/// at which point it extracts and returns the text content. It stops and returns `None`
+/// if an `End` event or EOF is encountered.
+///
+/// # Parameters
+/// - `reader`: A mutable reference to an XML `Reader` object.
+///
+/// # Returns
+/// A `Result<Option<String>, Box<dyn std::error::Error + Send + Sync>>` containing the extracted text or `None` if no text is found.
 pub fn extract_text<R: std::io::BufRead>(
     reader: &mut Reader<R>,
 ) -> Result<Option<String>, Box<dyn std::error::Error + Send + Sync>> {
@@ -39,22 +35,16 @@ pub fn extract_text<R: std::io::BufRead>(
     Ok(None)
 }
 
-/**
- * Parses metadata from an MSCX file, extracting the work title, composer, and arranger.
- *
- * This function:
- *
- * 1. **Initializes Default Values**: Sets the default values for composer, arranger, and work title as "Unknown".
- * 2. **Loops Through XML Events**: Reads the XML content event by event.
- * 3. **Identifies Meta Tags**: Looks for `metaTag` elements and extracts the `name` and associated value.
- * 4. **Assigns Values**: Updates the work title, composer, or arranger based on the extracted data.
- * 5. **Handles EOF**: Breaks the loop when the end of the file (EOF) is reached.
- * 6. **Logs Errors**: Logs any errors encountered during the parsing process.
- * 7. **Returns**: A tuple containing the work title, composer, and arranger as `String`s.
- *
- * @param xml_content The XML content of the MSCX file as a `&str`.
- * @return A tuple `(String, String, String)` containing the work title, composer, and arranger.
- */
+/// Parses metadata from an MSCX file, extracting the work title, composer, and arranger.
+///
+/// This function reads the XML content of an MSCX file, looking for `metaTag` elements that contain
+/// the metadata. It assigns the found values to the work title, composer, and arranger, defaulting to "Unknown" if not found.
+///
+/// # Parameters
+/// - `xml_content`: The XML content of the MSCX file as a `&str`.
+///
+/// # Returns
+/// A tuple `(String, String, String)` containing the work title, composer, and arranger.
 pub fn parse_mscx_metadata(xml_content: &str) -> (String, String, String) {
     let mut reader = Reader::from_str(xml_content);
     let mut buf = Vec::new();
@@ -86,7 +76,10 @@ pub fn parse_mscx_metadata(xml_content: &str) -> (String, String, String) {
                 }
                 if let Some(value) = value {
                     if let Ok(Event::Text(e)) = reader.read_event_into(&mut buf) {
-                        *value = e.unescape().unwrap_or_else(|_| "Unknown".into()).into_owned();
+                        *value = e
+                            .unescape()
+                            .unwrap_or_else(|_| "Unknown".into())
+                            .into_owned();
                     }
                 }
             }
@@ -103,21 +96,17 @@ pub fn parse_mscx_metadata(xml_content: &str) -> (String, String, String) {
     (work_title, composer, arranger)
 }
 
-/**
- * Parses the part names and their corresponding staff IDs from an MSCX file.
- *
- * This function:
- *
- * 1. **Loops Through XML Events**: Reads the XML content event by event.
- * 2. **Identifies Parts**: Detects `Part` elements and extracts the `trackName` and `Staff` IDs.
- * 3. **Handles Multi-Staff Parts**: Differentiates between Treble and Bass for parts with two staffs.
- * 4. **Handles EOF**: Breaks the loop when the end of the file (EOF) is reached.
- * 5. **Handles Errors**: Returns any errors encountered during parsing.
- * 6. **Returns**: A `Result` containing a vector of tuples with the staff ID and part name, or an error.
- *
- * @param xml_content The XML content of the MSCX file as a `&str`.
- * @return A `Result<Vec<(u32, String)>, Box<dyn std::error::Error + Send + Sync>>` containing the parsed parts or an error.
- */
+/// Parses the part names and their corresponding staff IDs from an MSCX file.
+///
+/// This function reads the XML content of an MSCX file to identify `Part` elements and their associated
+/// `Staff` IDs, returning a list of staff IDs and part names. It also differentiates between Treble and Bass
+/// for parts with multiple staffs.
+///
+/// # Parameters
+/// - `xml_content`: The XML content of the MSCX file as a `&str`.
+///
+/// # Returns
+/// A `Result<Vec<(u32, String)>, Box<dyn std::error::Error + Send + Sync>>` containing the parsed parts or an error.
 pub fn parse_mscx_parts(
     xml_content: &str,
 ) -> Result<Vec<(u32, String)>, Box<dyn std::error::Error + Send + Sync>> {
@@ -189,26 +178,20 @@ pub fn parse_mscx_parts(
     Ok(parts)
 }
 
-/**
- * Parses the musical score from an MSCX file, handling transposition and scale matching.
- *
- * This function:
- *
- * 1. **Initializes Variables**: Sets up necessary variables to track measures, notes, and other score data.
- * 2. **Loops Through XML Events**: Reads the XML content event by event.
- * 3. **Handles Staff Identification**: Identifies the relevant staff based on the provided `part_id`.
- * 4. **Processes Measures and Chords**: Extracts and processes measure and chord information, including transposition.
- * 5. **Handles Transposition**: Automatically transposes notes if required, and finds the best matching notes in the handpan scale.
- * 6. **Handles EOF**: Breaks the loop when the end of the file (EOF) is reached.
- * 7. **Returns**: A `Result` containing the parsed measures and final transposed value, or an error.
- *
- * @param xml_content The XML content of the MSCX file as a `&str`.
- * @param part_id The ID of the part to be parsed.
- * @param scale_notes A slice of bytes representing the notes in the handpan scale.
- * @param auto_transpose A boolean indicating whether to auto-transpose notes.
- * @param transpose_value The value by which to transpose the notes.
- * @return A `Result` containing a vector of measures and the final transposed value, or an error.
- */
+/// Parses the musical score from an MSCX file, handling transposition and scale matching.
+///
+/// This function processes the XML content of an MSCX file, extracting musical measures and chords,
+/// and transposing notes according to the provided settings. It also matches the notes to a specified scale.
+///
+/// # Parameters
+/// - `xml_content`: The XML content of the MSCX file as a `&str`.
+/// - `part_id`: The ID of the part to be parsed.
+/// - `scale_notes`: A slice of bytes representing the notes in the handpan scale.
+/// - `auto_transpose`: A boolean indicating whether to auto-transpose notes.
+/// - `transpose_value`: The value by which to transpose the notes.
+///
+/// # Returns
+/// A `Result` containing a vector of measures and the final transposed value, or an error.
 pub fn parse_mscx_score(
     xml_content: &str,
     part_id: u32,
@@ -216,7 +199,14 @@ pub fn parse_mscx_score(
     auto_transpose: bool,
     transpose_value: i32,
 ) -> Result<
-    (Vec<(u32, String, Vec<Vec<(u32, String, String, i32, Option<usize>)>>)>, i32),
+    (
+        Vec<(
+            u32,
+            String,
+            Vec<Vec<(u32, String, String, i32, Option<usize>)>>,
+        )>,
+        i32,
+    ),
     Box<dyn std::error::Error + Send + Sync>,
 > {
     let mut reader = Reader::from_str(xml_content);
@@ -407,25 +397,29 @@ pub fn parse_mscx_score(
     Ok((measures, final_transposed_value))
 }
 
-/**
- * Generates HTML for musical measures based on parsed score data and SVG templates.
- *
- * This function:
- *
- * 1. **Initializes HTML Structure**: Sets up the initial HTML structure for measures.
- * 2. **Loops Through Measures**: Iterates over the provided measures, processing time signatures and chords.
- * 3. **Handles Note Formatting**: Formats each note, applying transpositions and determining color codes.
- * 4. **Modifies SVGs**: Adjusts SVG images for notes and rests based on their pitch and duration.
- * 5. **Generates HTML Output**: Builds the HTML string for each measure, incorporating formatted notes and time signatures.
- * 6. **Returns**: The complete HTML for all the measures.
- *
- * @param measures A vector of measures containing the parsed score data.
- * @param buffer_svg A reference to the SVG template to be used for notes.
- * @param play_only_inscale A boolean indicating whether to display only in-scale notes.
- * @return A `String` containing the generated HTML for the measures.
- */
+/// Generates HTML for musical measures based on parsed score data and SVG templates.
+///
+/// This function:
+///
+/// 1. **Initializes HTML Structure**: Sets up the initial HTML structure for the measures.
+/// 2. **Processes Measures**: Iterates over each measure, handling time signatures and chords.
+/// 3. **Formats Notes**: Applies formatting to notes, including handling transpositions and assigning colors.
+/// 4. **Adjusts SVGs**: Modifies SVG images for notes and rests based on their pitch, duration, and other attributes.
+/// 5. **Compiles HTML Output**: Assembles the complete HTML structure for all measures, incorporating formatted notes and time signatures.
+///
+/// # Parameters
+/// - `measures`: A vector of tuples containing measure data `(measure_num, time_signature, chords)`.
+/// - `buffer_svg`: A reference to the SVG template to be used for notes.
+/// - `play_only_inscale`: A boolean flag indicating whether to display only in-scale notes.
+///
+/// # Returns
+/// A `String` containing the generated HTML for the measures.
 pub fn generate_measures_html(
-    measures: Vec<(u32, String, Vec<Vec<(u32, String, String, i32, Option<usize>)>>)>,
+    measures: Vec<(
+        u32,
+        String,
+        Vec<Vec<(u32, String, String, i32, Option<usize>)>>,
+    )>,
     buffer_svg: &str,
     play_only_inscale: bool,
 ) -> String {
@@ -448,8 +442,10 @@ pub fn generate_measures_html(
         }
 
         measures_html.push_str("<div class='measure'>\n");
-        measures_html
-            .push_str(&format!("<div class='measure-header'>Measure: {}</div>\n", measure_num));
+        measures_html.push_str(&format!(
+            "<div class='measure-header'>Measure: {}</div>\n",
+            measure_num
+        ));
 
         if !chords.is_empty() {
             measures_html.push_str("<div class='notes'>\n");
@@ -521,8 +517,11 @@ pub fn generate_measures_html(
                         }
                     }
 
-                    let pitches_data =
-                        pitches.iter().map(|p| p.to_string()).collect::<Vec<String>>().join(";");
+                    let pitches_data = pitches
+                        .iter()
+                        .map(|p| p.to_string())
+                        .collect::<Vec<String>>()
+                        .join(";");
                     measures_html.push_str(&format!(
                         "<div class='note' sigN='{}' sigD='{}' pitches='{}' duration='{}'><div class='svg_container {}'>{}</div><div class='note-label'>{}</div></div>\n",
                         current_sign, current_sigb, pitches_data, current_duration, class_type, svg_image, note_formated

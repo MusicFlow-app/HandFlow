@@ -2,25 +2,24 @@ use crate::utils::{file::read_mscx, scales::get_handpan_scale};
 use actix_web::{web::Form, Error, HttpRequest, HttpResponse};
 use serde::Deserialize;
 use std::fs::File;
-use std::io::BufReader;
-use std::io::Read;
+use std::io::{BufReader, Read};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-/// A static atomic counter used to track the number of active generate requests.
-/// This helps in implementing rate limiting by ensuring that no more than a
-/// specified number of generate requests are processed concurrently.
+/// A static atomic counter used to track the number of active generation requests.
+/// This helps enforce rate limiting by ensuring that no more than a specified
+/// number of generate requests are processed concurrently.
 static GENERATE_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
-/// A constant that defines the maximum number of concurrent generate requests
-/// allowed. If the number of active generate requests exceeds this value,
-/// additional requests will be rejected with a "Too Many Requests" response.
+/// The maximum number of concurrent generation requests allowed. If the number of
+/// active requests exceeds this value, additional requests will be rejected with a
+/// "Too Many Requests" response.
 const MAX_GENERATES: usize = 100;
 
-/// A data structure that represents the form data submitted with a generate request.
+/// A data structure representing the form data submitted with a generate request.
 ///
 /// Fields:
-/// - `mscx_path`: The file path to the MSCX file that is to be processed.
-/// - `part_name`: The name of the musical part that is being processed.
+/// - `mscx_path`: The file path to the MSCX file to be processed.
+/// - `part_name`: The name of the musical part being processed.
 /// - `part_id`: The ID of the specific part within the MSCX file to be processed.
 /// - `scale`: The index of the scale to be used in the generation process.
 /// - `auto_transpose`: An optional flag indicating whether auto-transposition should be applied.
@@ -41,15 +40,22 @@ pub struct GenerateForm {
 ///
 /// This function performs the following tasks:
 ///
-/// 1. **Rate Limiting:** Checks the current number of active generate requests against a maximum limit. If the limit is exceeded, it returns a "Too Many Requests" response.
-/// 2. **Form Processing:** Extracts parameters from the form, including the path to the MSCX file, part name, part ID, scale, and various options for transposition and note filtering.
-/// 3. **File Handling:** Attempts to open and read the MSCX file specified in the form. If the file cannot be opened or read, an error response is returned.
-/// 4. **Scale Selection:** Retrieves the handpan scale based on the provided scale index. If the scale is invalid, an error response is returned.
-/// 5. **Template Loading:** Loads the HTML template used for generating the response. If the template cannot be opened or read, an error response is returned.
-/// 6. **MSCX Parsing:** Parses the MSCX content to extract musical measures, applying any necessary transpositions and scale constraints.
-/// 7. **SVG Handling:** Loads an SVG representation of the scale. If the SVG cannot be loaded, an error response is returned.
-/// 8. **HTML Generation:** Generates HTML content that represents the musical measures and integrates it with the loaded template.
-/// 9. **Response Construction:** Constructs the final HTML response by replacing placeholders in the template with the generated content, and returns the response to the client.
+/// 1. **Rate Limiting**: Checks the current number of active generate requests against a maximum limit. If the limit is exceeded, returns a "Too Many Requests" response.
+/// 2. **Form Processing**: Extracts and processes parameters from the form, including the path to the MSCX file, part name, part ID, scale, and various options for transposition and note filtering.
+/// 3. **File Handling**: Attempts to open and read the MSCX file specified in the form. If the file cannot be opened or read, an error response is returned.
+/// 4. **Scale Selection**: Retrieves the handpan scale based on the provided scale index. If the scale is invalid, an error response is returned.
+/// 5. **Template Loading**: Loads the HTML template used for generating the response. If the template cannot be opened or read, an error response is returned.
+/// 6. **MSCX Parsing**: Parses the MSCX content to extract musical measures, applying any necessary transpositions and scale constraints.
+/// 7. **SVG Handling**: Loads an SVG representation of the scale. If the SVG cannot be loaded, an error response is returned.
+/// 8. **HTML Generation**: Generates HTML content representing the musical measures and integrates it with the loaded template.
+/// 9. **Response Construction**: Replaces placeholders in the template with the generated content and returns the final HTML response to the client.
+///
+/// # Parameters
+/// - `_req`: The incoming `HttpRequest`.
+/// - `form`: The form data submitted by the client, wrapped in `Form<GenerateForm>`.
+///
+/// # Returns
+/// - `Result<HttpResponse, Error>`: The final HTML response or an error if any step fails.
 pub async fn handle_generate(
     _req: HttpRequest,
     form: Form<GenerateForm>,
@@ -76,7 +82,10 @@ pub async fn handle_generate(
     // Convert optional form fields into concrete values
     let auto_transpose = auto_transpose.is_some();
     let play_only_inscale: bool = play_only_inscale.map(|v| v == "1").unwrap_or(false);
-    let transpose_value: i32 = transpose.unwrap_or_else(|| "0".to_string()).parse().unwrap_or(0);
+    let transpose_value: i32 = transpose
+        .unwrap_or_else(|| "0".to_string())
+        .parse()
+        .unwrap_or(0);
 
     // Attempt to open the MSCX file and handle any errors
     let file = match File::open(&mscx_path) {
@@ -182,5 +191,7 @@ pub async fn handle_generate(
 
     // Decrement the generate counter and return the final HTML response
     GENERATE_COUNTER.fetch_sub(1, Ordering::SeqCst);
-    Ok(HttpResponse::Ok().content_type("text/html; charset=utf-8").body(response))
+    Ok(HttpResponse::Ok()
+        .content_type("text/html; charset=utf-8")
+        .body(response))
 }

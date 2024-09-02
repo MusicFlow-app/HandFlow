@@ -11,22 +11,22 @@ mod utils;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    // Initialize the logger to capture and display log messages
+    // Initialize the logger for capturing and displaying log messages
     env_logger::init();
 
-    // Start an Actix web server that listens on port 8080
+    // Start an Actix web server on port 8080
     HttpServer::new(|| {
         App::new()
-            // Route for the home page, handled by the handler_home function
+            // Define the home page route, mapped to `handler_home`
             .route("/", web::get().to(handler_home))
-            // Route for handling file uploads (MSCZ files), handled by the handle_mscz_upload function
+            // Route for handling MSCZ file uploads, mapped to `handle_mscz_upload`
             .service(web::resource("/upload").route(web::post().to(handle_mscz_upload)))
-            // Route for generating content based on uploaded files, handled by the handle_generate function
+            // Route for generating content from uploaded files, mapped to `handle_generate`
             .service(web::resource("/generate").route(web::post().to(handle_generate)))
-            // Serve static files from the "static" directory, with directory listing enabled
+            // Serve static files from the "static" directory with directory listing enabled
             .service(Files::new("/static", "static").show_files_listing())
     })
-    // Bind the server to the address 0.0.0.0 on port 8080 and start it
+    // Bind the server to 0.0.0.0:8080 and start it
     .bind("0.0.0.0:8080")?
     .run()
     .await
