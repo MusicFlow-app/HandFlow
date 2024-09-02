@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./static/img/HandFlow.png" alt="HandFlow Logo" width="300px">
+  <img src="./.github/assets/HandFlow.png" alt="HandFlow Logo" width="300px">
 </p>
 
 # HandFlow
@@ -30,7 +30,7 @@ Hey there! 👋 Welcome to HandFlow, a fun little project that helps you create 
 
 ## Demo
 
-![handflow_demo](./static/img/demo.gif)
+![handflow_demo](./.github/assets/demo.gif)
 
 ## Why Did We Make HandFlow? 🤔
 
