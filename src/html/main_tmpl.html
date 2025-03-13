@@ -1,10 +1,49 @@
-<label for="file-input">Upload the MuseScore .mscz format</label>
-<form action="/upload" method="post" enctype="multipart/form-data" onsubmit="return validateFile()">
-    <div id="drop-zone" class="drop-zone">
-        <p>Drag & Drop your .mscz file here or click to upload</p>
-        <input class="fileinput" id="file-input" type="file" name="file" accept=".mscz">
+<div class="upload-section">
+    <div class="upload-intro">
+        <h2>Convert Your MuseScore Files</h2>
+        <p class="upload-description">Transform your MuseScore compositions into beautiful handpan tablatures. Simply drag & drop your file or click below to start.</p>
     </div>
-    <div id="file-name" class="file-name">No file selected</div>
-    <button type="submit">Upload File</button>
-</form>
-<script src="/static/scripts/main.js"></script>
+    
+    <div id="drop-zone" class="drop-zone">
+        <div class="upload-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 16L12 8M12 8L15 11M12 8L9 11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M3 15V16C3 18.2091 4.79086 20 7 20H17C19.2091 20 21 18.2091 21 16V15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <div class="drop-zone-content">
+            <p class="drop-zone-title">Drop your MuseScore file here</p>
+            <p class="drop-zone-subtitle">or click to browse your files</p>
+            <p class="drop-zone-format">Accepts .mscz files</p>
+        </div>
+        <input type="file" id="file-input" accept=".mscz" style="display: none;">
+        <p id="file-name" class="file-name"></p>
+    </div>
+
+    <div class="upload-features">
+        <div class="feature-item">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 19V14H15V19M9 19H15M9 19H5V5H19V19H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M9 5V9H15V5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <h3>Easy Import</h3>
+            <p>Drag & drop your MuseScore files directly from your computer</p>
+        </div>
+        <div class="feature-item">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 5V3M12 21V19M5 12H3M21 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <h3>Smart Detection</h3>
+            <p>Automatic detection of notes, scales, and musical patterns</p>
+        </div>
+        <div class="feature-item">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 5H18C19.1046 5 20 5.89543 20 7V19C20 20.1046 19.1046 21 18 21H6C4.89543 21 4 20.1046 4 19V7C4 5.89543 4.89543 5 6 5H9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M12 12V3M12 3L15 6M12 3L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <h3>Quick Export</h3>
+            <p>Generate and download your handpan tablatures instantly</p>
+        </div>
+    </div>
+</div>

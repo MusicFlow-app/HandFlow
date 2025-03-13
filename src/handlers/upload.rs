@@ -1,5 +1,5 @@
 use crate::templates::{
-    html::generate_html_css_legend, html::load_header_content, html::sanitize_html,
+    html::generate_html_css_legend, html::sanitize_html,
 };
 use crate::templates::{parser::parse_mscx_metadata, parser::parse_mscx_parts};
 use crate::utils::{file::is_valid_zip, file::sanitize_file_name, scales::scales_list};
@@ -250,11 +250,7 @@ pub async fn handle_mscz_upload(mut payload: Multipart) -> HttpResponse {
         .replace("{{legend_html}}", &legend_html)
         .replace("{{scale_options}}", &grouped_options);
 
-    // Load header content
-    let header_content = load_header_content().await;
-    let response = header_content.replace("{{body}}", &body_content);
-
     HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
-        .body(response)
+        .body(body_content)
 }

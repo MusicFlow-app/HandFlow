@@ -1,0 +1,400 @@
+/* Main CSS file - Imports all component styles */
+@import './components/upload.css';
+
+/* Global styles */
+:root {
+    /* Colors */
+    --primary-color: #4CAF50;
+    --primary-hover: #45a049;
+    --accent-color: #f44336;
+    --accent-hover: #e53935;
+    
+    /* Text */
+    --text-color: #2c3e50;
+    --text-light: #ffffff;
+    
+    /* Backgrounds */
+    --background-light: #f8f9fa;
+    --background-dark: linear-gradient(145deg, #2a2a2a, #333);
+    --background-hover: #e9ecef;
+    --background-light-transparent: rgba(255, 255, 255, 0.05);
+    --background-hover-light: rgba(255, 255, 255, 0.15);
+    
+    /* Borders */
+    --border-color: #e9ecef;
+    --border-color-light: rgba(255, 255, 255, 0.2);
+    
+    /* Shadows */
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --primary-shadow: rgba(76, 175, 80, 0.3);
+    --accent-shadow: rgba(244, 67, 54, 0.3);
+    
+    /* Transparents */
+    --primary-transparent: rgba(76, 175, 80, 0.1);
+    
+    /* Layout */
+    --header-height: 120px;
+    --footer-height: 60px;
+    --content-max-width: 1200px;
+    --container-padding: clamp(1rem, 5vw, 2rem);
+    
+    /* Music Paper Background */
+    --staff-color: rgba(0, 0, 0, 0.05);
+    --staff-spacing: 8px;
+    --staff-height: 1px;
+}
+
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Base styles */
+html, body {
+    height: 100%;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%);
+    background-attachment: fixed;
+    position: relative;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent calc(var(--staff-spacing) * 4),
+        var(--staff-color) calc(var(--staff-spacing) * 4),
+        var(--staff-color) calc(var(--staff-spacing) * 4 + var(--staff-height)),
+        transparent calc(var(--staff-spacing) * 4 + var(--staff-height)),
+        transparent calc(var(--staff-spacing) * 24)
+    );
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+}
+
+/* App Layout */
+.app-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.app-header {
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+}
+
+/* Logo and Title */
+.logo-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    padding: 0.5rem;
+    transition: transform 0.3s ease-in-out;
+    max-width: min(300px, 80vw);
+}
+
+.logo-link:hover {
+    transform: translateY(-2px);
+}
+
+.logo-link:hover .title {
+    background: linear-gradient(135deg, #185964 0%, #103E4B 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transform: scale(1.02);
+}
+
+.logo {
+    width: 120px;
+    height: auto;
+    margin-bottom: 0.5rem;
+    filter: drop-shadow(0 4px 6px var(--shadow-color));
+    transition: transform 0.3s ease;
+}
+
+.logo-link:hover .logo {
+    transform: scale(1.05) rotate(-2deg);
+}
+
+.title {
+    font-family: 'Dancing Script', cursive;
+    font-size: 2.5rem;
+    color: #185964;
+    text-align: center;
+    margin: 0;
+    letter-spacing: -0.02em;
+    text-shadow: 2px 2px 4px rgba(16, 34, 51, 0.15);
+    transition: all 0.3s ease-in-out;
+    line-height: 1;
+}
+
+.sub-title {
+    font-size: 0.95rem;
+    margin-top: 0.3em;
+    color: var(--text-color);
+    opacity: 0.7;
+    text-align: center;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+/* Responsive Header */
+@media (max-width: 768px) {
+    .app-header {
+        padding: 1rem;
+    }
+
+    .logo {
+        width: 100px;
+    }
+
+    .title {
+        font-size: 2rem;
+    }
+
+    .sub-title {
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .app-header {
+        padding: 0.75rem;
+    }
+
+    .logo {
+        width: 80px;
+    }
+
+    .title {
+        font-size: 1.8rem;
+    }
+
+    .sub-title {
+        font-size: 0.8rem;
+    }
+}
+
+/* Main Content */
+.app-main {
+    flex: 1;
+    width: 100%;
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    padding: 2rem var(--container-padding);
+    position: relative;
+    z-index: 1;
+}
+
+.main-content {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    box-shadow: 
+        0 4px 6px rgba(0, 0, 0, 0.05),
+        0 10px 20px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Footer */
+.app-footer {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(5px);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 1.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.footer-content {
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.footer-links {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.github-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-color);
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.5);
+    transition: all 0.3s ease;
+}
+
+.github-link:hover {
+    background: rgba(255, 255, 255, 0.8);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.github-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--text-color);
+}
+
+.copyright {
+    font-size: 0.9rem;
+    color: var(--text-color);
+    opacity: 0.8;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .app-header {
+        padding: 1.5rem 1rem;
+    }
+
+    .logo-link {
+        width: 250px;
+    }
+
+    .title {
+        font-size: 48px;
+    }
+
+    .app-main {
+        padding: 1.5rem var(--container-padding);
+    }
+}
+
+@media (max-width: 480px) {
+    .app-header {
+        padding: 1rem;
+    }
+
+    .logo-link {
+        width: 200px;
+        padding: 0.5rem;
+    }
+
+    .title {
+        font-size: 36px;
+    }
+
+    .sub-title {
+        font-size: small;
+    }
+
+    .app-main {
+        padding: 1rem var(--container-padding);
+    }
+}
+
+/* Main Content */
+.app-main {
+    grid-area: main;
+    width: 100%;
+    padding: var(--container-padding);
+}
+
+.main-content {
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Footer */
+.app-footer {
+    grid-area: footer;
+    background: var(--background-light);
+    border-top: 1px solid var(--border-color);
+    padding: var(--container-padding);
+}
+
+.footer-content {
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    opacity: 0.8;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    :root {
+        --header-height: 100px;
+    }
+
+    .logo-link {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .logo {
+        width: 80px;
+        height: 80px;
+    }
+}
+
+@media (max-width: 480px) {
+    :root {
+        --header-height: 80px;
+        --container-padding: 1rem;
+    }
+
+    .app-header {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+
+    .header-content {
+        padding: 0.5rem 0;
+    }
+
+    .logo {
+        width: 60px;
+        height: 60px;
+    }
+
+    .footer-content {
+        font-size: 0.8rem;
+    }
+}

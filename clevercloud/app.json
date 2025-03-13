@@ -1,0 +1,11 @@
+{
+  "build": {
+    "type": "rust",
+    "entry-point": "src/main.rs"
+  },
+  "deploy": {
+    "before_build": [
+      "mkdir -p static/audio/handpan"
+    ]
+  }
+}

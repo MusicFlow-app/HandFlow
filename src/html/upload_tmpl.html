@@ -1,76 +1,274 @@
-<div class="information-container">
-    <h3>{{work_title}}</h3>
-    <h4>Composer: {{composer}} <span class="arranger">(Arranger: {{arranger}})</span></h4>
-</div>
-<div class="informations">
-    <div class="information-container">
-        <form action="/generate" method="post">
-            <input type="hidden" name="mscx_path" value="{{mscx_path}}">
-            <input type="hidden" id="part_name" name="part_name" value="">
-            <input type="hidden" id="play_only_inscale" name="play_only_inscale" value="0">
-            <label for="part_id">Select Part:</label>
-            <select name="part_id" id="part_id">
-                {{part_options}}
-            </select>
-            <label for="scale">Select Handpan Scale:</label>
-            <select name="scale" id="scale">
-                {{scale_options}}
-            </select>
-            <div class="toggle-switch">
-                <label for="transpose">Auto Transpose:</label>
-                <input type="checkbox" id="auto_transpose" name="auto_transpose">
-                <label class="toggle-label" for="auto_transpose"></label>
-            </div>
-            <div id="transpose_slider" style="display: block;">
-                <label for="transpose">Transpose:</label>
-                <input type="range" id="transpose" name="transpose" min="-25" max="25" value="0">
-                <span id="transpose_value" class="value-display" style="color: darkgreen;">0</span>
-            </div>
-            <button type="submit">Generate Tab</button>
-        </form>
-    </div>
-    <div  id="controls" class="information-container">
-        <h3>Controls</h3>
-        <div class="controls">
-            <div class="zoom">
-                <label for="transpose">Size handpan:</label>
-                <button id="decrease" class="decrease">-</button>
-                <button id="increase" class="increase">+</button>
-            </div>
-            <div class="toggle-container">  
-                <div class="toggle-switch">
-                    <label for="inlineDisplay">Display inline:</label>
-                    <input type="checkbox" id="inlineDisplay" name="inlineDisplay" checked>
-                    <label class="toggle-label" for="inlineDisplay"></label>
+<main class="upload-content">
+    <header class="piece-header">
+        <div class="piece-info">
+            <h1 class="piece-title">{{work_title}}</h1>
+            <div class="piece-meta">
+                <div class="meta-item composer" aria-label="Composer">
+                    <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                    </svg>
+                    <span>By {{composer}}</span>
                 </div>
-                <div class="toggle-switch">
-                    <label for="showRestColor">show Rest Color:</label>
-                    <input type="checkbox" id="showRestColor" name="showRestColor" checked>
-                    <label class="toggle-label" for="showRestColor"></label>
-                </div>
-                <div class="toggle-switch">
-                    <label for="showSvg">Show Handpan:</label>
-                    <input type="checkbox" id="showSvg" name="showSvg" checked>
-                    <label class="toggle-label" for="showSvg"></label>
-                </div>
-            </div>
-            <div class="autoPlay">  
-                <label for="scrollRate">Scroll Rate (BPM):</label>
-                <input type="range" id="scrollRateBpm" name="scrollRateBpm" min="0" max="240" value="120">
-                <span id="scrollRateBpmValue" class="value-display">120 Bpm</span>
-            </div>
-            <div class="autoPlay">
-                <button id="playPause">▶ Play</button>
-                <button id="resetScroll">↪ Reset</button>
-                <div class="toggle-switch" style="display:inline-flex;">
-                    <label for="togglePlayInScale">Play only inscale notes:</label>
-                    <input type="checkbox" id="togglePlayInScale" name="togglePlayInScale">
-                    <label class="toggle-label" for="togglePlayInScale"></label>
+                <div class="meta-item arranger" aria-label="Arranger">
+                    <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/>
+                    </svg>
+                    <span>Arranged by {{arranger}}</span>
                 </div>
             </div>
         </div>
-    </div>
-    {{legend_html}}
-</div>
-<div class="generate-container" id="generate-container"></div>
-<script src="/static/scripts/control.js"></script>
+    </header>
+    <section class="tab-configuration active" id="step-configuration" aria-labelledby="config-title">
+        <div class="step-header">
+            <div class="step-number" aria-hidden="true">1</div>
+            <h2 id="config-title">Configure Your Tablature</h2>
+        </div>
+
+        <form id="generate-form" class="config-form" action="/generate" method="post">
+            <div class="form-hidden-inputs">
+                <input type="hidden" name="mscx_path" value="{{mscx_path}}">
+                <input type="hidden" id="part_name" name="part_name" value="">
+                <input type="hidden" id="play_only_inscale" name="play_only_inscale" value="0">
+            </div>
+
+            <div class="form-section">
+                <div class="form-group" role="group" aria-labelledby="part-label">
+                    <label id="part-label" for="part_id" class="form-label">
+                        <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                        </svg>
+                        <span>Musical Part</span>
+                    </label>
+                    <div class="select-wrapper">
+                        <select name="part_id" id="part_id" class="styled-select" aria-describedby="part-desc">
+                            {{part_options}}
+                        </select>
+                        <svg class="select-arrow" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                            <path d="M7 10l5 5 5-5z"/>
+                        </svg>
+                    </div>
+                    <div id="part-desc" class="sr-only">Select the musical part you want to convert to tablature</div>
+                </div>
+
+                <div class="form-group" role="group" aria-labelledby="scale-label">
+                    <label id="scale-label" for="scale" class="form-label">
+                        <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>
+                        </svg>
+                        <span>Handpan Scale</span>
+                    </label>
+                    <div class="select-wrapper">
+                        <select name="scale" id="scale" class="styled-select" aria-describedby="scale-desc">
+                            {{scale_options}}
+                        </select>
+                        <svg class="select-arrow" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                            <path d="M7 10l5 5 5-5z"/>
+                        </svg>
+                    </div>
+                    <div id="scale-desc" class="sr-only">Choose the handpan scale for your tablature</div>
+                </div>
+            </div>
+
+            <div class="form-section transpose-options" role="group" aria-labelledby="transpose-title">
+                <div class="section-header">
+                    <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M7.5 5.6L5 7l5 5-5 5 2.5 1.4L13 13z"/>
+                    </svg>
+                    <h3 id="transpose-title">Transposition Options</h3>
+                </div>
+
+                <div class="transpose-controls">
+                    <div class="control-group">
+                        <div class="toggle-switch modern" role="switch" aria-checked="false">
+                            <input type="checkbox" id="auto_transpose" name="auto_transpose">
+                            <label for="auto_transpose">
+                                <span class="toggle-text">Auto Transpose</span>
+                            </label>
+                        </div>
+                        <div id="auto-transpose-desc" class="sr-only">Enable automatic transposition based on the selected scale</div>
+                    </div>
+
+                    <div id="transpose_slider" class="control-group" role="group" aria-labelledby="manual-transpose-label">
+                        <label id="manual-transpose-label" for="transpose">Manual Transpose</label>
+                        <div class="slider-with-value">
+                            <input type="range" 
+                                   id="transpose" 
+                                   name="transpose" 
+                                   min="-25" 
+                                   max="25" 
+                                   value="0"
+                                   aria-valuemin="-25"
+                                   aria-valuemax="25"
+                                   aria-valuenow="0"
+                                   aria-valuetext="No transposition">
+                            <output for="transpose" id="transpose_value" class="value-display">0</output>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="generate-button">
+                    <svg class="button-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M19 9l-7 7-7-7M12 3c-4.96 0-9 4.04-9 9s4.04 9 9 9 9-4.04 9-9-4.04-9-9-9m0 16c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7"/>
+                    </svg>
+                    <span>Generate Tablature</span>
+                </button>
+            </div>
+        </form>
+    </section>
+        <section class="tab-playback hidden" id="step-playback" aria-labelledby="playback-title">
+        <div class="step-header">
+            <div class="step-number" aria-hidden="true">2</div>
+            <h2 id="playback-title">Playback Controls</h2>
+        </div>
+
+        <div class="playback-controls-grid">
+            <div class="control-card display-settings" role="region" aria-labelledby="display-settings-title">
+                <h3 id="display-settings-title">Display Settings</h3>
+                <div class="card-content">
+                    <div class="control-group" role="group" aria-labelledby="size-control-label">
+                        <span id="size-control-label" class="control-label">Handpan Size</span>
+                        <div class="size-controls" role="toolbar" aria-label="Size adjustment">
+                            <button id="decrease" class="control-button" aria-label="Decrease size">
+                                <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                                    <path d="M19 13H5v-2h14v2z"/>
+                                </svg>
+                            </button>
+                            <button id="increase" class="control-button" aria-label="Increase size">
+                                <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="toggle-group" role="group" aria-label="Display options">
+                        <div class="toggle-item">
+                            <div class="toggle-switch modern" role="switch" aria-checked="true">
+                                <input type="checkbox" id="inlineDisplay" checked>
+                                <label for="inlineDisplay">
+                                    <span class="toggle-label">Inline Display</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="toggle-item">
+                            <div class="toggle-switch modern" role="switch" aria-checked="true">
+                                <input type="checkbox" id="showRestColor" checked>
+                                <label for="showRestColor">
+                                    <span class="toggle-label">Rest Colors</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="toggle-item">
+                            <div class="toggle-switch modern" role="switch" aria-checked="true">
+                                <input type="checkbox" id="showSvg" checked>
+                                <label for="showSvg">
+                                    <span class="toggle-label">Handpan View</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-card playback-settings" role="region" aria-labelledby="playback-settings-title">
+                <h3 id="playback-settings-title">Playback</h3>
+                <div class="card-content">
+                    <div class="main-controls" role="toolbar" aria-label="Playback controls">
+                        <button id="playPause" class="play-button" aria-label="Play or pause">
+                            <svg class="play-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                            <span>Play</span>
+                        </button>
+                        <button id="resetScroll" class="reset-button" aria-label="Reset playback">
+                            <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                                <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+                            </svg>
+                            <span>Reset</span>
+                        </button>
+                    </div>
+
+                    <div class="toggle-item">
+                        <div class="toggle-switch modern" role="switch" aria-checked="false">
+                            <input type="checkbox" id="togglePlayInScale">
+                            <label for="togglePlayInScale">
+                                <span class="toggle-label">In-Scale Notes Only</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="slider-control" role="group" aria-labelledby="tempo-label">
+                        <label id="tempo-label" for="scrollRateBpm">Tempo</label>
+                        <div class="slider-with-value">
+                            <input type="range" 
+                                   id="scrollRateBpm" 
+                                   min="0" 
+                                   max="240" 
+                                   value="120"
+                                   aria-valuemin="0"
+                                   aria-valuemax="240"
+                                   aria-valuenow="120"
+                                   aria-valuetext="120 beats per minute">
+                            <output for="scrollRateBpm" id="scrollRateBpmValue" class="value-display">120 BPM</output>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-card metronome-settings" role="region" aria-labelledby="metronome-settings-title">
+                <h3 id="metronome-settings-title">Metronome</h3>
+                <div class="card-content">
+                    <button id="metronomeToggle" class="metronome-button" aria-label="Toggle metronome">
+                        <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
+                        </svg>
+                        <span>Start</span>
+                    </button>
+
+                    <div class="metronome-controls">
+                        <div class="control-group" role="group" aria-labelledby="time-signature-label">
+                            <label id="time-signature-label" for="beatsPerBar">Time Signature</label>
+                            <select id="beatsPerBar" class="styled-select" aria-label="Select time signature">
+                                <option value="2">2/4</option>
+                                <option value="3">3/4</option>
+                                <option value="4" selected>4/4</option>
+                                <option value="6">6/8</option>
+                                <option value="8">8/8</option>
+                            </select>
+                        </div>
+
+                        <div class="slider-control" role="group" aria-labelledby="volume-label">
+                            <label id="volume-label" for="metronomeVolume">Volume</label>
+                            <div class="slider-with-value">
+                                <input type="range" 
+                                       id="metronomeVolume" 
+                                       min="0" 
+                                       max="100" 
+                                       value="80"
+                                       aria-valuemin="0"
+                                       aria-valuemax="100"
+                                       aria-valuenow="80"
+                                       aria-valuetext="80 percent volume">
+                                <output for="metronomeVolume" id="metronomeVolumeValue" class="value-display">80%</output>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="tab-legend" aria-label="Tablature legend">
+        {{legend_html}}
+    </section>
+
+    <section class="tab-display" aria-label="Generated tablature">
+        <div id="generate-container" class="generate-container" role="region" aria-live="polite"></div>
+    </section>
+
+    <div class="status-messages" role="status" aria-live="polite"></div>
+</main>
+
+<link rel="stylesheet" href="/static/styles/upload.css">

@@ -1,0 +1,226 @@
+/* Audio controls container */
+.audio-controls {
+    background: var(--background-dark);
+    border-radius: 12px;
+    padding: 25px;
+    margin: 20px 0;
+    color: var(--text-light);
+    box-shadow: 0 4px 15px var(--shadow-color);
+}
+
+/* Control sections */
+.playback-controls,
+.bpm-control,
+.metronome-controls {
+    background: var(--background-light-transparent);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.playback-controls:last-child,
+.bpm-control:last-child,
+.metronome-controls:last-child {
+    margin-bottom: 0;
+}
+
+/* Section headers */
+.section-header {
+    margin: 0 0 15px 0;
+    font-size: 1.2em;
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-header::before {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 18px;
+    background: var(--primary-color);
+    border-radius: 2px;
+}
+
+/* Slider controls */
+.slider-control {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 5px 0;
+}
+
+.slider-control:last-child {
+    margin-bottom: 0;
+}
+
+.slider-control label {
+    width: 120px;
+    font-size: 0.9em;
+    color: var(--text-light);
+}
+
+/* Range inputs */
+.slider-control input[type="range"] {
+    flex: 1;
+    height: 5px;
+    border-radius: 5px;
+    background: linear-gradient(to right, var(--primary-color) var(--value-percent, 50%), var(--background-dark) var(--value-percent, 50%));
+    outline: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    margin: 0 15px;
+}
+
+.slider-control input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--text-light);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 5px var(--shadow-color);
+    transition: transform 0.2s;
+}
+
+.slider-control input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    background: var(--primary-color);
+}
+
+.slider-control input[type="range"]:active::-webkit-slider-thumb {
+    transform: scale(0.95);
+}
+
+/* Value display */
+.value-display {
+    width: 70px;
+    text-align: right;
+    font-size: 0.9em;
+    font-family: monospace;
+    color: var(--primary-color);
+    background: var(--primary-transparent);
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+
+/* Metronome controls */
+.metronome-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.metronome-options {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+/* Select inputs */
+.metronome-options select {
+    flex: 1;
+    background: var(--background-light-transparent);
+    color: var(--text-light);
+    border: 1px solid var(--border-color-light);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.metronome-options select:hover {
+    background: var(--background-hover-light);
+}
+
+.metronome-options select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-transparent);
+}
+
+/* Toggle buttons */
+.btn-toggle {
+    background: var(--primary-color);
+    border: none;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px var(--primary-shadow);
+}
+
+.btn-toggle:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--primary-shadow);
+}
+
+.btn-toggle:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 4px var(--primary-shadow);
+}
+
+.btn-toggle.active {
+    background: var(--accent-color);
+    box-shadow: 0 2px 8px var(--accent-shadow);
+}
+
+.btn-toggle.active:hover {
+    background: var(--accent-hover);
+    box-shadow: 0 4px 12px var(--accent-shadow);
+}
+
+/* Animations */
+.beat-flash {
+    animation: beatFlash 0.1s ease-out;
+}
+
+@keyframes beatFlash {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); box-shadow: 0 4px 15px var(--primary-shadow); }
+    100% { transform: scale(1); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .audio-controls {
+        padding: 15px;
+    }
+
+    .playback-controls,
+    .bpm-control,
+    .metronome-controls {
+        padding: 12px;
+    }
+
+    .slider-control {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .slider-control label {
+        width: auto;
+    }
+
+    .value-display {
+        width: auto;
+        text-align: left;
+    }
+
+    .metronome-options {
+        flex-direction: column;
+        gap: 10px;
+    }
+}

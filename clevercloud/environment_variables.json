@@ -1,0 +1,7 @@
+{
+  "env": {
+    "CC_RUST_VERSION": "latest",
+    "PORT": "8080",
+    "RUST_LOG": "info"
+  }
+}

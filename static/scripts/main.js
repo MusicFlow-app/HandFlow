@@ -1,67 +1,101 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const dropZone = document.getElementById("drop-zone");
-    const fileInput = document.getElementById("file-input");
-    const fileNameDisplay = document.getElementById("file-name");
+import { AudioController } from './modules/audio-controller.js';
+import { DisplayController } from './modules/display-controller.js';
+import { FileHandler } from './modules/file-handler.js';
+import { StepsController } from './modules/steps-controller.js';
 
-    // Utility function to update file name display
-    const updateFileName = (name) => {
-        fileNameDisplay.textContent = name;
-    };
-
-    // Handle drag over event
-    const handleDragOver = (e) => {
-        e.preventDefault();
-        dropZone.classList.add("dragover");
-    };
-
-    // Handle drag leave event
-    const handleDragLeave = () => {
-        dropZone.classList.remove("dragover");
-    };
-
-    // Handle drop event
-    const handleDrop = (e) => {
-        e.preventDefault();
-        dropZone.classList.remove("dragover");
-
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            fileInput.files = files;
-            updateFileName(files[0].name);
-        }
-    };
-
-    // Handle file input change event
-    const handleFileInputChange = () => {
-        if (fileInput.files.length > 0) {
-            updateFileName(fileInput.files[0].name);
-        }
-    };
-
-    // Attach event listeners
-    dropZone.addEventListener("dragover", handleDragOver);
-    dropZone.addEventListener("dragleave", handleDragLeave);
-    dropZone.addEventListener("drop", handleDrop);
-    dropZone.addEventListener("click", () => fileInput.click());
-    fileInput.addEventListener("change", handleFileInputChange);
-});
-
-// Validate the file type before form submission
-function validateFile() {
-    const fileInput = document.getElementById("file-input");
-
-    if (fileInput.files.length === 0) {
-        alert("Please select a file before uploading.");
-        return false;
+export class App {
+    constructor() {
+        console.log('Initializing App...');
+        // Initialize controllers first
+        this.initializeControllers();
+        // Then set up event listeners
+        this.initializeEventListeners();
+        // Finally, load initial state
+        this.loadInitialState();
+        console.log('App initialized');
     }
 
-    const fileName = fileInput.files[0].name;
-    const fileExtension = fileName.split('.').pop().toLowerCase();
-
-    if (fileExtension !== 'mscz') {
-        alert("Invalid file type. Please upload a .mscz file.");
-        return false;
+    initializeControllers() {
+        try {
+            console.log('Initializing controllers...');
+            this.audioController = new AudioController();
+            this.displayController = new DisplayController();
+            this.fileHandler = new FileHandler();
+            this.stepsController = new StepsController();
+            console.log('Controllers initialized');
+        } catch (error) {
+            console.error('Error initializing controllers:', error);
+        }
     }
 
-    return true;
+    initializeEventListeners() {
+        try {
+            console.log('Setting up event listeners...');
+            // Handle cleanup on page unload
+            const cleanupHandler = () => this.cleanup();
+            window.addEventListener('beforeunload', cleanupHandler);
+            this.cleanupHandler = cleanupHandler; // Store reference for cleanup
+
+            // Listen for piece loaded events
+            const pieceLoadedHandler = (e) => {
+                console.log('Piece loaded:', e.detail);
+            };
+            document.addEventListener('pieceLoaded', pieceLoadedHandler);
+            this.pieceLoadedHandler = pieceLoadedHandler; // Store reference for cleanup
+
+            console.log('Event listeners set up');
+        } catch (error) {
+            console.error('Error setting up event listeners:', error);
+        }
+    }
+
+    async loadInitialState() {
+        try {
+            console.log('Loading initial state...');
+            const pieceInfo = document.querySelector('.piece-info');
+            if (pieceInfo) {
+                document.dispatchEvent(new CustomEvent('pieceLoaded', {
+                    detail: {
+                        title: pieceInfo.querySelector('h3')?.textContent || '',
+                        composer: pieceInfo.querySelector('.composer')?.textContent || '',
+                        arranger: pieceInfo.querySelector('.arranger')?.textContent || ''
+                    }
+                }));
+            }
+            console.log('Initial state loaded');
+        } catch (error) {
+            console.error('Error loading initial state:', error);
+        }
+    }
+
+    cleanup() {
+        try {
+            console.log('Starting App cleanup...');
+            // Clean up controllers
+            if (this.audioController && typeof this.audioController.cleanup === 'function') {
+                this.audioController.cleanup();
+            }
+            if (this.displayController && typeof this.displayController.cleanup === 'function') {
+                this.displayController.cleanup();
+            }
+            if (this.fileHandler && typeof this.fileHandler.cleanup === 'function') {
+                this.fileHandler.cleanup();
+            }
+            if (this.stepsController && typeof this.stepsController.cleanup === 'function') {
+                this.stepsController.cleanup();
+            }
+
+            // Clean up event listeners
+            if (this.cleanupHandler) {
+                window.removeEventListener('beforeunload', this.cleanupHandler);
+            }
+            if (this.pieceLoadedHandler) {
+                document.removeEventListener('pieceLoaded', this.pieceLoadedHandler);
+            }
+
+            console.log('App cleanup complete');
+        } catch (error) {
+            console.error('Error during cleanup:', error);
+        }
+    }
 }

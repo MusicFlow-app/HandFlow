@@ -1,0 +1,8 @@
+{
+  "build": {
+    "target": "release"
+  },
+  "deploy": {
+    "runtimeVersion": "latest"
+  }
+}
