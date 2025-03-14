@@ -2,6 +2,7 @@ import { AudioController } from './modules/audio-controller.js';
 import { DisplayController } from './modules/display-controller.js';
 import { FileHandler } from './modules/file-handler.js';
 import { StepsController } from './modules/steps-controller.js';
+import { RecentFilesHandler } from './modules/recent-files.js';
 
 export class App {
     constructor() {
@@ -22,6 +23,7 @@ export class App {
             this.displayController = new DisplayController();
             this.fileHandler = new FileHandler();
             this.stepsController = new StepsController();
+            this.recentFilesHandler = new RecentFilesHandler();
             console.log('Controllers initialized');
         } catch (error) {
             console.error('Error initializing controllers:', error);
@@ -83,6 +85,9 @@ export class App {
             }
             if (this.stepsController && typeof this.stepsController.cleanup === 'function') {
                 this.stepsController.cleanup();
+            }
+            if (this.recentFilesHandler && typeof this.recentFilesHandler.cleanup === 'function') {
+                this.recentFilesHandler.cleanup();
             }
 
             // Clean up event listeners

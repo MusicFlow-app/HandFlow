@@ -5,7 +5,11 @@
   },
   "deploy": {
     "before_build": [
-      "mkdir -p static/audio/handpan"
+      "mkdir -p static/audio/handpan",
+      "mkdir -p migrations"
+    ],
+    "after_build": [
+      "psql $POSTGRESQL_ADDON_URI -f migrations/init.sql"
     ]
   }
 }

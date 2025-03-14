@@ -29,3 +29,12 @@ web-sys = { version = "0.3", features = [
     "PannerNode", "BiquadFilterType"
 ] }
 wasm-bindgen-futures = "0.4"
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "time", "uuid"] }
+time = { version = "0.3", features = ["serde"] }
+uuid = { version = "1.0", features = ["v4", "serde"] }
+dotenv = "0.15"
+sha2 = "0.10"
+base16ct = "0.2"
+handlebars = "4.3"
+home = "=0.5.5"
+serde_json = "1.0"

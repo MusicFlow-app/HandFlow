@@ -1,12 +1,14 @@
+use crate::state::AppState;
 use crate::templates::{
     html::generate_html_css_legend, html::sanitize_html,
 };
 use crate::templates::{parser::parse_mscx_metadata, parser::parse_mscx_parts};
 use crate::utils::{file::is_valid_zip, file::sanitize_file_name, scales::scales_list};
 use actix_multipart::Multipart;
-use actix_web::HttpResponse;
+use actix_web::{web, HttpResponse};
 use futures_util::StreamExt;
 use rand::{distributions::Alphanumeric, Rng};
+
 use std::io::Read;
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
@@ -61,7 +63,8 @@ const MAX_UPLOADS: usize = 100;
 ///    - Returns appropriate HTTP responses (e.g., `InternalServerError`, `BadRequest`) based on the error context.
 ///
 /// 8. **Final Response**: Returns an HTTP response with the generated HTML content, including metadata about the uploaded and processed file.
-pub async fn handle_mscz_upload(mut payload: Multipart) -> HttpResponse {
+pub async fn handle_mscz_upload(payload: Multipart, state: web::Data<AppState>) -> HttpResponse {
+    let mut payload = payload;
     let current_uploads = UPLOAD_COUNTER.fetch_add(1, Ordering::SeqCst);
 
     if current_uploads >= MAX_UPLOADS {
@@ -177,6 +180,49 @@ pub async fn handle_mscz_upload(mut payload: Multipart) -> HttpResponse {
     if mscx_content.is_empty() {
         return HttpResponse::BadRequest()
             .body("Failed to extract .mscx content from uploaded file");
+    }
+
+    // Parse metadata from the MSCX content
+    let (title, composer, arranger) = parse_mscx_metadata(&mscx_content);
+
+    // Log file usage to database
+    let file_size = if let Some(path) = mscx_path.as_ref() {
+        match fs::metadata(path).await {
+            Ok(metadata) => metadata.len() as i64,
+            Err(e) => {
+                log::error!("Failed to get file size: {}", e);
+                0
+            }
+        }
+    } else {
+        0
+    };
+
+    let filename = mscx_path.as_ref().unwrap().file_name().unwrap().to_string_lossy().to_string();
+    let db_metadata = serde_json::json!({
+        "title": title,
+        "composer": composer,
+        "arranger": arranger
+    });
+
+    // Store metadata and MSCX content in database with uniqueness check
+    match state.db.log_file_usage(
+        &filename,
+        file_size,
+        db_metadata,
+        &mscx_content
+    ).await {
+        Ok(usage) => {
+            // If this is a duplicate file (created_at != last_used_at), log it
+            if usage.created_at != usage.last_used_at {
+                log::info!(
+                    "Duplicate file detected: '{}'. Using existing record from {}",
+                    filename,
+                    usage.created_at
+                );
+            }
+        }
+        Err(e) => log::error!("Failed to log file usage: {:?}", e),
     }
 
     let available_parts = parse_mscx_parts(&mscx_content);

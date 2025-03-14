@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS file_usage (
+    id UUID PRIMARY KEY,
+    filename VARCHAR(255) NOT NULL,
+    file_size BIGINT NOT NULL,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    mscx_content TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_used_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
