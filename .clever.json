@@ -1,11 +1,12 @@
 {
   "apps": [
     {
-      "app_id": "app_c28c170d-8347-4d98-8b63-33e6af1a148b",
-      "org_id": "user_2ddd8775-6150-462d-a8c9-2b51716fc298",
-      "deploy_url": "https://push-n3-par-clevercloud-customers.services.clever-cloud.com/app_c28c170d-8347-4d98-8b63-33e6af1a148b.git",
-      "name": "handflow",
-      "alias": "handflow"
+      "app_id": "app_72dc0c19-6080-45c5-b6c5-bcd932673cd6",
+      "org_id": "orga_c7767b74-60be-4716-addf-bb1da4f78b3b",
+      "deploy_url": "https://push-n3-par-clevercloud-customers.services.clever-cloud.com/app_72dc0c19-6080-45c5-b6c5-bcd932673cd6.git",
+      "git_ssh_url": "git+ssh://git@push-n3-par-clevercloud-customers.services.clever-cloud.com/app_72dc0c19-6080-45c5-b6c5-bcd932673cd6.git",
+      "name": "handflow-ng",
+      "alias": "handflow-ng"
     }
   ]
 }
