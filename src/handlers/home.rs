@@ -13,11 +13,11 @@ use tokio::fs;
 ///
 /// 1. **Cleans Up Old Uploads**: Asynchronously deletes files in the "uploads" directory that are older than 600 seconds. If the cleanup fails, it logs the error and returns a `500 Internal Server Error` response with the message "Server error".
 ///
-/// 2. **Reads HTML Template**: Asynchronously reads the `main_tmpl.html` file, which serves as the main HTML template for the home page. If reading the file fails, it logs the error and returns a `500 Internal Server Error` response with the message "Server error".
+/// 2. **Reads HTML Template**: Asynchronously reads the `home.html` file, which serves as the main HTML template for the home page. If reading the file fails, it logs the error and returns a `500 Internal Server Error` response with the message "Server error".
 ///
 /// 3. **Loads Header Content**: Asynchronously loads the header content by calling the `load_header_content` function.
 ///
-/// 4. **Inserts Body Content**: Replaces the `{{body}}` placeholder in the header content with the content from `main_tmpl.html`.
+/// 4. **Inserts Body Content**: Replaces the `{{body}}` placeholder in the header content with the content from `home.html`.
 ///
 /// 5. **Returns Response**: Constructs and returns an HTTP response with the final HTML content, setting the content type to `text/html; charset=utf-8` and returning it as a `200 OK` response.
 ///
@@ -42,10 +42,10 @@ pub async fn handler_home(state: web::Data<AppState>) -> Result<HttpResponse, Er
     };
 
     // Read template content
-    let body_content = match fs::read_to_string("src/html/main_tmpl.html").await {
+    let body_content = match fs::read_to_string("src/html/home.html").await {
         Ok(content) => content,
         Err(e) => {
-            log::error!("Failed to read main_tmpl.html: {}", e);
+            log::error!("Failed to read home.html: {}", e);
             return Ok(HttpResponse::InternalServerError().body("Server error"));
         }
     };

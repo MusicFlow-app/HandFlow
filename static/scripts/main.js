@@ -3,6 +3,8 @@ import { DisplayController } from './modules/display-controller.js';
 import { FileHandler } from './modules/file-handler.js';
 import { StepsController } from './modules/steps-controller.js';
 import { RecentFilesHandler } from './modules/recent-files.js';
+import { TabGenerator } from './modules/tab-generator.js';
+import { LibraryFilter } from './modules/library-filter.js';
 
 export class App {
     constructor() {
@@ -18,12 +20,14 @@ export class App {
 
     initializeControllers() {
         try {
+            this.libraryFilter = new LibraryFilter();
             console.log('Initializing controllers...');
             this.audioController = new AudioController();
             this.displayController = new DisplayController();
             this.fileHandler = new FileHandler();
             this.stepsController = new StepsController();
             this.recentFilesHandler = new RecentFilesHandler();
+            this.tabGenerator = new TabGenerator();
             console.log('Controllers initialized');
         } catch (error) {
             console.error('Error initializing controllers:', error);
@@ -88,6 +92,9 @@ export class App {
             }
             if (this.recentFilesHandler && typeof this.recentFilesHandler.cleanup === 'function') {
                 this.recentFilesHandler.cleanup();
+            }
+            if (this.tabGenerator && typeof this.tabGenerator.cleanup === 'function') {
+                this.tabGenerator.cleanup();
             }
 
             // Clean up event listeners

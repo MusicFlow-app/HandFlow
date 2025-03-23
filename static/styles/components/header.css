@@ -1,0 +1,59 @@
+@import '../variables.css';
+
+.app-header {
+    padding: var(--spacing-xl) 0 var(--spacing-lg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.logo-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    transition: transform var(--transition-speed) var(--transition-timing);
+}
+
+.logo {
+    width: 120px;
+    height: auto;
+    margin-bottom: var(--spacing-md);
+    filter: drop-shadow(0 4px 8px var(--shadow-color));
+}
+
+.title {
+    font-family: var(--font-display);
+    font-size: 3.5rem;
+    color: var(--primary-color);
+    margin: 0;
+    letter-spacing: -1px;
+    text-shadow: 2px 2px 4px var(--shadow-text);
+}
+
+.sub-title {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin: 0.5rem 0 0;
+    font-weight: 400;
+}
+
+@media (max-width: 768px) {
+    .app-header {
+        padding: var(--spacing-lg) 0;
+    }
+
+    .logo {
+        width: 140px;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .title {
+        font-size: 2.5rem;
+    }
+
+    .sub-title {
+        font-size: 1rem;
+    }
+}

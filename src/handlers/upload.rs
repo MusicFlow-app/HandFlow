@@ -268,7 +268,7 @@ pub async fn handle_mscz_upload(payload: Multipart, state: web::Data<AppState>) 
 
     let (work_title, composer, arranger) = parse_mscx_metadata(&mscx_content);
 
-    let body_path = "src/html/upload_tmpl.html";
+    let body_path = "src/html/file_processor.html";
     let mut body_file = match tokio::fs::File::open(body_path).await {
         Ok(file) => file,
         Err(e) => {

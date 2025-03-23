@@ -85,6 +85,7 @@ impl Database {
         Ok(row)
     }
 
+    #[allow(dead_code)]
     pub async fn get_file_usage(&self, id: Uuid) -> Result<Option<FileUsage>, sqlx::Error> {
         let row = sqlx::query_as::<_, FileUsage>("
             SELECT *

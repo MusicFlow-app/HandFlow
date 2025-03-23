@@ -133,7 +133,7 @@ pub async fn handle_generate(
     let scale_notes_slice: &[u8] = &scale_notes;
 
     // Load the HTML template for generating the response
-    let template_path = "src/html/generate_tmpl.html";
+    let template_path = "src/html/tablature.html";
     let mut template_file = match File::open(template_path) {
         Ok(file) => file,
         Err(e) => {

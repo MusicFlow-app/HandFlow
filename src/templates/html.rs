@@ -9,7 +9,7 @@ static HEADER_CONTENT: OnceCell<String> = OnceCell::new();
 /// This function:
 ///
 /// 1. **Checks Cache**: Returns the cached content if it is already loaded in `HEADER_CONTENT`.
-/// 2. **Reads Header File**: Reads the header content from `html_tmpl.html` asynchronously if not cached.
+/// 2. **Reads Header File**: Reads the header content from `wrapper.html` asynchronously if not cached.
 /// 3. **Handles Errors**: Logs an error and returns an empty string if the file cannot be read.
 /// 4. **Caches Content**: Stores the loaded content in `HEADER_CONTENT` for future requests.
 /// 5. **Returns**: The header content as a `String`.
@@ -20,11 +20,11 @@ pub async fn load_header_content() -> String {
     if let Some(content) = HEADER_CONTENT.get() {
         content.clone()
     } else {
-        let header_path = PathBuf::from("src/html/html_tmpl.html");
+        let header_path = PathBuf::from("src/html/wrapper.html");
         let content = match fs::read_to_string(header_path).await {
             Ok(content) => content,
             Err(_) => {
-                log::error!("Failed to read html_tmpl.html");
+                log::error!("Failed to read wrapper.html");
                 String::new()
             }
         };

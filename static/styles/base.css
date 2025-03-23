@@ -1,0 +1,43 @@
+@font-face {
+    font-family: 'Dancing Script';
+    src: url('/static/fonts/DancingScript-Regular.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.1; }
+    100% { opacity: 1; }
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: var(--background-color);
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.container {
+    background-color: var(--container-bg);
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-default);
+    max-width: 90%;
+    width: auto;
+    overflow: hidden;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+h1, h2, h3, h4 {
+    color: var(--text-color);
+    margin: 0;
+}

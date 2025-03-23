@@ -1,19 +1,37 @@
 <main class="upload-content">
     <header class="piece-header">
         <div class="piece-info">
-            <h1 class="piece-title">{{work_title}}</h1>
-            <div class="piece-meta">
-                <div class="meta-item composer" aria-label="Composer">
+            <div class="piece-title-wrapper">
+                <h1 class="piece-title">{{work_title}}</h1>
+                <div class="source-tag" title="MuseScore file format">
                     <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                        <path fill="currentColor" d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/>
                     </svg>
-                    <span>By {{composer}}</span>
+                    <span>mscz</span>
                 </div>
-                <div class="meta-item arranger" aria-label="Arranger">
-                    <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/>
-                    </svg>
-                    <span>Arranged by {{arranger}}</span>
+            </div>
+            
+            <div class="piece-meta">
+                <div class="meta-group">
+                    <div class="meta-item composer" aria-label="Composer">
+                        <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                        </svg>
+                        <div class="meta-content">
+                            <span class="meta-label">Composer</span>
+                            <span class="meta-value">{{composer}}</span>
+                        </div>
+                    </div>
+
+                    <div class="meta-item arranger" aria-label="Arranger">
+                        <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/>
+                        </svg>
+                        <div class="meta-content">
+                            <span class="meta-label">Arranger</span>
+                            <span class="meta-value">{{arranger}}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -118,10 +136,27 @@
         </form>
     </section>
         <section class="tab-playback hidden" id="step-playback" aria-labelledby="playback-title">
-        <div class="step-header">
-            <div class="step-number" aria-hidden="true">2</div>
-            <h2 id="playback-title">Playback Controls</h2>
-        </div>
+            <div class="step-indicator">
+                <span>Playback Mode</span>
+            </div>
+            
+            <div class="step-header">
+                <div class="step-number" aria-hidden="true">2</div>
+                <h2 id="playback-title">Playback Controls</h2>
+            </div>
+
+            <div class="playback-main-controls">
+                <button id="resetScroll" class="playback-button reset" aria-label="Reset playback">
+                    <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+                    </svg>
+                </button>
+                <button id="playPause" class="playback-button" aria-label="Play/Pause">
+                    <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M8 5v14l11-7z"/>
+                    </svg>
+                </button>
+            </div>
 
         <div class="playback-controls-grid">
             <div class="control-card display-settings" role="region" aria-labelledby="display-settings-title">
@@ -260,9 +295,28 @@
         </div>
     </section>
 
-    <section class="tab-legend" aria-label="Tablature legend">
-        {{legend_html}}
-    </section>
+    <button id="showLegend" class="legend-button" aria-label="Show tablature legend" aria-expanded="false" aria-controls="legendModal">
+        <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/>
+        </svg>
+        <span>Legend</span>
+    </button>
+
+    <div id="legendModal" class="modal" role="dialog" aria-labelledby="legendTitle" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="legendTitle">Tablature Legend</h3>
+                <button class="close-modal" aria-label="Close legend">
+                    <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                {{legend_html}}
+            </div>
+        </div>
+    </div>
 
     <section class="tab-display" aria-label="Generated tablature">
         <div id="generate-container" class="generate-container" role="region" aria-live="polite"></div>
@@ -270,5 +324,16 @@
 
     <div class="status-messages" role="status" aria-live="polite"></div>
 </main>
+
+<script type="module">
+import { LegendModal } from '/static/scripts/modules/legend-modal.js';
+    import { TabGenerator } from '/static/scripts/modules/tab-generator.js';
+    
+    // Initialiser le générateur de tablature
+    document.addEventListener('DOMContentLoaded', () => {
+    new LegendModal();
+        new TabGenerator();
+    });
+</script>
 
 <link rel="stylesheet" href="/static/styles/upload.css">
