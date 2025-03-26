@@ -219,7 +219,7 @@ watch([showOnlyFavorites, favoriteFiles], async () => {
             class="sort-btn" 
             :class="{ active: sortBy === 'created_at' }"
             :data-order="sortBy === 'created_at' ? sortOrder : ''"
-            @click="toggleSort('created_at')"
+            @click="async () => { await toggleSort('created_at') }"
           >
             <span>Date</span>
             <component
@@ -232,7 +232,7 @@ watch([showOnlyFavorites, favoriteFiles], async () => {
             class="sort-btn" 
             :class="{ active: sortBy === 'favorite' }"
             :data-order="sortBy === 'favorite' ? sortOrder : ''"
-            @click="toggleSort('favorite')"
+            @click="async () => { await toggleSort('favorite') }"
           >
             <span>Popular</span>
             <component

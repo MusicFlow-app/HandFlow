@@ -13,7 +13,7 @@ export function useTabsLibrary() {
   const sortBy = ref('created_at')
   const sortOrder = ref('desc')
   const searchQuery = ref('')  
-  // Computed property for filtered data
+  // Computed property for filtered and sorted data
   const filteredFiles = computed(() => {
     let filtered = [...allFiles.value]
 
@@ -35,6 +35,22 @@ export function useTabsLibrary() {
     // Apply difficulty filter
     if (selectedDifficulty.value !== 'all') {
       filtered = filtered.filter(file => file.difficulty === selectedDifficulty.value)
+    }
+
+    // Apply sorting
+    if (sortBy.value === 'created_at') {
+      filtered.sort((a, b) => {
+        const aDate = new Date(a.uploadTime)
+        const bDate = new Date(b.uploadTime)
+        return sortOrder.value === 'asc' ? aDate - bDate : bDate - aDate
+      })
+    } else if (sortBy.value === 'favorite') {
+      // Sort by favorite count or status if available
+      filtered.sort((a, b) => {
+        const aFav = a.favoriteCount || 0
+        const bFav = b.favoriteCount || 0
+        return sortOrder.value === 'asc' ? aFav - bFav : bFav - aFav
+      })
     }
 
     return filtered
@@ -91,7 +107,8 @@ export function useTabsLibrary() {
         name: file.filename,
         category: file.metadata.category?.toLowerCase(),
         difficulty: file.metadata.difficulty?.toLowerCase(),
-        uploadTime: new Date(file.created_at).toLocaleString(),
+        uploadTime: file.created_at,
+        favoriteCount: file.favorite_count || 0,
         metadata: file.metadata
       }))
 
@@ -156,7 +173,7 @@ export function useTabsLibrary() {
   }
 
   // Toggle sort order
-  const toggleSort = (field) => {
+  const toggleSort = async (field) => {
     if (sortBy.value === field) {
       sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
     } else {
@@ -164,6 +181,8 @@ export function useTabsLibrary() {
       sortOrder.value = 'asc'
     }
     currentPage.value = 1
+    // Re-fetch data with new sort parameters
+    await fetchRecentFiles()
   }
 
   return {
