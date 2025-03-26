@@ -25,60 +25,6 @@
     margin: 0 auto;
 }
 
-.upload-features {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-    margin-top: 2rem;
-    max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.feature-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    background: var(--surface-secondary);
-    border-radius: var(--border-radius-lg);
-    border: 1px solid var(--border-color);
-    transition: all var(--transition-normal);
-    position: relative;
-    overflow: hidden;
-    min-height: 50px;
-    box-shadow: var(--shadow-default);
-}
-
-.feature-item::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(24, 89, 100, 0.05) 0%, rgba(96, 165, 250, 0.05) 100%);
-    opacity: 0;
-    transition: opacity 300ms ease;
-}
-
-.feature-item:hover {
-    transform: translateY(-2px);
-    border-color: var(--border-hover);
-    background: var(--surface-hover);
-    box-shadow: var(--shadow-hover);
-}
-
-.feature-item:hover::before {
-    opacity: 1;
-}
-
-.feature-item i,
-.feature-item svg {
-    width: 24px;
-    height: 24px;
-    color: var(--primary-color);
-    flex-shrink: 0;
-    margin-top: 0.1rem;
-}
-
 .upload-icon {
     display: flex;
     justify-content: center;
@@ -101,35 +47,6 @@
 .drop-zone:hover .upload-icon i {
     transform: scale(1.1);
     opacity: 1;
-}
-
-.feature-item h3 {
-    font-size: var(--font-size-base);
-    font-weight: 600;
-    color: var(--text-color);
-    margin: 0 0 var(--spacing-xs);
-}
-
-.feature-item p {
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary);
-    line-height: 1.4;
-    margin: 0;
-}
-
-.footer {
-    width: 100%;
-    background: var(--surface-primary);
-    border-top: 1px solid var(--border-color);
-}
-
-.footer-content {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: var(--spacing-2xl);
-    margin-top: var(--spacing-2xl);
-    text-align: center;
-    color: var(--text-secondary);
 }
 
 .drop-zone {
@@ -252,29 +169,6 @@
 
 .status {
     color: var(--text-secondary);
-}
-
-@media (max-width: 768px) {
-    .features-grid {
-        grid-template-columns: 1fr;
-        gap: var(--spacing-sm);
-    }
-
-    .upload-container {
-        padding: var(--spacing-lg);
-    }
-
-    .drop-zone {
-        padding: var(--spacing-lg);
-    }
-
-    .upload-intro h2 {
-        font-size: 1.5rem;
-    }
-
-    .drop-text h3 {
-        font-size: 1.2rem;
-    }
 }
 
 /* En-tête de la partition */
@@ -1158,52 +1052,6 @@ input[type="range"]::-webkit-slider-thumb:hover {
     font-weight: 500;
 }
 
-/* Fonctionnalités */
-.upload-features {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 2rem;
-    margin-top: 2rem;
-}
-
-.feature-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 2rem;
-    background: var(--background-light);
-    border-radius: 16px;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px var(--shadow-color);
-}
-
-.feature-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px var(--shadow-color);
-    background: linear-gradient(145deg, var(--background-light), var(--background-hover));
-}
-
-.feature-item svg {
-    color: var(--primary-color);
-    margin-bottom: 1rem;
-}
-
-.feature-item h3 {
-    font-size: 1.2rem;
-    font-weight: 600;
-    margin: 0 0 0.5rem;
-    color: var(--text-color);
-}
-
-.feature-item p {
-    font-size: 0.95rem;
-    line-height: 1.5;
-    margin: 0;
-    color: var(--text-color);
-    opacity: 0.8;
-}
-
 /* Responsive Design */
 @media (max-width: 768px) {
     .upload-section {
@@ -1222,10 +1070,6 @@ input[type="range"]::-webkit-slider-thumb:hover {
     .drop-zone {
         min-height: 240px;
         padding: 2rem;
-    }
-
-    .feature-item {
-        padding: 1.5rem;
     }
 }
 
@@ -1253,18 +1097,6 @@ input[type="range"]::-webkit-slider-thumb:hover {
     }
 
     .drop-zone-subtitle {
-        font-size: 0.9rem;
-    }
-
-    .feature-item {
-        padding: 1.25rem;
-    }
-
-    .feature-item h3 {
-        font-size: 1.1rem;
-    }
-
-    .feature-item p {
         font-size: 0.9rem;
     }
 }

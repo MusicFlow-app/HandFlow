@@ -1,0 +1,118 @@
+.app-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  padding: var(--spacing-md);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.logo-link {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.logo {
+  height: 40px;
+  width: auto;
+  transition: opacity var(--transition-normal);
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-color);
+  font-family: var(--font-sans);
+}
+
+.sub-title {
+  font-size: 1rem;
+  font-weight: 400;
+  margin: 0;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+}
+
+.theme-toggle {
+  position: fixed;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  z-index: 100;
+  background: var(--surface-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: 0.5rem;
+  cursor: pointer;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-default);
+}
+
+.theme-toggle:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-hover);
+  transform: translateY(-1px);
+}
+
+.theme-toggle:active {
+  background: var(--surface-active);
+  transform: translateY(0);
+}
+
+.app-main {
+  flex: 1;
+  padding: var(--spacing-xl) var(--spacing-md);
+}
+
+.app-footer {
+  padding: var(--spacing-lg) var(--spacing-md);
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-links {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.github-link {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  text-decoration: none;
+  color: var(--text-color);
+  transition: color 0.2s;
+}
+
+.github-link:hover {
+  color: var(--primary-color);
+}
+
+.github-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.copyright {
+  color: var(--text-secondary);
+  margin: 0;
+}
