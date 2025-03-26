@@ -13,7 +13,7 @@ export function useTabsLibrary() {
   const sortBy = ref('created_at')
   const sortOrder = ref('desc')
   const searchQuery = ref('')  
-  // Computed property for filtered and paginated data
+  // Computed property for filtered data
   const filteredFiles = computed(() => {
     let filtered = [...allFiles.value]
 
@@ -37,23 +37,33 @@ export function useTabsLibrary() {
       filtered = filtered.filter(file => file.difficulty === selectedDifficulty.value)
     }
 
-    // Update pagination state
-    const total = filtered.length
-    const maxPages = Math.max(1, Math.ceil(total / perPage.value))
-    
-    // Update refs
+    return filtered
+  })
+
+  // Update pagination whenever filtered files change
+  watch(filteredFiles, (files) => {
+    const total = files.length
     totalItems.value = total
-    totalPages.value = maxPages
-    
+    totalPages.value = Math.max(1, Math.ceil(total / perPage.value))
+
     // Ensure current page is valid
-    if (currentPage.value > maxPages) {
+    if (currentPage.value > totalPages.value) {
       currentPage.value = 1
     }
 
-    // Return paginated slice
+    console.log('Pagination updated:', {
+      total,
+      totalPages: totalPages.value,
+      currentPage: currentPage.value,
+      perPage: perPage.value
+    })
+  }, { immediate: true })
+
+  // Computed property for paginated files
+  const paginatedFiles = computed(() => {
     const start = (currentPage.value - 1) * perPage.value
     const end = start + perPage.value
-    return filtered.slice(start, end)
+    return filteredFiles.value.slice(start, end)
   })
 
   // Initialize data
@@ -92,22 +102,25 @@ export function useTabsLibrary() {
         metadata: file.metadata
       }))
 
-      // Update pagination based on all files first
-      totalItems.value = allFiles.value.length
-      totalPages.value = Math.ceil(totalItems.value / perPage.value) || 1
-
-      // Then update based on filtered results if filters are active
-      if (selectedCategory.value !== 'all' || selectedDifficulty.value !== 'all' || searchQuery.value) {
-        const filteredCount = filteredFiles.value.length
-        totalItems.value = filteredCount
-        totalPages.value = Math.ceil(filteredCount / perPage.value) || 1
-      }
-
+      // Update pagination based on filtered files
+      const filteredCount = filteredFiles.value.length
+      totalItems.value = filteredCount
+      totalPages.value = Math.max(1, Math.ceil(filteredCount / perPage.value))
+      
+      // Debug logging
+      console.log('Pagination State:', {
+        allFilesCount: allFiles.value.length,
+        filteredCount,
+        perPage: perPage.value,
+        totalPages: totalPages.value
+      })
+      
       // Log initial state
       console.log(`Page: ${currentPage.value} Total: ${totalPages.value} Files: ${allFiles.value.length} Filtered: ${filteredFiles.value.length}`)
+      loading.value = false
     } catch (err) {
-      error.value = err.message
       console.error('Error fetching recent files:', err)
+      error.value = err.message
     } finally {
       loading.value = false
     }

@@ -30,15 +30,75 @@ const {
 const showOnlyFavorites = ref(false)
 const { favoriteStates, isFavorite, toggleFavorite, favoriteFiles } = useFavorites()
 
-// Computed property for favorite-only files
-const favoriteOnlyFiles = computed(() => {
-  return filteredFiles.value.filter(file => isFavorite(file.id))
+// Get all favorite files first
+const allFavoriteFiles = computed(() => {
+  return allFiles.value.filter(file => isFavorite(file.id))
 })
 
-// Computed property for displayed files
-const displayedFiles = computed(() => {
-  return showOnlyFavorites.value ? favoriteOnlyFiles.value : filteredFiles.value
+// Apply filters to favorite files
+const filteredFavoriteFiles = computed(() => {
+  let filtered = [...allFavoriteFiles.value]
+
+  // Apply search filter
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    filtered = filtered.filter(file => 
+      file.name.toLowerCase().includes(query) ||
+      file.category?.toLowerCase().includes(query) ||
+      file.difficulty?.toLowerCase().includes(query)
+    )
+  }
+
+  // Apply category filter
+  if (activeCategory.value !== 'all') {
+    filtered = filtered.filter(file => file.category === activeCategory.value)
+  }
+
+  // Apply difficulty filter
+  if (activeDifficulty.value !== 'all') {
+    filtered = filtered.filter(file => file.difficulty === activeDifficulty.value)
+  }
+
+  return filtered
 })
+
+// Replace displayedFiles with filtered and paginated files
+const displayedFiles = computed(() => {
+  const files = showOnlyFavorites.value ? filteredFavoriteFiles.value : filteredFiles.value
+  const start = (currentPage.value - 1) * perPage.value
+  const end = start + perPage.value
+  
+  // Update total pages
+  totalItems.value = files.length
+  const newTotalPages = Math.ceil(files.length / perPage.value) || 1
+  totalPages.value = newTotalPages
+  
+  // Debug logging
+  console.log('Pagination Debug:', {
+    filesLength: files.length,
+    perPage: perPage.value,
+    totalPages: totalPages.value,
+    currentPage: currentPage.value,
+    start,
+    end
+  })
+  
+  // Ensure current page is valid
+  if (currentPage.value > totalPages.value) {
+    currentPage.value = 1
+  }
+  
+  return files.slice(start, end)
+})
+
+// Watch for changes that affect pagination
+watch([displayedFiles, currentPage], () => {
+  console.log('Pagination state updated:', {
+    totalPages: totalPages.value,
+    currentPage: currentPage.value,
+    totalItems: totalItems.value
+  })
+}, { immediate: true })
 
 
 
@@ -74,58 +134,60 @@ const difficultyLevels = [
   { id: 'intermediate', label: 'Intermediate', icon: PhStar },
   { id: 'advanced', label: 'Advanced', icon: PhShootingStar }
 ]
-  // Watch for changes in display mode and favorites
-  watch([showOnlyFavorites, favoriteFiles], async () => {
-    // Reset to first page when switching modes
-    currentPage.value = 1
-    await nextTick()
-  })
+// Watch for changes in display mode and favorites
+watch([showOnlyFavorites, favoriteFiles], async () => {
+  // Reset to first page when switching modes
+  currentPage.value = 1
+  await nextTick()
+})
 
-  // Debug logs
-  watch([currentPage, totalPages, displayedFiles], ([newPage, newTotal, newFiles]) => {
-    console.log('Page:', newPage, 'Total:', newTotal, 'Files:', newFiles?.length)
-  })
+// Debug logs
+watch([currentPage, totalPages, displayedFiles], ([newPage, newTotal, newFiles]) => {
+  console.log('Page:', newPage, 'Total:', newTotal, 'Files:', newFiles?.length)
+})
 
   // Computed property for pagination display
   const paginationRange = computed(() => {
     const range = []
-    const showEllipsis = totalPages.value > 7
+    const totalPagesValue = totalPages.value
+    const currentPageValue = currentPage.value
+
+    // No pagination needed
+    if (totalPagesValue <= 1) return range
+
+    // Show all pages if total pages is small
+    if (totalPagesValue <= 7) {
+      for (let i = 1; i <= totalPagesValue; i++) {
+        range.push(i)
+      }
+      return range
+    }
 
     // Always show first page
     range.push(1)
 
-    if (showEllipsis) {
-      const current = currentPage.value
-      const lastPage = totalPages.value
+    // Calculate the range around current page
+    const leftBound = Math.max(2, currentPageValue - 1)
+    const rightBound = Math.min(totalPagesValue - 1, currentPageValue + 1)
 
-      // Show ellipsis after first page if current page is far enough
-      if (current > 4) {
-        range.push('...')
-      }
-
-      // Calculate the range around current page
-      const start = Math.max(2, current - 2)
-      const end = Math.min(lastPage - 1, current + 2)
-
-      for (let i = start; i <= end; i++) {
-        if (i === 1 || i === lastPage) continue
-        range.push(i)
-      }
-
-      // Show ellipsis before last page if needed
-      if (current < lastPage - 3) {
-        range.push('...')
-      }
-    } else {
-      // If total pages is small, show all pages
-      for (let i = 2; i < totalPages.value; i++) {
-        range.push(i)
-      }
+    // Add ellipsis after first page if needed
+    if (leftBound > 2) {
+      range.push('...')
     }
 
-    // Always show last page if there is more than one page
-    if (totalPages.value > 1) {
-      range.push(totalPages.value)
+    // Add pages around current page
+    for (let i = leftBound; i <= rightBound; i++) {
+      range.push(i)
+    }
+
+    // Add ellipsis before last page if needed
+    if (rightBound < totalPagesValue - 1) {
+      range.push('...')
+    }
+
+    // Always show last page
+    if (totalPagesValue > 1) {
+      range.push(totalPagesValue)
     }
 
     return range
@@ -317,7 +379,6 @@ const difficultyLevels = [
       </button>
 
       <div class="page-numbers">
-        <!-- Page numbers -->
         <template v-for="page in paginationRange" :key="page">
           <span v-if="page === '...'" class="ellipsis">...</span>
           <button 
