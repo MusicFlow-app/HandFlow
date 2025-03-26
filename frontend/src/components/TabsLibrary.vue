@@ -83,9 +83,9 @@ const displayedFiles = computed(() => {
     end
   })
   
-  // Ensure current page is valid
-  if (currentPage.value > totalPages.value) {
-    currentPage.value = 1
+  // Only adjust current page if it exceeds the total pages
+  if (currentPage.value > totalPages.value && totalPages.value > 0) {
+    currentPage.value = totalPages.value
   }
   
   return files.slice(start, end)
@@ -105,10 +105,15 @@ watch([displayedFiles, currentPage], () => {
 // Handle favorite toggle
 const handleFavoriteToggle = async (fileId, event) => {
   event.preventDefault()
+  const currentPageBeforeToggle = currentPage.value
   const success = await toggleFavorite(fileId)
   if (success) {
     // Force an update of the display
     await nextTick()
+    // Restore the page if it was changed
+    if (currentPage.value !== currentPageBeforeToggle) {
+      currentPage.value = currentPageBeforeToggle
+    }
   }
 }
 
