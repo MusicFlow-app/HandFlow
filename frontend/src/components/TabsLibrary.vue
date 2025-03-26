@@ -5,6 +5,9 @@ import { useFavorites } from '@/composables/useFavorites'
 import { PhInfinity, PhMusicNotes, PhBarbell, PhShootingStar, PhStar, PhStarHalf, PhArrowRight, PhCaretLeft, PhCaretRight, PhSortAscending, PhSortDescending, PhAperture, PhArrowsDownUp, PhMagnifyingGlass, PhHeart } from '@phosphor-icons/vue'
 import '@/assets/styles/components/tabs-library.css'
 import '@/assets/styles/components/sorting.css'
+import { useTheme } from '@/composables/useTheme'
+
+const { isDark, toggleTheme } = useTheme()
 
 const { 
   allFiles,

@@ -5,10 +5,9 @@
     margin: var(--spacing-xl) auto;
     max-width: 1200px;
     padding: var(--spacing-md);
-    background: var(--container-bg);
+    background: var(--surface-primary);
     border-radius: var(--card-radius);
-    box-shadow: var(--shadow-default);
-    transition: box-shadow var(--transition-normal);
+    transition: all var(--transition-normal);
     position: relative;
     padding-bottom: calc(var(--spacing-xl) + 60px);
 }
@@ -29,8 +28,9 @@
     align-items: center;
     padding: var(--spacing-md);
     background: var(--surface-secondary);
+    border: 1px solid var(--border-color);
     border-radius: var(--border-radius-md);
-    transition: background-color var(--transition-speed);
+    transition: all var(--transition-speed);
     position: relative;
 }
 
@@ -137,11 +137,37 @@
     margin-bottom: var(--spacing-xl);
 }
 
+.theme-toggle {
+    background: var(--surface-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    padding: 0.5rem;
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-default);
+}
+
+.theme-toggle:hover {
+    background: var(--surface-hover);
+    border-color: var(--border-hover);
+    transform: translateY(-1px);
+}
+
+.theme-toggle:active {
+    background: var(--surface-active);
+    transform: translateY(0);
+}
+
 .library-header h2 {
     font-size: var(--font-size-2xl);
     color: var(--text-color);
     margin-bottom: var(--spacing-lg);
     font-weight: 600;
+    font-family: var(--font-primary);
 }
 
 .filters {
@@ -179,10 +205,11 @@
     display: flex;
     gap: 0;
     padding: var(--spacing-xs);
-    background: var(--background-color);
+    background: var(--surface-secondary);
+    border: 1px solid var(--border-color);
     border-radius: 100px;
     position: relative;
-    box-shadow: inset 0 1px 2px var(--shadow-color);
+    box-shadow: var(--shadow-default);
     transition: all var(--transition-normal);
 }
 
@@ -235,7 +262,7 @@
     display: flex;
     gap: 0;
     padding: var(--spacing-xs);
-    background: var(--background-color);
+    background: var(--surface-secondary);
     border-radius: 100px;
     position: relative;
     box-shadow: inset 0 1px 2px var(--shadow-color);
@@ -366,7 +393,7 @@
   position: absolute;
   top: 0;
   right: 0;
-  background: white;
+  background: var(--surface-secondary);
   border: none;
   border-radius: 50%;
   width: 32px;
@@ -388,14 +415,14 @@
 
 .favorite-btn:hover {
   transform: scale(1.1);
-  background: white;
+  background: var(--surface-secondary);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .favorite-btn.active {
   color: var(--primary-color);
   opacity: 1;
-  background: white;
+  background: var(--surface-secondary);
 }
 
 .favorite-btn:hover:not(:disabled) {
@@ -429,12 +456,12 @@
 
 .favorite-btn.active:hover {
   color: var(--primary-color);
-  background: white;
+  background: var(--surface-secondary);
   transform: scale(1.1);
 }
 
 .tablature-card {
-    background: white;
+    background: var(--surface-secondary);
     border-radius: 24px;
     overflow: hidden;
     transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -614,7 +641,6 @@
     box-shadow: var(--shadow-lg);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .tabs-library .page-numbers {
@@ -639,7 +665,6 @@
     justify-content: center;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-full);
-    background: white;
     color: var(--text-color);
     transition: all var(--transition-speed);
     font-size: 0.875rem;

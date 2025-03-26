@@ -32,6 +32,19 @@
     --text-muted: #666666;
     --text-primary: #185964;
     --text-secondary: #666666;
+    --text-tertiary: #94a3b8;
+    
+    /* Surface Colors */
+    --surface-primary: #ffffff;
+    --surface-secondary: #f8fafc;
+    --surface-hover: #f1f5f9;
+    --surface-active: #e2e8f0;
+    --surface-disabled: #cbd5e1;
+    
+    /* Border Colors */
+    --border-color: #e2e8f0;
+    --border-hover: #cbd5e1;
+    --border-focus: #60a5fa;
     
     /* Background colors */
     --background-color: #f4f4f9;
@@ -39,6 +52,132 @@
     --background-hover: #e9ecef;
     --background-light-transparent: rgba(255, 255, 255, 0.05);
     --background-hover-light: rgba(255, 255, 255, 0.15);
+    
+    /* Shadow */
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --shadow-text: rgba(16, 34, 51, 0.33);
+    --shadow-default: 0 2px 10px var(--shadow-color);
+    --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.15);
+    
+    /* Spacing */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
+    
+    /* Border Radius */
+    --border-radius-sm: 0.25rem;
+    --border-radius-md: 0.375rem;
+    --border-radius-lg: 0.5rem;
+    --border-radius-xl: 1rem;
+    --border-radius-full: 9999px;
+    --card-radius: var(--border-radius-lg);
+    
+   /* Typography */
+   --font-primary: Arial, sans-serif;
+   --font-display: 'Dancing Script', cursive;
+   --font-size-xs: 0.75rem;
+   --font-size-sm: 0.875rem;
+   --font-size-md: 1rem;
+   --font-size-lg: 1.25rem;
+   --font-size-xl: 1.5rem;
+   --font-size-2xl: 2rem;
+   
+   /* Animation */
+   --transition-default: 0.3s ease-in-out;
+   --transition-fast: 150ms;
+   --transition-normal: 300ms;
+   --transition-slow: 500ms;
+   --step-transition: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+   --step-timing: 150ms ease-in-out;
+   --step-delay: 75ms;
+   
+   /* Breakpoints */
+   --mobile: 480px;
+   --tablet: 768px;
+   --desktop: 1024px;
+   
+   /* Z-index */
+   --z-modal: 1000;
+   --z-overlay: 900;
+   --z-dropdown: 800;
+   --z-header: 700;
+   --z-footer: 600;
+    
+    /* Transitions */
+    --transition-speed: 0.15s;
+    --transition-normal: 0.2s ease;
+    --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Background colors */
+    --background-color: #f4f4f9;
+    --container-bg: #ffffff;
+    --background-hover: #e9ecef;
+    --background-light-transparent: rgba(255, 255, 255, 0.05);
+    --background-hover-light: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] {
+    /* Colors */
+    --primary-color: #60a5fa;
+    --primary-light: #93c5fd;
+    --primary-dark: #2563eb;
+    --primary-hover: #3b82f6;
+    --primary-transparent: rgba(96, 165, 250, 0.1);
+    --accent-color: #34d399;
+    --accent-light: #6ee7b7;
+    --accent-dark: #059669;
+
+    /* Text colors */
+    --text-color: #f1f5f9;
+    --text-light: #ffffff;
+    --text-muted: #94a3b8;
+    --text-primary: #60a5fa;
+    --text-secondary: #94a3b8;
+
+    /* Background colors */
+    --background-color: #0f172a;
+    --container-bg: #1e293b;
+    --background-hover: #334155;
+    --background-light-transparent: rgba(255, 255, 255, 0.03);
+    --background-hover-light: rgba(255, 255, 255, 0.07);
+
+    /* Surface Colors */
+    --surface-primary: #1e293b;
+    --surface-secondary: #334155;
+    --surface-hover: #475569;
+    --surface-active: #64748b;
+    --surface-disabled: #475569;
+
+    /* Border Colors */
+    --border-color: #334155;
+    --border-hover: #475569;
+    --border-focus: #3b82f6;
+
+    /* Shadow adjustments for dark mode */
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --shadow-text: rgba(0, 0, 0, 0.5);
+    --shadow-default: 0 2px 10px rgba(0, 0, 0, 0.3);
+    --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.4);
+    
+    /* Difficulty Colors - adjusted for dark mode */
+    --difficulty-easy: #4ade80;
+    --difficulty-easy-gradient-start: #22c55e;
+    --difficulty-easy-gradient-end: #16a34a;
+    --difficulty-medium: #fbbf24;
+    --difficulty-medium-gradient-start: #f59e0b;
+    --difficulty-medium-gradient-end: #d97706;
+    --difficulty-hard: #f87171;
+    --difficulty-hard-gradient-start: #ef4444;
+    --difficulty-hard-gradient-end: #dc2626;
+    
+    /* Status Colors - adjusted for dark mode */
+    --status-warning: #f97316;
+    --status-error: #dc2626;
+    --status-info: #60a5fa;
+    --status-success: #34d399;
     
     /* Border & Shadow */
     --border-radius-sm: 4px;
@@ -50,41 +189,4 @@
     --shadow-default: 0 2px 10px var(--shadow-color);
     --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.15);
     
-    /* Typography */
-    --font-primary: Arial, sans-serif;
-    --font-display: 'Dancing Script', cursive;
-    --font-size-xs: 0.75rem;
-    --font-size-sm: 0.875rem;
-    --font-size-md: 1rem;
-    --font-size-lg: 1.25rem;
-    --font-size-xl: 1.5rem;
-    --font-size-2xl: 2rem;
-    
-    /* Spacing */
-    --spacing-xs: 0.25rem;
-    --spacing-sm: 0.5rem;
-    --spacing-md: 1rem;
-    --spacing-lg: 1.5rem;
-    --spacing-xl: 2rem;
-    
-    /* Animation */
-    --transition-default: 0.3s ease-in-out;
-    --transition-fast: 150ms;
-    --transition-normal: 300ms;
-    --transition-slow: 500ms;
-    --step-transition: 300ms cubic-bezier(0.4, 0, 0.2, 1);
-    --step-timing: 150ms ease-in-out;
-    --step-delay: 75ms;
-    
-    /* Breakpoints */
-    --mobile: 480px;
-    --tablet: 768px;
-    --desktop: 1024px;
-    
-    /* Z-index */
-    --z-modal: 1000;
-    --z-overlay: 900;
-    --z-dropdown: 800;
-    --z-header: 700;
-    --z-footer: 600;
 }

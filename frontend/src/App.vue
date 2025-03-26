@@ -1,13 +1,25 @@
 <script setup>
 import { RouterView } from 'vue-router'
 import logo from '@/assets/img/handflow-logo.svg'
+import logoDark from '@/assets/img/handflow-logo-dark.svg'
+import { PhMoon, PhSun } from '@phosphor-icons/vue'
+import { useTheme } from '@/composables/useTheme'
+
+const { isDark, toggleTheme } = useTheme()
 </script>
 
 <template>
   <div class="app-wrapper">
+    <button 
+      class="theme-toggle" 
+      @click="toggleTheme" 
+      :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+    >
+      <component :is="isDark ? PhSun : PhMoon" :size="24" weight="fill" />
+    </button>
     <header class="app-header">
       <router-link to="/" class="logo-link">
-        <img :src="logo" alt="HandFlow Logo" class="logo" fetchpriority="high">
+        <img :src="isDark ? logoDark : logo" alt="HandFlow Logo" class="logo" fetchpriority="high">
         <h1 class="title">HandFlow</h1>
         <h2 class="sub-title">Handpan Tablature Generator</h2>
       </router-link>
@@ -44,34 +56,72 @@ import logo from '@/assets/img/handflow-logo.svg'
 
 .app-header {
   padding: var(--spacing-md);
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .logo-link {
-  display: inline-flex;
+  text-decoration: none;
+  display: flex;
   align-items: center;
   gap: var(--spacing-md);
-  text-decoration: none;
-  color: var(--color-text);
 }
 
 .logo {
   height: 40px;
   width: auto;
+  transition: opacity var(--transition-normal);
 }
 
 .title {
   font-size: 1.5rem;
   font-weight: 600;
   margin: 0;
+  color: var(--text-color);
+  font-family: var(--font-sans);
 }
 
 .sub-title {
   font-size: 1rem;
   font-weight: 400;
   margin: 0;
-  color: var(--color-text-muted);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
 }
+
+.theme-toggle {
+  position: fixed;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  z-index: 100;
+  background: var(--surface-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: 0.5rem;
+  cursor: pointer;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-default);
+}
+
+.theme-toggle:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-hover);
+  transform: translateY(-1px);
+}
+
+.theme-toggle:active {
+  background: var(--surface-active);
+  transform: translateY(0);
+}
+
 
 .app-main {
   flex: 1;
@@ -100,12 +150,12 @@ import logo from '@/assets/img/handflow-logo.svg'
   align-items: center;
   gap: var(--spacing-sm);
   text-decoration: none;
-  color: var(--color-text);
+  color: var(--text-color);
   transition: color 0.2s;
 }
 
 .github-link:hover {
-  color: var(--color-primary);
+  color: var(--primary-color);
 }
 
 .github-icon {
@@ -114,7 +164,7 @@ import logo from '@/assets/img/handflow-logo.svg'
 }
 
 .copyright {
-  color: var(--color-text-muted);
+  color: var(--text-secondary);
   margin: 0;
 }
 </style>

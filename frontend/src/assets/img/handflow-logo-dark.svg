@@ -4,7 +4,7 @@
    data-name="Calque 1"
    viewBox="0 0 609.81 629.36"
    version="1.1"
-   sodipodi:docname="handflow-logo.svg"
+   sodipodi:docname="handflow-logo-dark.svg"
    inkscape:version="1.4 (e7c3feb1, 2024-10-09)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -1428,9 +1428,28 @@
         fill: #60bfb9;
       }
     </style>
+    <filter
+       style="color-interpolation-filters:sRGB;"
+       inkscape:label="Invert"
+       id="filter370"
+       x="0"
+       y="0"
+       width="1"
+       height="1">
+      <feColorMatrix
+         type="hueRotate"
+         values="180"
+         result="color1"
+         id="feColorMatrix369" />
+      <feColorMatrix
+         values="-1 0 0 0 1 0 -1 0 0 1 0 0 -1 0 1 -0.21 -0.72 -0.07 2 0 "
+         result="color2"
+         id="feColorMatrix370" />
+    </filter>
   </defs>
   <g
-     id="g368">
+     id="g368"
+     style="filter:url(#filter370)">
     <path
        class="uuid-d932ed63-e7f1-4fc5-b6c6-f99ae391c178"
        d="M564.81,623.07c-11.45,4.51-24.09,5.5-35.72,1.15.04-2.83.07-5.66.11-8.49,7.22-2.55,35.97-8.61,37.33,3.52-.57,1.28-1.15,2.55-1.72,3.83Z"
