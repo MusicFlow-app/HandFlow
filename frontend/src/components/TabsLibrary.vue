@@ -2,7 +2,7 @@
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useTabsLibrary } from '@/composables/useTabsLibrary'
 import { useFavorites } from '@/composables/useFavorites'
-import { PhInfinity, PhMusicNotes, PhBarbell, PhShootingStar, PhStar, PhStarHalf, PhArrowRight, PhCaretLeft, PhCaretRight, PhSortAscending, PhSortDescending, PhCaretCircleUpDown, PhArrowsDownUp, PhMagnifyingGlass, PhHeart } from '@phosphor-icons/vue'
+import { PhInfinity, PhMusicNotes, PhBarbell, PhShootingStar, PhStar, PhStarHalf, PhArrowRight, PhCaretLeft, PhCaretRight, PhSortAscending, PhSortDescending, PhAperture, PhArrowsDownUp, PhMagnifyingGlass, PhHeart } from '@phosphor-icons/vue'
 import '@/assets/styles/components/tabs-library.css'
 import '@/assets/styles/components/sorting.css'
 
@@ -73,16 +73,6 @@ const displayedFiles = computed(() => {
   const newTotalPages = Math.ceil(files.length / perPage.value) || 1
   totalPages.value = newTotalPages
   
-  // Debug logging
-  console.log('Pagination Debug:', {
-    filesLength: files.length,
-    perPage: perPage.value,
-    totalPages: totalPages.value,
-    currentPage: currentPage.value,
-    start,
-    end
-  })
-  
   // Only adjust current page if it exceeds the total pages
   if (currentPage.value > totalPages.value && totalPages.value > 0) {
     currentPage.value = totalPages.value
@@ -90,17 +80,6 @@ const displayedFiles = computed(() => {
   
   return files.slice(start, end)
 })
-
-// Watch for changes that affect pagination
-watch([displayedFiles, currentPage], () => {
-  console.log('Pagination state updated:', {
-    totalPages: totalPages.value,
-    currentPage: currentPage.value,
-    totalItems: totalItems.value
-  })
-}, { immediate: true })
-
-
 
 // Handle favorite toggle
 const handleFavoriteToggle = async (fileId, event) => {
@@ -128,7 +107,7 @@ const updateFilesList = async () => {
 
 const categories = [
   { id: 'all', label: 'All', icon: PhInfinity },
-  { id: 'scale', label: 'Scales', icon: PhCaretCircleUpDown },
+  { id: 'scale', label: 'Scales', icon: PhAperture },
   { id: 'song', label: 'Songs', icon: PhMusicNotes },
   { id: 'exercise', label: 'Exercises', icon: PhBarbell }
 ]
@@ -144,11 +123,6 @@ watch([showOnlyFavorites, favoriteFiles], async () => {
   // Reset to first page when switching modes
   currentPage.value = 1
   await nextTick()
-})
-
-// Debug logs
-watch([currentPage, totalPages, displayedFiles], ([newPage, newTotal, newFiles]) => {
-  console.log('Page:', newPage, 'Total:', newTotal, 'Files:', newFiles?.length)
 })
 
   // Computed property for pagination display

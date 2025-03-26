@@ -50,13 +50,6 @@ export function useTabsLibrary() {
     if (currentPage.value > totalPages.value) {
       currentPage.value = 1
     }
-
-    console.log('Pagination updated:', {
-      total,
-      totalPages: totalPages.value,
-      currentPage: currentPage.value,
-      perPage: perPage.value
-    })
   }, { immediate: true })
 
   // Computed property for paginated files
@@ -107,16 +100,7 @@ export function useTabsLibrary() {
       totalItems.value = filteredCount
       totalPages.value = Math.max(1, Math.ceil(filteredCount / perPage.value))
       
-      // Debug logging
-      console.log('Pagination State:', {
-        allFilesCount: allFiles.value.length,
-        filteredCount,
-        perPage: perPage.value,
-        totalPages: totalPages.value
-      })
-      
       // Log initial state
-      console.log(`Page: ${currentPage.value} Total: ${totalPages.value} Files: ${allFiles.value.length} Filtered: ${filteredFiles.value.length}`)
       loading.value = false
     } catch (err) {
       console.error('Error fetching recent files:', err)

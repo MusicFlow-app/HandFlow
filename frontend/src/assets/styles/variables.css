@@ -9,10 +9,29 @@
     --accent-light: #34d399;
     --accent-dark: #059669;
     
+    /* Difficulty Colors */
+    --difficulty-easy: #4ade80;
+    --difficulty-easy-gradient-start: #22c55e;
+    --difficulty-easy-gradient-end: #16a34a;
+    --difficulty-medium: #fbbf24;
+    --difficulty-medium-gradient-start: #f59e0b;
+    --difficulty-medium-gradient-end: #d97706;
+    --difficulty-hard: #f87171;
+    --difficulty-hard-gradient-start: #ef4444;
+    --difficulty-hard-gradient-end: #dc2626;
+    
+    /* Status Colors */
+    --status-warning: #f97316;
+    --status-error: #dc2626;
+    --status-info: #2563eb;
+    --status-success: #059669;
+    
     /* Text colors */
     --text-color: #2c3e50;
     --text-light: #ffffff;
     --text-muted: #666666;
+    --text-primary: #185964;
+    --text-secondary: #666666;
     
     /* Background colors */
     --background-color: #f4f4f9;
