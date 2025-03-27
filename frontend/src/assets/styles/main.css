@@ -1,6 +1,6 @@
 /* Main CSS file - Imports all component styles */
-@import './variables.css';
-@import './components/layout.css';
+@import '@/assets/styles/variables.css';
+@import '@/assets/styles/layout/layout.css';
 /* @import './components/controls.css';
 @import './components/audio-controls.css';
 @import './components/informations.css';

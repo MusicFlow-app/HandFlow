@@ -1,5 +1,3 @@
-@import '../variables.css';
-
 .upload-section {
     margin: var(--spacing-xs) auto;
     max-width: 800px;

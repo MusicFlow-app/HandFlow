@@ -1,5 +1,3 @@
-@import '../variables.css';
-
 /* Styles de base pour la bibliothèque de tablatures */
 .tabs-library {
     margin: var(--spacing-xs) auto;

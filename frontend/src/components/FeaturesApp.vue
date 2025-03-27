@@ -34,5 +34,5 @@
 
 <script setup>
 import { PhFileArrowUp, PhMagicWand, PhFileArrowDown, PhGear } from '@phosphor-icons/vue'
-import '@/assets/styles/components/features.css'
+import '@/assets/styles/components/FeaturesApp/features.css'
 </script>

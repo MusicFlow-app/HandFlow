@@ -67,5 +67,5 @@ const handleDrop = async (event) => {
 </template>
 
 <style scoped>
-@import '@/assets/styles/components/upload.css';
+@import '@/assets/styles/components/UploadZone/upload.css';
 </style>
