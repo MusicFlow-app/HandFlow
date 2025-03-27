@@ -63,317 +63,100 @@ frontend/
 
 ### Color Palettes
 
-<details>
-<summary><strong>🌞 Light Theme</strong></summary>
+#### 🌞 Light Theme
 
+##### Primary Colors
 
-<table>
-<tr>
-<th>Variable</th>
-<th>Color</th>
-<th>Value</th>
-<th>Description</th>
-</tr>
+| Variable | Color | Value | Description |
+|----------|--------|--------|-------------|
+| `--primary-color` | <span style="color:#185964">■</span> | `#185964` | Teal blue - Main brand color |
+| `--primary-light` | <span style="color:#60a5fa">■</span> | `#60a5fa` | Light blue |
+| `--primary-dark` | <span style="color:#103E4B">■</span> | `#103E4B` | Dark teal |
+| `--primary-hover` | <span style="color:#216B78">■</span> | `#216B78` | Hover state |
+| `--accent-color` | <span style="color:#10b981">■</span> | `#10b981` | Green accent |
 
-<!-- Primary Colors -->
-<tr><td colspan="4"><strong>Primary Colors</strong></td></tr>
-<tr>
-<td>--primary-color</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#185964;border:1px solid #ccc"></div></td>
-<td>#185964</td>
-<td>Teal blue - Main brand color</td>
-</tr>
-<tr>
-<td>--primary-light</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#60a5fa;border:1px solid #ccc"></div></td>
-<td>#60a5fa</td>
-<td>Light blue</td>
-</tr>
-<tr>
-<td>--primary-dark</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#103E4B;border:1px solid #ccc"></div></td>
-<td>#103E4B</td>
-<td>Dark teal</td>
-</tr>
-<tr>
-<td>--primary-hover</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#216B78;border:1px solid #ccc"></div></td>
-<td>#216B78</td>
-<td>Hover state</td>
-</tr>
-<tr>
-<td>--accent-color</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#10b981;border:1px solid #ccc"></div></td>
-<td>#10b981</td>
-<td>Green accent</td>
-</tr>
+##### Background Colors
 
-<!-- Background Colors -->
-<tr><td colspan="4"><strong>Background Colors</strong></td></tr>
-<tr>
-<td>--background-color</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#f4f4f9;border:1px solid #ccc"></div></td>
-<td>#f4f4f9</td>
-<td>Light gray background</td>
-</tr>
-<tr>
-<td>--container-bg</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#ffffff;border:1px solid #ccc"></div></td>
-<td>#ffffff</td>
-<td>White container</td>
-</tr>
-<tr>
-<td>--surface-primary</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#ffffff;border:1px solid #ccc"></div></td>
-<td>#ffffff</td>
-<td>Primary surface</td>
-</tr>
-<tr>
-<td>--surface-secondary</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#f8fafc;border:1px solid #ccc"></div></td>
-<td>#f8fafc</td>
-<td>Secondary surface</td>
-</tr>
+| Variable | Color | Value | Description |
+|----------|--------|--------|-------------|
+| `--background-color` | <span style="color:#f4f4f9">■</span> | `#f4f4f9` | Light gray background |
+| `--container-bg` | <span style="color:#ffffff">■</span> | `#ffffff` | White container |
+| `--surface-primary` | <span style="color:#ffffff">■</span> | `#ffffff` | Primary surface |
+| `--surface-secondary` | <span style="color:#f8fafc">■</span> | `#f8fafc` | Secondary surface |
 
-<!-- Text Colors -->
-<tr><td colspan="4"><strong>Text Colors</strong></td></tr>
-<tr>
-<td>--text-color</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#2c3e50;border:1px solid #ccc"></div></td>
-<td>#2c3e50</td>
-<td>Main text</td>
-</tr>
-<tr>
-<td>--text-light</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#ffffff;border:1px solid #ccc"></div></td>
-<td>#ffffff</td>
-<td>Light text</td>
-</tr>
-<tr>
-<td>--text-muted</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#666666;border:1px solid #ccc"></div></td>
-<td>#666666</td>
-<td>Muted text</td>
-</tr>
-</table>
+##### Text Colors
 
-</details>
+| Variable | Color | Value | Description |
+|----------|--------|--------|-------------|
+| `--text-color` | <span style="color:#2c3e50">■</span> | `#2c3e50` | Main text |
+| `--text-light` | <span style="color:#ffffff">■</span> | `#ffffff` | Light text |
+| `--text-muted` | <span style="color:#666666">■</span> | `#666666` | Muted text |
 
-<details>
-<summary><strong>🌙 Dark Theme</strong></summary>
+#### 🌙 Dark Theme
 
+##### Primary Colors
 
-<table>
-<tr>
-<th>Variable</th>
-<th>Color</th>
-<th>Value</th>
-<th>Description</th>
-</tr>
+| Variable | Color | Value | Description |
+|----------|--------|--------|-------------|
+| `--primary-color` | <span style="color:#60a5fa">■</span> | `#60a5fa` | Bright blue |
+| `--primary-light` | <span style="color:#93c5fd">■</span> | `#93c5fd` | Light blue |
+| `--primary-dark` | <span style="color:#2563eb">■</span> | `#2563eb` | Dark blue |
+| `--primary-hover` | <span style="color:#3b82f6">■</span> | `#3b82f6` | Hover state |
+| `--accent-color` | <span style="color:#34d399">■</span> | `#34d399` | Green accent |
 
-<!-- Primary Colors -->
-<tr><td colspan="4"><strong>Primary Colors</strong></td></tr>
-<tr>
-<td>--primary-color</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#60a5fa;border:1px solid #ccc"></div></td>
-<td>#60a5fa</td>
-<td>Bright blue</td>
-</tr>
-<tr>
-<td>--primary-light</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#93c5fd;border:1px solid #ccc"></div></td>
-<td>#93c5fd</td>
-<td>Light blue</td>
-</tr>
-<tr>
-<td>--primary-dark</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#2563eb;border:1px solid #ccc"></div></td>
-<td>#2563eb</td>
-<td>Dark blue</td>
-</tr>
-<tr>
-<td>--primary-hover</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#3b82f6;border:1px solid #ccc"></div></td>
-<td>#3b82f6</td>
-<td>Hover state</td>
-</tr>
-<tr>
-<td>--accent-color</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#34d399;border:1px solid #ccc"></div></td>
-<td>#34d399</td>
-<td>Green accent</td>
-</tr>
+##### Background Colors
 
-<!-- Background Colors -->
-<tr><td colspan="4"><strong>Background Colors</strong></td></tr>
-<tr>
-<td>--background-color</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#0f172a;border:1px solid #ccc"></div></td>
-<td>#0f172a</td>
-<td>Dark blue background</td>
-</tr>
-<tr>
-<td>--container-bg</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#1e293b;border:1px solid #ccc"></div></td>
-<td>#1e293b</td>
-<td>Container background</td>
-</tr>
-<tr>
-<td>--surface-primary</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#1e293b;border:1px solid #ccc"></div></td>
-<td>#1e293b</td>
-<td>Primary surface</td>
-</tr>
-<tr>
-<td>--surface-secondary</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#334155;border:1px solid #ccc"></div></td>
-<td>#334155</td>
-<td>Secondary surface</td>
-</tr>
+| Variable | Color | Value | Description |
+|----------|--------|--------|-------------|
+| `--background-color` | <span style="color:#0f172a">■</span> | `#0f172a` | Dark blue background |
+| `--container-bg` | <span style="color:#1e293b">■</span> | `#1e293b` | Container background |
+| `--surface-primary` | <span style="color:#1e293b">■</span> | `#1e293b` | Primary surface |
+| `--surface-secondary` | <span style="color:#334155">■</span> | `#334155` | Secondary surface |
 
-<!-- Text Colors -->
-<tr><td colspan="4"><strong>Text Colors</strong></td></tr>
-<tr>
-<td>--text-color</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#f1f5f9;border:1px solid #ccc"></div></td>
-<td>#f1f5f9</td>
-<td>Main text</td>
-</tr>
-<tr>
-<td>--text-light</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#ffffff;border:1px solid #ccc"></div></td>
-<td>#ffffff</td>
-<td>Light text</td>
-</tr>
-<tr>
-<td>--text-muted</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#94a3b8;border:1px solid #ccc"></div></td>
-<td>#94a3b8</td>
-<td>Muted text</td>
-</tr>
-</table>
+##### Text Colors
 
-</details>
+| Variable | Color | Value | Description |
+|----------|--------|--------|-------------|
+| `--text-color` | <span style="color:#f1f5f9">■</span> | `#f1f5f9` | Main text |
+| `--text-light` | <span style="color:#ffffff">■</span> | `#ffffff` | Light text |
+| `--text-muted` | <span style="color:#94a3b8">■</span> | `#94a3b8` | Muted text |
 
-<details>
-<summary><strong>🎯 Status Colors</strong></summary>
+#### 🎯 Status Colors
 
+| Variable | Color | Value | Description |
+|----------|--------|--------|-------------|
+| `--status-warning` | <span style="color:#f97316">■</span> | `#f97316` | Orange - Warning state |
+| `--status-error` | <span style="color:#dc2626">■</span> | `#dc2626` | Red - Error state |
+| `--status-info` | <span style="color:#2563eb">■</span> | `#2563eb` | Blue - Info state |
+| `--status-success` | <span style="color:#059669">■</span> | `#059669` | Green - Success state |
 
-<table>
-<tr>
-<th>Variable</th>
-<th>Color</th>
-<th>Value</th>
-<th>Description</th>
-</tr>
-<tr>
-<td>--status-warning</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#f97316;border:1px solid #ccc"></div></td>
-<td>#f97316</td>
-<td>Orange - Warning state</td>
-</tr>
-<tr>
-<td>--status-error</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#dc2626;border:1px solid #ccc"></div></td>
-<td>#dc2626</td>
-<td>Red - Error state</td>
-</tr>
-<tr>
-<td>--status-info</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#2563eb;border:1px solid #ccc"></div></td>
-<td>#2563eb</td>
-<td>Blue - Info state</td>
-</tr>
-<tr>
-<td>--status-success</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#059669;border:1px solid #ccc"></div></td>
-<td>#059669</td>
-<td>Green - Success state</td>
-</tr>
-</table>
+#### 📊 Difficulty Levels
 
-</details>
+#### Easy
 
-<details>
-<summary><strong>📊 Difficulty Levels</strong></summary>
+| Variable | Color | Value | Description |
+|----------|--------|--------|-------------|
+| `--difficulty-easy` | <span style="color:#4ade80">■</span> | `#4ade80` | Base color |
+| `--difficulty-easy-gradient-start` | <span style="color:#22c55e">■</span> | `#22c55e` | Gradient start |
+| `--difficulty-easy-gradient-end` | <span style="color:#16a34a">■</span> | `#16a34a` | Gradient end |
 
+#### Medium
 
-<table>
-<tr>
-<th>Variable</th>
-<th>Color</th>
-<th>Value</th>
-<th>Description</th>
-</tr>
+| Variable | Color | Value | Description |
+|----------|--------|--------|-------------|
+| `--difficulty-medium` | <span style="color:#fbbf24">■</span> | `#fbbf24` | Base color |
+| `--difficulty-medium-gradient-start` | <span style="color:#f59e0b">■</span> | `#f59e0b` | Gradient start |
+| `--difficulty-medium-gradient-end` | <span style="color:#d97706">■</span> | `#d97706` | Gradient end |
 
-<!-- Easy -->
-<tr><td colspan="4"><strong>Easy</strong></td></tr>
-<tr>
-<td>--difficulty-easy</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#4ade80;border:1px solid #ccc"></div></td>
-<td>#4ade80</td>
-<td>Base color</td>
-</tr>
-<tr>
-<td>--difficulty-easy-gradient-start</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#22c55e;border:1px solid #ccc"></div></td>
-<td>#22c55e</td>
-<td>Gradient start</td>
-</tr>
-<tr>
-<td>--difficulty-easy-gradient-end</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#16a34a;border:1px solid #ccc"></div></td>
-<td>#16a34a</td>
-<td>Gradient end</td>
-</tr>
+#### Hard
 
-<!-- Medium -->
-<tr><td colspan="4"><strong>Medium</strong></td></tr>
-<tr>
-<td>--difficulty-medium</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#fbbf24;border:1px solid #ccc"></div></td>
-<td>#fbbf24</td>
-<td>Base color</td>
-</tr>
-<tr>
-<td>--difficulty-medium-gradient-start</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#f59e0b;border:1px solid #ccc"></div></td>
-<td>#f59e0b</td>
-<td>Gradient start</td>
-</tr>
-<tr>
-<td>--difficulty-medium-gradient-end</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#d97706;border:1px solid #ccc"></div></td>
-<td>#d97706</td>
-<td>Gradient end</td>
-</tr>
+| Variable | Color | Value | Description |
+|----------|--------|--------|-------------|
+| `--difficulty-hard` | <span style="color:#f87171">■</span> | `#f87171` | Base color |
+| `--difficulty-hard-gradient-start` | <span style="color:#ef4444">■</span> | `#ef4444` | Gradient start |
+| `--difficulty-hard-gradient-end` | <span style="color:#dc2626">■</span> | `#dc2626` | Gradient end |
 
-<!-- Hard -->
-<tr><td colspan="4"><strong>Hard</strong></td></tr>
-<tr>
-<td>--difficulty-hard</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#f87171;border:1px solid #ccc"></div></td>
-<td>#f87171</td>
-<td>Base color</td>
-</tr>
-<tr>
-<td>--difficulty-hard-gradient-start</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#ef4444;border:1px solid #ccc"></div></td>
-<td>#ef4444</td>
-<td>Gradient start</td>
-</tr>
-<tr>
-<td>--difficulty-hard-gradient-end</td>
-<td><div style="width:20px;height:20px;border-radius:50%;background:#dc2626;border:1px solid #ccc"></div></td>
-<td>#dc2626</td>
-<td>Gradient end</td>
-</tr>
-</table>
-
-</details>
-
-<details>
-<summary><strong>⚙️ Other Variables</strong></summary>
+#### ⚙️ Other Variables
 
 ```css
 /* Spacing */
@@ -397,7 +180,6 @@ frontend/
 --font-size-lg: 1.25rem
 --font-size-xl: 1.5rem
 ```
-</details>
 
 ## Architecture
 
