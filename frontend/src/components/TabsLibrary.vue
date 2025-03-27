@@ -2,7 +2,7 @@
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useTabsLibrary } from '@/composables/useTabsLibrary'
 import { useFavorites } from '@/composables/useFavorites'
-import { PhInfinity, PhMusicNotes, PhBarbell, PhShootingStar, PhStar, PhStarHalf, PhArrowRight, PhCaretLeft, PhCaretRight, PhSortAscending, PhSortDescending, PhAperture, PhArrowsDownUp, PhMagnifyingGlass, PhHeart } from '@phosphor-icons/vue'
+import { PhInfinity, PhMusicNotes, PhBarbell, PhShootingStar, PhStar, PhStarHalf, PhArrowRight, PhCaretLeft, PhCaretRight, PhSortAscending, PhSortDescending, PhAperture, PhArrowsDownUp, PhMagnifyingGlass, PhPenNib, PhUserSound } from '@phosphor-icons/vue'
 import '@/assets/styles/components/tabs-library.css'
 import '@/assets/styles/components/sorting.css'
 import { useTheme } from '@/composables/useTheme'
@@ -46,9 +46,12 @@ const filteredFavoriteFiles = computed(() => {
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(file => 
-      file.name.toLowerCase().includes(query) ||
-      file.category?.toLowerCase().includes(query) ||
-      file.difficulty?.toLowerCase().includes(query)
+      (file.name || '').toLowerCase().includes(query) ||
+      (file.filename || '').toLowerCase().includes(query) ||
+      (file.composer || '').toLowerCase().includes(query) ||
+      (file.arranger || '').toLowerCase().includes(query) ||
+      file.category.toLowerCase().includes(query) ||
+      file.difficulty.toLowerCase().includes(query)
     )
   }
 
@@ -188,7 +191,6 @@ watch([showOnlyFavorites, favoriteFiles], async () => {
               type="text" 
               v-model="searchQuery"
               placeholder="Search tablatures..."
-              @input="setSearchQuery($event.target.value)"
             />
           </div>
           <button 
@@ -198,7 +200,7 @@ watch([showOnlyFavorites, favoriteFiles], async () => {
               showOnlyFavorites = !showOnlyFavorites
             }"
           >
-            <PhHeart :size="20" :weight="showOnlyFavorites ? 'fill' : 'regular'" />
+            <PhStar :size="20" :weight="showOnlyFavorites ? 'fill' : 'regular'" />
             <span>Favorites</span>
           </button>
           <div class="sort-buttons">
@@ -256,7 +258,7 @@ watch([showOnlyFavorites, favoriteFiles], async () => {
               :data-category="category.id"
               @click="filterByCategory(category.id)"
             >
-              <component :is="category.icon" :size="20" />
+              <component :is="category.icon" :size="20" :weight="activeCategory === category.id ? (category.id === 'all' ? 'bold' : 'fill') : 'regular'" />
               <span>{{ category.label }}</span>
             </button>
           </div>
@@ -273,7 +275,7 @@ watch([showOnlyFavorites, favoriteFiles], async () => {
               :data-difficulty="level.id"
               @click="filterByDifficulty(level.id)"
             >
-              <component :is="level.icon" :size="20" />
+              <component :is="level.icon" :size="20" :weight="activeDifficulty === level.id ? (level.id === 'all' ? 'bold' : 'fill') : 'regular'" />
               <span>{{ level.label }}</span>
             </button>
           </div>
@@ -310,7 +312,14 @@ watch([showOnlyFavorites, favoriteFiles], async () => {
               <div class="content-main">
                 <div class="card-header">
                   <h4 class="piece-title">{{ file.metadata.title }}</h4>
-                  <span class="composer">{{ file.metadata?.composer || 'Unknown' }}</span>
+                  <span class="composer">
+                    <PhUserSound :size="16" weight="bold" />
+                    {{ file.metadata?.composer || 'Unknown' }}
+                  </span>
+                  <span class="arranger">
+                    <PhPenNib :size="16" weight="bold" />
+                    {{ file.metadata?.arranger || 'Unknown' }}
+                  </span>
                   <button 
                     class="favorite-btn" 
                     :class="{ 

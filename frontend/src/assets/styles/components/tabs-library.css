@@ -534,6 +534,7 @@
     padding-right: 2rem;
 }
 
+.arranger,
 .composer {
     font-size: 0.8rem;
     color: var(--text-secondary);
@@ -555,6 +556,10 @@
 }
 
 .card-header:hover .composer {
+    opacity: 1;
+}
+
+.card-header:hover .arranger {
     opacity: 1;
 }
 
@@ -763,8 +768,8 @@
     background: white;
     border-radius: 50%;
     padding: 2px;
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     box-sizing: content-box;
     margin-left: -10px;
     border-width: 2px;
@@ -777,7 +782,7 @@
 
 .badge[data-difficulty='beginner'] svg {
     color: var(--difficulty-easy-gradient-end);
-    border: 2px solid var(--difficulty-easy-gradient-end);
+    border: 3px solid var(--difficulty-easy-gradient-end);
 }
 
 .badge[data-difficulty='intermediate'] {
@@ -786,7 +791,7 @@
 
 .badge[data-difficulty='intermediate'] svg {
     color: var(--difficulty-medium-gradient-end);
-    border: 2px solid var(--difficulty-medium-gradient-end);
+    border: 3px solid var(--difficulty-medium-gradient-end);
 }
 
 .badge[data-difficulty='advanced'] {
@@ -795,7 +800,7 @@
 
 .badge[data-difficulty='advanced'] svg {
     color: var(--difficulty-hard-gradient-end);
-    border: 2px solid var(--difficulty-hard-gradient-end);
+    border: 3px solid var(--difficulty-hard-gradient-end);
 }
 
 .badge svg {

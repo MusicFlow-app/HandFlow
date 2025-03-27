@@ -12,18 +12,31 @@ export function useTabsLibrary() {
   const selectedDifficulty = ref('all')
   const sortBy = ref('created_at')
   const sortOrder = ref('desc')
-  const searchQuery = ref('')  
+  const _searchQuery = ref('')  // private ref
+
+  // Expose searchQuery as computed with getter/setter
+  const searchQuery = computed({
+    get: () => _searchQuery.value,
+    set: (value) => {
+      _searchQuery.value = value
+      currentPage.value = 1 // Reset to first page when searching
+    }
+  })
+
   // Computed property for filtered and sorted data
   const filteredFiles = computed(() => {
     let filtered = [...allFiles.value]
 
     // Apply search filter
-    if (searchQuery.value) {
-      const query = searchQuery.value.toLowerCase()
+    if (_searchQuery.value) {
+      const query = _searchQuery.value.toLowerCase()
       filtered = filtered.filter(file => 
-        file.name.toLowerCase().includes(query) ||
-        file.category?.toLowerCase().includes(query) ||
-        file.difficulty?.toLowerCase().includes(query)
+        (file.name || '').toLowerCase().includes(query) ||
+        (file.filename || '').toLowerCase().includes(query) ||
+        (file.composer || '').toLowerCase().includes(query) ||
+        (file.arranger || '').toLowerCase().includes(query) ||
+        file.category.toLowerCase().includes(query) ||
+        file.difficulty.toLowerCase().includes(query)
       )
     }
 
@@ -38,20 +51,24 @@ export function useTabsLibrary() {
     }
 
     // Apply sorting
-    if (sortBy.value === 'created_at') {
-      filtered.sort((a, b) => {
+    filtered.sort((a, b) => {
+      if (sortBy.value === 'created_at') {
         const aDate = new Date(a.uploadTime)
         const bDate = new Date(b.uploadTime)
         return sortOrder.value === 'asc' ? aDate - bDate : bDate - aDate
-      })
-    } else if (sortBy.value === 'favorite') {
-      // Sort by favorite count or status if available
-      filtered.sort((a, b) => {
+      } else if (sortBy.value === 'favorite') {
         const aFav = a.favoriteCount || 0
         const bFav = b.favoriteCount || 0
         return sortOrder.value === 'asc' ? aFav - bFav : bFav - aFav
-      })
-    }
+      } else if (sortBy.value === 'title') {
+        const aName = a.name || a.filename
+        const bName = b.name || b.filename
+        return sortOrder.value === 'asc' 
+          ? aName.localeCompare(bName)
+          : bName.localeCompare(aName)
+      }
+      return 0
+    })
 
     return filtered
   })
@@ -104,7 +121,10 @@ export function useTabsLibrary() {
       const data = await response.json()
       allFiles.value = data.tabs.map(file => ({
         id: file.id,
-        name: file.filename,
+        name: file.metadata.title || file.filename, // Use title with filename as fallback
+        filename: file.filename,
+        composer: file.metadata.composer || 'Unknown', // Add composer with fallback
+        arranger: file.metadata.arranger || 'Unknown',
         category: file.metadata.category?.toLowerCase(),
         difficulty: file.metadata.difficulty?.toLowerCase(),
         uploadTime: file.created_at,
@@ -129,7 +149,7 @@ export function useTabsLibrary() {
 
   const reuseFile = async (fileId) => {
     try {
-      const file = files.value.find(f => f.id === fileId)
+      const file = filteredFiles.value.find(f => f.id === fileId)
       if (!file) return
       
       // You can implement additional reuse logic here
@@ -141,31 +161,8 @@ export function useTabsLibrary() {
   }
 
   const setSearchQuery = (query) => {
-    searchQuery.value = query
-    currentPage.value = 1 // Reset to first page when searching
+    searchQuery.value = query // This will trigger the computed setter
   }
-
-  // Computed for filtered and sorted files
-  const files = computed(() => {
-    let result = filteredFiles.value
-
-    // Apply sorting
-    result = [...result].sort((a, b) => {
-      const aValue = a[sortBy.value]
-      const bValue = b[sortBy.value]
-
-      if (sortOrder.value === 'asc') {
-        return aValue > bValue ? 1 : -1
-      } else {
-        return aValue < bValue ? 1 : -1
-      }
-    })
-
-    // Apply pagination
-    const start = (currentPage.value - 1) * perPage.value
-    const end = start + perPage.value
-    return result.slice(start, end)
-  })
 
   // Function to update files list
   const updateFilesList = async () => {
