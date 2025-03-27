@@ -2,14 +2,14 @@
 
 /* Styles de base pour la bibliothèque de tablatures */
 .tabs-library {
-    margin: var(--spacing-xl) auto;
+    margin: var(--spacing-xs) auto;
     max-width: 1200px;
-    padding: var(--spacing-md);
+    padding: var(--spacing-xs);
     background: var(--surface-primary);
     border-radius: var(--card-radius);
     transition: all var(--transition-normal);
     position: relative;
-    padding-bottom: calc(var(--spacing-xl) + 60px);
+    padding-bottom: calc(var(--spacing-xs) + 2em);
 }
 
 /* Liste des fichiers récents */
@@ -782,7 +782,7 @@
 
 .badge[data-difficulty='beginner'] svg {
     color: var(--difficulty-easy-gradient-end);
-    border: 3px solid var(--difficulty-easy-gradient-end);
+    border: 3px solid var(--difficulty-easy-gradient-start);
 }
 
 .badge[data-difficulty='intermediate'] {
@@ -791,7 +791,7 @@
 
 .badge[data-difficulty='intermediate'] svg {
     color: var(--difficulty-medium-gradient-end);
-    border: 3px solid var(--difficulty-medium-gradient-end);
+    border: 3px solid var(--difficulty-medium-gradient-start);
 }
 
 .badge[data-difficulty='advanced'] {
@@ -800,7 +800,7 @@
 
 .badge[data-difficulty='advanced'] svg {
     color: var(--difficulty-hard-gradient-end);
-    border: 3px solid var(--difficulty-hard-gradient-end);
+    border: 3px solid var(--difficulty-hard-gradient-start);
 }
 
 .badge svg {

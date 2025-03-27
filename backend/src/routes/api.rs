@@ -64,7 +64,6 @@ pub async fn upload_file(mut payload: Multipart, db: web::Data<Database>) -> Res
 }
 
 pub async fn get_recent_tabs(query: web::Query<PaginationParams>, db: web::Data<Database>) -> Result<HttpResponse, Error> {
-    log::debug!("Fetching recent tabs");
     let page = query.page.unwrap_or(1);
     let per_page = query.per_page.unwrap_or(25);
 

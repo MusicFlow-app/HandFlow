@@ -9,6 +9,8 @@ import { useTheme } from '@/composables/useTheme'
 
 const { isDark, toggleTheme } = useTheme()
 
+const FAVORITE_ICON = PhStar
+
 const { 
   allFiles,
   loading, 
@@ -200,7 +202,7 @@ watch([showOnlyFavorites, favoriteFiles], async () => {
               showOnlyFavorites = !showOnlyFavorites
             }"
           >
-            <PhStar :size="20" :weight="showOnlyFavorites ? 'fill' : 'regular'" />
+            <FAVORITE_ICON :size="20" :weight="showOnlyFavorites ? 'fill' : 'regular'" />
             <span>Favorites</span>
           </button>
           <div class="sort-buttons">
@@ -328,7 +330,7 @@ watch([showOnlyFavorites, favoriteFiles], async () => {
                     @click.stop="handleFavoriteToggle(file.id, $event)"
                     :title="(isFavorite(file.id) !== undefined ? isFavorite(file.id) : file.is_favorite) ? 'Remove from favorites' : 'Add to favorites'"
                   >
-                    <PhStar :size="20" :weight="(isFavorite(file.id) !== undefined ? isFavorite(file.id) : file.is_favorite) ? 'fill' : 'regular'" />
+                    <FAVORITE_ICON :size="20" :weight="(isFavorite(file.id) !== undefined ? isFavorite(file.id) : file.is_favorite) ? 'fill' : 'regular'" />
                   </button>
                 </div>
                 <div class="card-tags">

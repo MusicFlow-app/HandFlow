@@ -10,7 +10,7 @@ mod utils;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     // Initialize the logger for capturing and displaying log messages
-    std::env::set_var("RUST_LOG", "debug");
+    std::env::set_var("RUST_LOG", "debug,sqlx=warn");
     env_logger::init();
 
     // Load environment variables from .env file if present

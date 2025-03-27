@@ -1,9 +1,9 @@
 @import '../variables.css';
 
 .upload-section {
-    margin: var(--spacing-xl) auto;
+    margin: var(--spacing-xs) auto;
     max-width: 800px;
-    padding: 0 var(--spacing-md);
+    padding: 0 var(--spacing-xs);
 }
 
 .upload-intro {
