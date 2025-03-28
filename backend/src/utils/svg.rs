@@ -1,6 +1,20 @@
 use std::fs::File;
 use std::io::{self, Read};
 
+/// Loads the default note SVG content.
+///
+/// This function loads the default note SVG template from the static directory.
+///
+/// # Returns
+/// An `io::Result<String>` containing the SVG content.
+pub fn load_default_note_svg() -> io::Result<String> {
+    let file_name = "static/img/note-default.svg";
+    let mut file = File::open(file_name)?;
+    let mut svg_content = String::new();
+    file.read_to_string(&mut svg_content)?;
+    Ok(svg_content)
+}
+
 /// Loads the SVG content for a handpan scale based on the number of notes.
 ///
 /// This function:

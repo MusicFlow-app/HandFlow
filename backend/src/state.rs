@@ -1,17 +1,14 @@
 use crate::db::Database;
-use std::sync::Arc;
+use crate::error::AppError;
 
 #[derive(Clone)]
-#[allow(dead_code)]
 pub struct AppState {
-    pub db: Arc<Database>,
+    pub db: Database,
 }
 
 impl AppState {
-    pub async fn new() -> Result<Self, Box<dyn std::error::Error>> {
+    pub async fn new() -> Result<Self, AppError> {
         let db = Database::new().await?;
-        Ok(Self {
-            db: Arc::new(db),
-        })
+        Ok(Self { db })
     }
 }

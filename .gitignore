@@ -1,6 +1,7 @@
 # Backend (Rust)
 /backend/target/
 /backend/debug/
+/backend/oldies
 /backend/**/*.rs.bk
 *.pdb
 

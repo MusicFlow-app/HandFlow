@@ -114,16 +114,16 @@ const updateFilesList = async () => {
 
 const categories = [
   { id: 'all', label: 'All', icon: PhInfinity },
-  { id: '1', label: 'Scales', icon: PhAperture },
-  { id: '2', label: 'Songs', icon: PhMusicNotes },
-  { id: '3', label: 'Exercises', icon: PhBarbell }
+  { id: 1, label: 'Scales', icon: PhAperture },
+  { id: 2, label: 'Songs', icon: PhMusicNotes },
+  { id: 3, label: 'Exercises', icon: PhBarbell }
 ]
 
 const difficultyLevels = [
   { id: 'all', label: 'All', icon: PhInfinity },
-  { id: '1', label: 'Novice', icon: PhStarHalf },
-  { id: '2', label: 'Skilled', icon: PhStar },
-  { id: '3', label: 'Advanced', icon: PhShootingStar }
+  { id: 1, label: 'Novice', icon: PhStarHalf },
+  { id: 2, label: 'Skilled', icon: PhStar },
+  { id: 3, label: 'Advanced', icon: PhShootingStar }
 ]
 // Watch for changes in display mode and favorites
 watch([showOnlyFavorites, favoriteFiles], async () => {
@@ -311,7 +311,7 @@ watch([showOnlyFavorites, favoriteFiles], async () => {
             <div class="card-content">
               <div class="content-main">
                 <div class="card-header">
-                  <h4 class="piece-title">{{ file.metadata.title }}</h4>
+                  <h4 class="piece-title">{{ file.name }}</h4>
                   <span class="composer">
                     <PhUserSound :size="16" weight="bold" />
                     {{ file.metadata?.composer || 'Unknown' }}

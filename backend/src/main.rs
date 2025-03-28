@@ -1,38 +1,45 @@
 use actix_cors::Cors;
 use actix_files::Files;
-use actix_web::{web, App, HttpServer};
+use actix_web::{middleware, web, App, HttpServer};
 
+mod api;
+mod config;
 mod db;
-mod routes;
+mod error;
+mod models;
+mod parsers;
 mod state;
 mod utils;
 
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    // Initialize the logger for capturing and displaying log messages
-    std::env::set_var("RUST_LOG", "debug,sqlx=warn");
-    env_logger::init();
-
-    // Load environment variables from .env file if present
-    dotenv::dotenv().ok();
-
-    // Initialize database connection
-    let db = db::Database::new().await.map_err(|e| {
-        log::error!("Failed to initialize database: {:?}", e);
-        std::io::Error::new(std::io::ErrorKind::Other, "Failed to initialize database")
+    // Load configuration first
+    let config = config::Config::new().map_err(|e| {
+        log::error!("Failed to load config: {}", e);
+        std::io::Error::new(std::io::ErrorKind::Other, e)
     })?;
 
-    // Get port from environment variable or use default
-    let port = std::env::var("PORT").unwrap_or_else(|_| "8080".to_string());
-    let bind_addr = format!("0.0.0.0:{}", port);
+    // Initialize the logger with configured level
+    std::env::set_var("RUST_LOG", &config.log_level);
+    env_logger::init();
+
+    // Initialize application state
+    let state = state::AppState::new().await.map_err(|e| {
+        log::error!("Failed to initialize state: {}", e);
+        std::io::Error::new(std::io::ErrorKind::Other, e)
+    })?;
+
+    let bind_addr = format!("0.0.0.0:{}", config.port);
 
     log::info!("Starting server on {}", bind_addr);
+    log::info!("CORS origin: {}", config.cors_origin);
+    log::info!("Upload limit: {} bytes", config.upload_limit);
 
-    // Start an Actix web server
+    // Start the Actix web server
     HttpServer::new(move || {
         let cors = Cors::default()
-            .allowed_origin("http://localhost:5173") // Frontend dev server
-            .allowed_origin("http://localhost:8080") // Backend URL
+            .allowed_origin(&config.cors_origin)
             .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
             .allowed_headers(vec!["Authorization", "Content-Type", "Accept"])
             .supports_credentials()
@@ -40,9 +47,10 @@ async fn main() -> std::io::Result<()> {
 
         App::new()
             .wrap(cors)
-            .app_data(web::Data::new(db.clone()))
+            .wrap(middleware::Logger::default())
+            .app_data(web::Data::new(state.db.clone()))
             .service(Files::new("/static", "static").show_files_listing())
-            .configure(routes::api::configure)
+            .configure(api::configure)
     })
     .bind(&bind_addr)?
     .run()

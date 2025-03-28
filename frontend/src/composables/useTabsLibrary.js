@@ -32,22 +32,21 @@ export function useTabsLibrary() {
       const query = _searchQuery.value.toLowerCase()
       filtered = filtered.filter(file => 
         (file.name || '').toLowerCase().includes(query) ||
-        (file.filename || '').toLowerCase().includes(query) ||
         (file.composer || '').toLowerCase().includes(query) ||
         (file.arranger || '').toLowerCase().includes(query) ||
-        file.category.toLowerCase().includes(query) ||
-        file.difficulty.toLowerCase().includes(query)
+        file.category.toString().includes(query) || // Convert to string only for search
+        file.difficulty.toString().includes(query)  // Convert to string only for search
       )
     }
 
     // Apply category filter
     if (selectedCategory.value !== 'all') {
-      filtered = filtered.filter(file => file.category === selectedCategory.value)
+      filtered = filtered.filter(file => file.category === parseInt(selectedCategory.value))
     }
 
     // Apply difficulty filter
     if (selectedDifficulty.value !== 'all') {
-      filtered = filtered.filter(file => file.difficulty === selectedDifficulty.value)
+      filtered = filtered.filter(file => file.difficulty === parseInt(selectedDifficulty.value))
     }
 
     // Apply sorting
@@ -103,7 +102,7 @@ export function useTabsLibrary() {
     currentPage.value = page
     
     try {
-      const response = await fetch(`/api/tabs/recent?page=1&per_page=1000&sort_by=${sortBy.value}&sort_order=${sortOrder.value}`, {
+      const response = await fetch(`/api/library?page=1&per_page=1000&sort_by=${sortBy.value}&sort_order=${sortOrder.value}`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
@@ -121,12 +120,11 @@ export function useTabsLibrary() {
       const data = await response.json()
       allFiles.value = data.tabs.map(file => ({
         id: file.id,
-        name: file.metadata.title || file.filename, // Use title with filename as fallback
-        filename: file.filename,
-        composer: file.metadata.composer || 'Unknown', // Add composer with fallback
+        name: file.metadata.work_title || 'Unknown',
+        composer: file.metadata.composer || 'Unknown',
         arranger: file.metadata.arranger || 'Unknown',
-        category: file.metadata.category?.toLowerCase(),
-        difficulty: file.metadata.difficulty?.toLowerCase(),
+        category: file.metadata.category || 2, // Keep as number
+        difficulty: file.metadata.difficulty || 1, // Keep as number
         uploadTime: file.created_at,
         favoriteCount: file.favorite_count || 0,
         metadata: file.metadata

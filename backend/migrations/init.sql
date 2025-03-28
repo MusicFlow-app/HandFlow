@@ -1,19 +1,27 @@
 -- Enable UUID extension for generating unique IDs
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Create tabs table with XML content and UUID-based uniqueness
+-- Create tabs table with score data and UUID-based uniqueness
 CREATE TABLE IF NOT EXISTS tabs (
-    favorite_count INTEGER NOT NULL DEFAULT 0,
-    id UUID PRIMARY KEY,  -- Generated from content, used for uniqueness
-    filename VARCHAR(255) NOT NULL,
+    id UUID PRIMARY KEY,  -- Generated from metadata
     file_size BIGINT NOT NULL,
-    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-    mscx_content TEXT NOT NULL,  -- Store the XML content
+    metadata JSONB NOT NULL DEFAULT '{
+        "workTitle": "Unknown",
+        "composer": "Unknown",
+        "arranger": "Unknown",
+        "difficulty": 2,
+        "category": 2
+    }'::jsonb,
+    score_data JSONB NOT NULL DEFAULT '{
+        "parts": []
+    }'::jsonb,
+    favorite_count INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_used_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP  -- Track when the file was last used
 );
 
 -- Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_tabs_created_at ON tabs(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_tabs_filename ON tabs(filename);
+CREATE INDEX IF NOT EXISTS idx_tabs_work_title ON tabs((metadata->>'workTitle'));
 CREATE INDEX IF NOT EXISTS idx_tabs_metadata ON tabs USING gin (metadata);
+CREATE INDEX IF NOT EXISTS idx_tabs_score_data ON tabs USING gin (score_data);
