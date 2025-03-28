@@ -79,7 +79,7 @@ pub fn parse_mscx_parts(content: &str) -> Result<Vec<(u32, String)>, AppError> {
     Ok(parts)
 }
 
-pub fn parse_mscx_score(content: &str, part_id: u32) -> Result<Vec<(u32, String, Vec<Vec<(u32, String)>>)>, AppError> {
+pub fn parse_mscx_score(content: &str, part_id: u32) -> Result<Vec<(u32, String, Vec<Vec<(u32, String, bool, u32)>>)>, AppError> {
     let doc = Document::parse(content)
         .map_err(|e| AppError::Parse(e.to_string()))?;
     
@@ -93,6 +93,9 @@ pub fn parse_mscx_score(content: &str, part_id: u32) -> Result<Vec<(u32, String,
     let mut current_time_signature = String::new();
     let mut current_chord_notes = Vec::new();
     let mut measure_chords = Vec::new();
+    let hand = 0;
+    let note_type = 1;
+    let note_type_rest = 0;
     
     // Find the correct staff
     let staff = score.descendants()
@@ -142,7 +145,7 @@ pub fn parse_mscx_score(content: &str, part_id: u32) -> Result<Vec<(u32, String,
                             .unwrap_or(0);
                         
                         if pitch > 0 {
-                            current_chord_notes.push((pitch, current_duration.clone()));
+                            current_chord_notes.push((pitch, current_duration.clone(), hand != 0, note_type));
                         }
                     }
                     
@@ -160,14 +163,14 @@ pub fn parse_mscx_score(content: &str, part_id: u32) -> Result<Vec<(u32, String,
                         current_duration = dur.to_string();
                     }
                     
-                    current_chord_notes.push((0, current_duration.clone()));
+                    current_chord_notes.push((0, current_duration.clone(), hand != 0, note_type_rest));
                     measure_chords.push(current_chord_notes.clone());
                 },
                 _ => {}
             }
         }
         
-        measures.push((measure_id, current_time_signature.clone(), measure_chords.clone()));
+        measures.push((measure_id as u32, current_time_signature.clone(), measure_chords.clone()));
     }
     
     Ok(measures)
