@@ -51,19 +51,19 @@ const filteredFavoriteFiles = computed(() => {
       (file.filename || '').toLowerCase().includes(query) ||
       (file.composer || '').toLowerCase().includes(query) ||
       (file.arranger || '').toLowerCase().includes(query) ||
-      file.category.toLowerCase().includes(query) ||
-      file.difficulty.toLowerCase().includes(query)
+      categories.find(c => c.id === file.metadata.category)?.label.toLowerCase().includes(query) ||
+      difficultyLevels.find(d => d.id === file.metadata.difficulty)?.label.toLowerCase().includes(query)
     )
   }
 
   // Apply category filter
   if (activeCategory.value !== 'all') {
-    filtered = filtered.filter(file => file.category === activeCategory.value)
+    filtered = filtered.filter(file => file.metadata.category === activeCategory.value)
   }
 
   // Apply difficulty filter
   if (activeDifficulty.value !== 'all') {
-    filtered = filtered.filter(file => file.difficulty === activeDifficulty.value)
+    filtered = filtered.filter(file => file.metadata.difficulty === activeDifficulty.value)
   }
 
   return filtered
@@ -114,16 +114,16 @@ const updateFilesList = async () => {
 
 const categories = [
   { id: 'all', label: 'All', icon: PhInfinity },
-  { id: 'scale', label: 'Scales', icon: PhAperture },
-  { id: 'song', label: 'Songs', icon: PhMusicNotes },
-  { id: 'exercise', label: 'Exercises', icon: PhBarbell }
+  { id: '1', label: 'Scales', icon: PhAperture },
+  { id: '2', label: 'Songs', icon: PhMusicNotes },
+  { id: '3', label: 'Exercises', icon: PhBarbell }
 ]
 
 const difficultyLevels = [
   { id: 'all', label: 'All', icon: PhInfinity },
-  { id: 'novice', label: 'Novice', icon: PhStarHalf },
-  { id: 'skilled', label: 'Skilled', icon: PhStar },
-  { id: 'advanced', label: 'Advanced', icon: PhShootingStar }
+  { id: '1', label: 'Novice', icon: PhStarHalf },
+  { id: '2', label: 'Skilled', icon: PhStar },
+  { id: '3', label: 'Advanced', icon: PhShootingStar }
 ]
 // Watch for changes in display mode and favorites
 watch([showOnlyFavorites, favoriteFiles], async () => {
@@ -332,13 +332,13 @@ watch([showOnlyFavorites, favoriteFiles], async () => {
                   </button>
                 </div>
                 <div class="card-tags">
-                  <div class="badge" :data-difficulty="file.metadata.difficulty?.toLowerCase()">
+                  <div class="badge" :data-difficulty="file.metadata.difficulty">
                     <component 
-                      :is="categories.find(c => c.id === file.metadata.category?.toLowerCase())?.icon" 
+                      :is="categories.find(c => c.id === file.metadata.category)?.icon" 
                       :size="20" 
                       weight="fill"
                     />
-                    <span class="badge-text">{{ file.metadata.difficulty }}</span>
+                    <span class="badge-text">{{ difficultyLevels.find(d => d.id === file.metadata.difficulty)?.label }}</span>
                   </div>
                 </div>
               </div>

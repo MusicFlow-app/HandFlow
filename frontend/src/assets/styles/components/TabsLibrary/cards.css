@@ -176,29 +176,29 @@
     border-style: solid;
 }
 
-.badge[data-difficulty='beginner'] {
+.badge[data-difficulty='1'] {
     background: linear-gradient(135deg, var(--difficulty-easy-gradient-start), var(--difficulty-easy-gradient-end));
 }
 
-.badge[data-difficulty='beginner'] svg {
+.badge[data-difficulty='1'] svg {
     color: var(--difficulty-easy-gradient-end);
     border: 3px solid var(--difficulty-easy-gradient-start);
 }
 
-.badge[data-difficulty='intermediate'] {
+.badge[data-difficulty='2'] {
     background: linear-gradient(135deg, var(--difficulty-medium-gradient-start), var(--difficulty-medium-gradient-end));
 }
 
-.badge[data-difficulty='intermediate'] svg {
+.badge[data-difficulty='2'] svg {
     color: var(--difficulty-medium-gradient-end);
     border: 3px solid var(--difficulty-medium-gradient-start);
 }
 
-.badge[data-difficulty='advanced'] {
+.badge[data-difficulty='3'] {
     background: linear-gradient(135deg, var(--difficulty-hard-gradient-start), var(--difficulty-hard-gradient-end));
 }
 
-.badge[data-difficulty='advanced'] svg {
+.badge[data-difficulty='3'] svg {
     color: var(--difficulty-hard-gradient-end);
     border: 3px solid var(--difficulty-hard-gradient-start);
 }
