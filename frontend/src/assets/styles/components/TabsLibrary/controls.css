@@ -391,17 +391,17 @@
 }
 
 /* Difficulty Colors */
-.difficulty-level[data-difficulty='beginner'].active {
+.difficulty-level[data-difficulty='1'].active {
     background: var(--difficulty-easy-gradient-end);
     color: var(--text-light);
 }
 
-.difficulty-level[data-difficulty='intermediate'].active {
+.difficulty-level[data-difficulty='2'].active {
     background: var(--difficulty-medium-gradient-end);
     color: var(--text-light);
 }
 
-.difficulty-level[data-difficulty='advanced'].active {
+.difficulty-level[data-difficulty='3'].active {
     background: var(--difficulty-hard-gradient-end);
     color: var(--text-light);
 }
@@ -419,15 +419,15 @@
     color: var(--text-light);
 }
 
-.difficulty-level[data-difficulty='beginner'] {
+.difficulty-level[data-difficulty='1'] {
     --difficulty-color: var(--difficulty-easy-gradient-end);
 }
 
-.difficulty-level[data-difficulty='intermediate'] {
+.difficulty-level[data-difficulty='2'] {
     --difficulty-color: var(--difficulty-medium-gradient-end);
 }
 
-.difficulty-level[data-difficulty='advanced'] {
+.difficulty-level[data-difficulty='3'] {
     --difficulty-color: var(--difficulty-hard-gradient-end);
 }
 

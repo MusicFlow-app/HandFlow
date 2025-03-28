@@ -357,18 +357,6 @@ watch([showOnlyFavorites, favoriteFiles], async () => {
 
     <!-- Pagination -->
     <div v-if="totalPages > 1" class="pagination">
-      <button 
-        class="page-btn prev" 
-        :disabled="currentPage === 1"
-        @click="() => currentPage = Math.max(1, Math.min(currentPage - 1, totalPages))"
-        :title="'Page précédente'"
-      >
-        <PhCaretLeft 
-          :size="20" 
-          weight="bold"
-        />
-      </button>
-
       <div class="page-numbers">
         <template v-for="page in paginationRange" :key="page">
           <span v-if="page === '...'" class="ellipsis">...</span>
@@ -381,18 +369,6 @@ watch([showOnlyFavorites, favoriteFiles], async () => {
           </button>
         </template>
       </div>
-
-      <button 
-        class="page-btn next" 
-        :disabled="currentPage === totalPages"
-        @click="() => currentPage = Math.max(1, Math.min(currentPage + 1, totalPages))"
-        :title="'Page suivante'"
-      >
-        <PhCaretRight 
-          :size="20" 
-          weight="bold"
-        />
-      </button>
     </div>
   </div>
 </template>

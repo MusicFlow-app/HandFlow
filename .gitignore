@@ -10,6 +10,7 @@
 /frontend/.env
 /frontend/.env.*
 /frontend/.vscode/
+frontend/package-lock.json
 !/frontend/.env.example
 
 # Editor directories and files
