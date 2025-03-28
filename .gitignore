@@ -42,3 +42,7 @@ pnpm-debug.log*
 .env
 .env.*
 !.env.example
+
+# Oldies
+frontend/src/assets/styles_oldies
+frontend/src/scripts_oldies

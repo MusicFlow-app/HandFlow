@@ -1,58 +1,57 @@
+/* Home View Styles */
 .home {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xl);
   width: 100%;
-  max-width: 1200px;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+  overflow: hidden;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-md);
+/* Home Content */
+.home-content {
+  display: grid;
+  gap: var(--spacing-xl);
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
 
-.logo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.logo h1 {
-  font-size: var(--font-size-2xl);
-  font-weight: 700;
-  color: var(--text-color);
-  margin: 0;
-  line-height: 1;
-}
-
-.tagline {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-}
-
-.theme-toggle {
-  background: var(--surface-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-md);
-  padding: 0.5rem;
-  cursor: pointer;
-  color: var(--text-primary);
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* Home Sections */
+.home-section {
+  background: var(--surface-primary);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
   box-shadow: var(--shadow-default);
+  transition: all var(--transition-normal);
 }
 
-.theme-toggle:hover {
-  background: var(--surface-hover);
-  border-color: var(--border-hover);
-  transform: translateY(-1px);
+.home-section:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
 }
 
-.theme-toggle:active {
-  background: var(--surface-active);
-  transform: translateY(0);
+/* Home Section Title */
+.home-section-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: var(--spacing-md);
+}
+
+/* Responsive */
+@media (max-width: var(--tablet)) {
+  .home {
+    padding: var(--spacing-md);
+  }
+}
+
+@media (max-width: var(--mobile)) {
+  .home {
+    padding: var(--spacing-sm);
+  }
+
+  .home-section {
+    padding: var(--spacing-md);
+  }
 }

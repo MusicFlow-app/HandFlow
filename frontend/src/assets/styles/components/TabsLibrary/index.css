@@ -1,0 +1,6 @@
+/* TabsLibrary Component Styles */
+@import '@/assets/styles/variables.css';
+@import './base.css';
+@import './cards.css';
+@import './controls.css';
+@import './pagination.css';

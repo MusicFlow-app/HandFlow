@@ -1,11 +1,10 @@
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
+import { useTheme } from '@/composables/useTheme'
 import { useTabsLibrary } from '@/composables/useTabsLibrary'
 import { useFavorites } from '@/composables/useFavorites'
 import { PhInfinity, PhMusicNotes, PhBarbell, PhShootingStar, PhStar, PhStarHalf, PhArrowRight, PhCaretLeft, PhCaretRight, PhSortAscending, PhSortDescending, PhAperture, PhArrowsDownUp, PhMagnifyingGlass, PhPenNib, PhUserSound } from '@phosphor-icons/vue'
-import '@/assets/styles/components/TabsLibrary/tablatures-library.css'
-import '@/assets/styles/components/TabsLibrary/tablatures-library-sorting.css'
-import { useTheme } from '@/composables/useTheme'
+import '@/assets/styles/components/TabsLibrary/index.css'
 
 const { isDark, toggleTheme } = useTheme()
 
@@ -122,8 +121,8 @@ const categories = [
 
 const difficultyLevels = [
   { id: 'all', label: 'All', icon: PhInfinity },
-  { id: 'beginner', label: 'Beginner', icon: PhStarHalf },
-  { id: 'intermediate', label: 'Intermediate', icon: PhStar },
+  { id: 'novice', label: 'Novice', icon: PhStarHalf },
+  { id: 'skilled', label: 'Skilled', icon: PhStar },
   { id: 'advanced', label: 'Advanced', icon: PhShootingStar }
 ]
 // Watch for changes in display mode and favorites
@@ -184,70 +183,70 @@ watch([showOnlyFavorites, favoriteFiles], async () => {
 <template>
   <div class="tabs-library">
     <div class="library-header">
+      <h2>Tablatures Library</h2>
       <div class="header-top">
-        <h2>Tablatures Library</h2>
-        <div class="header-controls">
-          <div class="search-field">
-            <PhMagnifyingGlass :size="20" weight="bold" />
-            <input 
-              type="text" 
-              v-model="searchQuery"
-              placeholder="Search tablatures..."
-            />
-          </div>
-          <button 
-            class="fav-filter-btn" 
-            :class="{ active: showOnlyFavorites }"
-            @click="() => {
-              showOnlyFavorites = !showOnlyFavorites
-            }"
-          >
-            <FAVORITE_ICON :size="20" :weight="showOnlyFavorites ? 'fill' : 'regular'" />
-            <span>Favorites</span>
-          </button>
-          <div class="sort-buttons">
-          <button 
-            class="sort-btn" 
-            :class="{ active: sortBy === 'title' }"
-            :data-order="sortBy === 'title' ? sortOrder : ''"
-            @click="toggleSort('title')"
-          >
-            <span>Title</span>
-            <component
-              :is="sortBy === 'title' ? (sortOrder === 'asc' ? PhSortAscending : PhSortDescending) : PhArrowsDownUp"
-              :size="16"
-              weight="bold"
-            />
-          </button>
-          <button 
-            class="sort-btn" 
-            :class="{ active: sortBy === 'created_at' }"
-            :data-order="sortBy === 'created_at' ? sortOrder : ''"
-            @click="async () => { await toggleSort('created_at') }"
-          >
-            <span>Date</span>
-            <component
-              :is="sortBy === 'created_at' ? (sortOrder === 'asc' ? PhSortAscending : PhSortDescending) : PhArrowsDownUp"
-              :size="16"
-              weight="bold"
-            />
-          </button>
-          <button 
-            class="sort-btn" 
-            :class="{ active: sortBy === 'favorite' }"
-            :data-order="sortBy === 'favorite' ? sortOrder : ''"
-            @click="async () => { await toggleSort('favorite') }"
-          >
-            <span>Popular</span>
-            <component
-              :is="sortBy === 'favorite' ? (sortOrder === 'asc' ? PhSortAscending : PhSortDescending) : PhArrowsDownUp"
-              :size="16"
-              weight="bold"
-            />
-          </button>
+        <div class="search-field">
+          <PhMagnifyingGlass :size="20" weight="bold" />
+          <input 
+            type="text" 
+            v-model="searchQuery"
+            placeholder="Search tablatures..."
+          />
         </div>
+        <div class="button-group">
+              <button 
+                class="fav-filter-btn" 
+                :class="{ active: showOnlyFavorites }"
+                @click="() => showOnlyFavorites = !showOnlyFavorites"
+              >
+                <FAVORITE_ICON :size="20" :weight="showOnlyFavorites ? 'fill' : 'regular'" />
+                <span>Favorites</span>
+              </button>
+              <div class="sort-buttons">
+                <button 
+                class="sort-btn" 
+                :class="{ active: sortBy === 'title' }"
+                :data-order="sortBy === 'title' ? sortOrder : ''"
+                @click="toggleSort('title')"
+              >
+                <span>Title</span>
+                <component
+                  :is="sortBy === 'title' ? (sortOrder === 'asc' ? PhSortAscending : PhSortDescending) : PhArrowsDownUp"
+                  :size="16"
+                  weight="bold"
+                />
+              </button>
+              <button 
+                class="sort-btn" 
+                :class="{ active: sortBy === 'created_at' }"
+                :data-order="sortBy === 'created_at' ? sortOrder : ''"
+                @click="async () => { await toggleSort('created_at') }"
+              >
+                <span>Date</span>
+                <component
+                  :is="sortBy === 'created_at' ? (sortOrder === 'asc' ? PhSortAscending : PhSortDescending) : PhArrowsDownUp"
+                  :size="16"
+                  weight="bold"
+                />
+              </button>
+              <button 
+                class="sort-btn" 
+                :class="{ active: sortBy === 'favorite' }"
+                :data-order="sortBy === 'favorite' ? sortOrder : ''"
+                @click="async () => { await toggleSort('favorite') }"
+              >
+                <span>Popular</span>
+                <component
+                  :is="sortBy === 'favorite' ? (sortOrder === 'asc' ? PhSortAscending : PhSortDescending) : PhArrowsDownUp"
+                  :size="16"
+                  weight="bold"
+                />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+
       <div class="filters">
         <div class="category-filter">
           <div class="filter-label">Category:</div>
@@ -283,20 +282,19 @@ watch([showOnlyFavorites, favoriteFiles], async () => {
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="recent-files-list">
-      <div v-if="loading" class="loading-state">
-        <div class="loading-spinner"></div>
-        <p>Loading recent tablatures...</p>
-      </div>
-      
-      <div v-else-if="error" class="error-state">
-        <p>{{ error }}</p>
-        <button class="retry-button" @click="fetchRecentFiles">
-          Retry
-        </button>
-      </div>
+      <div class="recent-files-list">
+        <div v-if="loading" class="loading-state">
+          <div class="loading-spinner"></div>
+          <p>Loading recent tablatures...</p>
+        </div>
+        
+        <div v-else-if="error" class="error-state">
+          <p>{{ error }}</p>
+          <button class="retry-button" @click="fetchRecentFiles">
+            Retry
+          </button>
+        </div>
 
       <template v-else>
         <div v-if="displayedFiles.length === 0" class="no-files">

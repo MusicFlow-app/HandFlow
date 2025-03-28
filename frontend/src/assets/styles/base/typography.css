@@ -1,0 +1,90 @@
+/* Typography */
+body {
+    font-family: var(--font-primary);
+    font-size: var(--font-size-md);
+    line-height: 1.6;
+    color: var(--text-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-color);
+    margin: 0;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+h1 {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--spacing-lg);
+}
+
+h2 {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--spacing-md);
+}
+
+h3 {
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--spacing-sm);
+}
+
+/* App Typography */
+.header-title h1 {
+    font-family: 'Dancing Script', cursive;
+    font-size: 60px;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin: 0;
+    margin-top: -0.1em;
+    letter-spacing: 0;
+    text-shadow: 2px 2px 4px rgba(16, 34, 51, 0.33);
+    transition: transform 0.3s ease-in-out, color 0.3s ease-in-out;
+    line-height: 1;
+}
+
+.header-title h2 {
+    font-size: var(--font-size-md);
+    font-weight: 500;
+    margin: 0;
+    color: var(--text-secondary);
+    opacity: 0.9;
+    transition: all var(--transition-normal);
+}
+
+.title {
+    font-family: var(--font-display);
+    font-size: var(--font-size-2xl);
+    color: var(--primary-color);
+    text-align: center;
+    margin: 0;
+    letter-spacing: -0.02em;
+    text-shadow: 2px 2px 4px var(--shadow-text);
+    transition: transform var(--transition-default), color var(--transition-default);
+}
+
+.sub-title {
+    font-size: var(--font-size-md);
+    color: var(--text-muted);
+    margin-top: var(--spacing-xs);
+    text-align: center;
+}
+
+.copyright {
+    font-size: 0.9rem;
+    color: var(--text-color);
+    opacity: 0.8;
+}
+
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted { color: var(--text-muted); }
+.text-light { color: var(--text-light); }
+
+/* Responsive Typography */
+@media (max-width: var(--mobile)) {
+    h1 { font-size: var(--font-size-xl); }
+    h2 { font-size: var(--font-size-lg); }
+    h3 { font-size: var(--font-size-md); }
+    .title { font-size: var(--font-size-xl); }
+    .sub-title { font-size: var(--font-size-sm); }
+}

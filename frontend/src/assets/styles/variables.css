@@ -94,6 +94,9 @@
    --step-timing: 150ms ease-in-out;
    --step-delay: 75ms;
    
+   /* Layout */
+   --content-max-width: 1200px;
+   
    /* Breakpoints */
    --mobile: 480px;
    --tablet: 768px;
@@ -105,18 +108,13 @@
    --z-dropdown: 800;
    --z-header: 700;
    --z-footer: 600;
-    
-    /* Transitions */
-    --transition-speed: 0.15s;
-    --transition-normal: 0.2s ease;
-    --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
-    
-    /* Background colors */
-    --background-color: #f4f4f9;
-    --container-bg: #ffffff;
-    --background-hover: #e9ecef;
-    --background-light-transparent: rgba(255, 255, 255, 0.05);
-    --background-hover-light: rgba(255, 255, 255, 0.15);
+
+   /* Layout */
+   --header-height: 80px;
+   --container-padding: 2rem;
+   
+   /* Shadow Variants */
+   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 [data-theme="dark"] {
@@ -161,6 +159,7 @@
     --shadow-text: rgba(0, 0, 0, 0.5);
     --shadow-default: 0 2px 10px rgba(0, 0, 0, 0.3);
     --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.4);
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
     
     /* Difficulty Colors - adjusted for dark mode */
     --difficulty-easy: #4ade80;
@@ -178,15 +177,5 @@
     --status-error: #dc2626;
     --status-info: #60a5fa;
     --status-success: #34d399;
-    
-    /* Border & Shadow */
-    --border-radius-sm: 4px;
-    --border-radius-md: 8px;
-    --border-radius-lg: 12px;
-    --card-radius: 16px;
-    --shadow-color: rgba(0, 0, 0, 0.1);
-    --shadow-text: rgba(16, 34, 51, 0.33);
-    --shadow-default: 0 2px 10px var(--shadow-color);
-    --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.15);
     
 }

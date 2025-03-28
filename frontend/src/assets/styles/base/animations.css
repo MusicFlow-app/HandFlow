@@ -1,0 +1,63 @@
+/* Global Animations */
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.1; }
+    100% { opacity: 1; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-10px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(0.95);
+      opacity: 0.7;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+}
+
+/* Animation Utility Classes */
+.animate-blink {
+    animation: blink var(--transition-normal) infinite;
+}
+
+.animate-fade-in {
+    animation: fadeIn var(--transition-normal);
+}
+
+.animate-slide-in {
+    animation: slideIn var(--transition-normal);
+}
+
+/* Transition Utilities */
+.transition-default {
+    transition: all var(--transition-default);
+}
+
+.transition-transform {
+    transition: transform var(--transition-default);
+}
+
+.hover-scale:hover {
+    transform: scale(1.05);
+}

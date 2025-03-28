@@ -19,11 +19,15 @@ const { isDark, toggleTheme } = useTheme()
       <component :is="isDark ? PhSun : PhMoon" :size="24" weight="fill" />
     </button>
     <header class="app-header">
-      <router-link to="/" class="logo-link">
-        <img :src="isDark ? logoDark : logo" alt="HandFlow Logo" class="logo" fetchpriority="high">
-        <h1 class="title">HandFlow</h1>
-        <h2 class="sub-title">Handpan Tablature Generator</h2>
-      </router-link>
+      <div class="header-content">
+        <router-link to="/" class="logo-link">
+          <img :src="isDark ? logoDark : logo" alt="HandFlow Logo" class="logo" fetchpriority="high">
+          <div class="header-title">
+            <h1>HandFlow</h1>
+            <h2>Handpan Tablature Generator</h2>
+          </div>
+        </router-link>
+      </div>
     </header>
 
     <main class="app-main">
