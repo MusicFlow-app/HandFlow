@@ -1,5 +1,6 @@
 use crate::error::AppError;
 use roxmltree::Document;
+use serde_json::{json, Value as JsonValue};
 
 pub fn parse_mscx_metadata(content: &str) -> (String, String, String) {
     let mut composer = String::from("Unknown");
@@ -174,4 +175,52 @@ pub fn parse_mscx_score(content: &str, part_id: u32) -> Result<Vec<(u32, String,
     }
     
     Ok(measures)
+}
+
+pub fn parse_mscx(content: &str) -> Result<(JsonValue, JsonValue), AppError> {
+    // Parse metadata
+    let (work_title, composer, arranger) = parse_mscx_metadata(content);
+    let metadata = json!({
+        "workTitle": work_title,
+        "composer": composer,
+        "arranger": arranger,
+        "tempo": 120,
+        "keySignature": "Cmaj",
+        "difficulty": 2,  // Default value, can be updated later
+        "category": 2     // Default value, can be updated later
+    });
+    
+    // Parse available parts
+    let available_parts = parse_mscx_parts(content)?;
+    
+    // Filter out parts without staff IDs
+    let available_parts: Vec<_> = available_parts.into_iter()
+        .filter(|(staff_id, _)| *staff_id > 0)
+        .collect();
+    
+    // Create score_data structure
+    let mut score_data = json!({"parts": []});
+    for part in available_parts {
+        // Parse score for this part
+        let measures = parse_mscx_score(content, part.0)
+            .map_err(|e| {
+                log::error!("Failed to parse score for part {}: {:?}", part.1, e);
+                AppError::Parse(format!("Failed to parse score for part {}", part.1))
+            })?;
+        
+        // Add part to score_data
+        if let Some(parts_array) = score_data.as_object_mut().and_then(|obj| obj["parts"].as_array_mut()) {
+            parts_array.push(json!({
+                "id": part.0,
+                "name": part.1,
+                "measures": measures.iter().map(|(id, time_sig, chords)| json!({
+                    "id": id,
+                    "timeSignature": time_sig,
+                    "chords": chords
+                })).collect::<Vec<_>>()
+            }));
+        }
+    }
+    
+    Ok((metadata, score_data))
 }

@@ -24,7 +24,7 @@ const handleFileSelect = async (event) => {
 const handleDrop = async (event) => {
   isDragging.value = false
   const file = event.dataTransfer.files[0]
-  if (file && file.name.endsWith('.mscz')) {
+  if (file && (file.name.endsWith('.mscz') || file.name.endsWith('.mid'))) {
     selectedFile.value = file
     await uploadFile(file)
   }
@@ -50,12 +50,12 @@ const handleDrop = async (event) => {
         <PhUploadSimple :size="48" />
         <p class="drop-zone-title">Drop your MuseScore file here</p>
         <p class="drop-zone-subtitle">or click to browse your files</p>
-        <p class="drop-zone-format">Accepts .mscz files</p>
+        <p class="drop-zone-format">Accepts .mscz & .mid files</p>
       </div>
       <input 
         type="file" 
         ref="fileInput"
-        accept=".mscz" 
+        accept=".mscz, .mid" 
         style="display: none;"
         @change="handleFileSelect"
       >

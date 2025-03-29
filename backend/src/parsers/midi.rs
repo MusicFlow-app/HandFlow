@@ -45,12 +45,6 @@ struct ScoreData {
     parts: Vec<Part>,
 }
 
-#[derive(Serialize)]
-struct Output {
-    metadata: Metadata,
-    score_data: ScoreData,
-}
-
 fn format_key_signature(key: i8, scale: u8) -> String {
     let names = [
         "C", "G", "D", "A", "E", "B", "F#", "C#", "F", "Bb", "Eb", "Ab", "Db", "Gb", "Cb",
@@ -66,25 +60,39 @@ fn format_key_signature(key: i8, scale: u8) -> String {
 }
 
 fn duration_from_ticks(ticks: u32, ppq: u16) -> Option<&'static str> {
-    let base = ppq as f32;
-    let ratio = ticks as f32 / base;
-    match ratio {
-        x if (x - 4.0).abs() < 0.2 => Some("whole"),
-        x if (x - 2.0).abs() < 0.2 => Some("half"),
-        x if (x - 1.0).abs() < 0.2 => Some("quarter"),
-        x if (x - 0.5).abs() < 0.1 => Some("eighth"),
-        x if (x - 0.25).abs() < 0.05 => Some("16th"),
-        x if (x - 0.125).abs() < 0.03 => Some("32nd"),
-        x if (x - 0.0625).abs() < 0.015 => Some("64th"),
-        _ => None,
-    }
+    // Convert ticks to beats (1 beat = 1 quarter note)
+    let beats = ticks as f32 / ppq as f32;
+    
+    // Calculate exact duration in beats
+    let duration_map = [
+        (4.0, "whole"),
+        (2.0, "half"),
+        (1.0, "quarter"),
+        (0.5, "eighth"),
+        (0.25, "16th"),
+        (0.125, "32nd"),
+        (0.0625, "64th")
+    ];
+
+    // Find the closest standard duration
+    duration_map
+        .iter()
+        .min_by(|&&(a, _), &&(b, _)| {
+            (a - beats).abs().partial_cmp(&(b - beats).abs()).unwrap()
+        })
+        .map(|&(_, name)| name)
 }
 
-pub fn parse_midi(data: &[u8]) -> Result<serde_json::Value, AppError> {
+pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value), AppError> {
+    log::info!("Starting MIDI parsing");
     let smf = Smf::parse(data).map_err(|e| AppError::Parse(e.to_string()))?;
 
     let ppq = match smf.header.timing {
-        Timing::Metrical(t) => t.as_int(),
+        Timing::Metrical(t) => {
+            let ppq = t.as_int();
+            log::info!("PPQ (ticks per quarter note): {}", ppq);
+            ppq
+        },
         _ => return Err(AppError::Parse("Only metrical timing supported".to_string())),
     };
 
@@ -93,7 +101,7 @@ pub fn parse_midi(data: &[u8]) -> Result<serde_json::Value, AppError> {
     let mut arranger = String::new();
     let mut tempo_bpm = 120;
     let mut key_signature = "Cmaj".to_string();
-    let mut current_notes = Vec::new();
+    let mut _current_notes: Vec<Note> = Vec::new();
 
     // default time signature = 4/4
     let mut numer = 4;
@@ -107,11 +115,18 @@ pub fn parse_midi(data: &[u8]) -> Result<serde_json::Value, AppError> {
         let mut abs_time = 0u32;
         let mut active_notes: HashMap<u8, u32> = HashMap::new();
         let mut note_events: Vec<(u32, Note)> = Vec::new();
+        
+        // Track all note on/off events for better analysis
+        let mut all_midi_events: Vec<(u32, String, u8)> = Vec::new();
 
         let mut time_sig_events: BTreeMap<u32, String> = BTreeMap::new();
+        
+        // Calculate initial ticks per measure (4/4 time)
+        let ticks_per_measure = 4 * ppq as u32;
+        log::info!("Initial ticks per measure: {}, PPQ: {}", ticks_per_measure, ppq);
 
         for event in track {
-            abs_time += event.delta.as_int();
+            abs_time += event.delta.as_int() as u32;
 
             match event.kind {
                 TrackEventKind::Meta(meta) => match meta {
@@ -149,35 +164,55 @@ pub fn parse_midi(data: &[u8]) -> Result<serde_json::Value, AppError> {
                     _ => {}
                 },
                 TrackEventKind::Midi { message, .. } => match message {
-                    MidiMessage::NoteOn { key, vel } if vel > 0 => {
+                    MidiMessage::NoteOn { key, vel } if vel.as_int() > 0 => {
+                        // Log NoteOn events for debugging
+                        log::debug!("NoteOn: pitch={}, time={} ticks", key.as_int(), abs_time);
+                        all_midi_events.push((abs_time, "NoteOn".to_string(), key.as_int()));
+                        
                         active_notes.insert(key.as_int(), abs_time);
+                        note_events.push((
+                            abs_time,
+                            Note {
+                                pitch: key.as_int(),
+                                duration: "quarter".to_string(), // Will be updated on NoteOff
+                                hand: i == 0,
+                                note_type: 1,
+                            },
+                        ));
                     }
                     MidiMessage::NoteOff { key, .. } => {
+                        // Log NoteOff events for debugging
+                        log::debug!("NoteOff: pitch={}, time={} ticks", key.as_int(), abs_time);
+                        all_midi_events.push((abs_time, "NoteOff".to_string(), key.as_int()));
+                        
                         if let Some(start_time) = active_notes.remove(&key.as_int()) {
                             let duration_ticks = abs_time - start_time;
+                            log::debug!("Note duration: {} ticks for pitch {}", duration_ticks, key.as_int());
+                            
                             if let Some(duration_name) = duration_from_ticks(duration_ticks, ppq) {
-                                current_notes.push(Note {
-                                    pitch: key.as_int() as u8,
-                                    duration: duration_name.to_string(),
-                                    hand: true,
-                                    note_type: 1,
-                                });
+                                if let Some(idx) = note_events.iter().position(|(t, n)| 
+                                    *t == start_time && n.pitch == key.as_int()
+                                ) {
+                                    note_events[idx].1.duration = duration_name.to_string();
+                                }
                             }
                         }
                     }
                     MidiMessage::NoteOn { key, vel } if vel.as_int() == 0 => {
+                        // Log NoteOn with velocity 0 (equivalent to NoteOff) for debugging
+                        log::debug!("NoteOn(vel=0): pitch={}, time={} ticks", key.as_int(), abs_time);
+                        all_midi_events.push((abs_time, "NoteOff".to_string(), key.as_int()));
+                        
                         if let Some(start_time) = active_notes.remove(&key.as_int()) {
                             let duration_ticks = abs_time - start_time;
+                            log::debug!("Note duration: {} ticks for pitch {}", duration_ticks, key.as_int());
+                            
                             if let Some(duration_name) = duration_from_ticks(duration_ticks, ppq) {
-                                note_events.push((
-                                    start_time,
-                                    Note {
-                                        pitch: key.as_int(),
-                                        duration: duration_name.to_string(),
-                                        hand: false,
-                                        note_type: 1,
-                                    },
-                                ));
+                                if let Some(idx) = note_events.iter().position(|(t, n)| 
+                                    *t == start_time && n.pitch == key.as_int()
+                                ) {
+                                    note_events[idx].1.duration = duration_name.to_string();
+                                }
                             }
                         }
                     }
@@ -187,31 +222,86 @@ pub fn parse_midi(data: &[u8]) -> Result<serde_json::Value, AppError> {
             }
         }
 
-        let mut grouped_chords: BTreeMap<u32, Vec<Note>> = BTreeMap::new();
-        for (start_time, note) in note_events {
-            grouped_chords.entry(start_time).or_default().push(note);
+        // Log all MIDI events for analysis
+        log::info!("All MIDI events: {}", all_midi_events.len());
+        for (time, event_type, pitch) in &all_midi_events {
+            log::debug!("MIDI Event: {} pitch={} at {} ticks", event_type, pitch, time);
         }
 
-        let mut complete_chords: Vec<(u32, Vec<Note>)> = Vec::new();
-        let mut last_time = 0u32;
+        // Sort note events by timestamp
+        note_events.sort_by_key(|(timestamp, _)| *timestamp);
+        
+        // Log all note events before grouping
+        log::info!("Note events before grouping: {}", note_events.len());
+        for (time, note) in &note_events {
+            log::debug!("Note event: pitch={}, duration={}, at {} ticks", 
+                      note.pitch, note.duration, time);
+        }
 
-        for (&start_time, note_group) in &grouped_chords {
-            if start_time > last_time {
-                let gap = start_time - last_time;
-                if let Some(duration) = duration_from_ticks(gap, ppq) {
-                    complete_chords.push((
-                        last_time,
-                        vec![Note {
+        // New approach: Quantize notes to a grid based on the time signature
+        // This will help determine where rests should be placed
+        let grid_resolution = (ppq / 16) as u32; // 64th note resolution for more precise quantization
+        let mut quantized_events: BTreeMap<u32, Vec<Note>> = BTreeMap::new();
+        
+        for (timestamp, note) in note_events {
+            // For actual notes (not rests), keep their original timing
+            // Only quantize rests
+            let quantized_time = if note.pitch > 0 {
+                timestamp
+            } else {
+                (timestamp + grid_resolution / 2) / grid_resolution * grid_resolution
+            };
+            
+            log::debug!("Quantizing note pitch={} from {} to {} ticks", 
+                      note.pitch, timestamp, quantized_time);
+            
+            quantized_events.entry(quantized_time)
+                .or_insert_with(Vec::new)
+                .push(note);
+        }
+        
+        // Now fill in rests where needed based on musical structure
+        let mut complete_chords: Vec<(u32, Vec<Note>)> = Vec::new();
+        let mut last_event_time = 0;
+        
+        // Calculate ticks per measure based on time signature
+        // For 4/4 time: 4 beats per measure * ppq ticks per beat
+        // For 3/4 time: 3 beats per measure * ppq ticks per beat
+        // For 6/8 time: 6 beats per measure * (ppq/2) ticks per beat (8th note gets the beat)
+        let ticks_per_measure = (numer as u32) * ppq as u32;
+        log::info!("Ticks per measure: {}, PPQ: {}, Time sig: {}|{}", 
+            ticks_per_measure, ppq, numer, 2u8.pow(denom.into()));
+        
+        // Convert quantized events to a sorted vector
+        let mut sorted_events: Vec<(u32, Vec<Note>)> = quantized_events
+            .into_iter()
+            .collect();
+        sorted_events.sort_by_key(|(time, _)| *time);
+        
+        // Process each event and add rests only where musically appropriate
+        for (time, notes) in sorted_events {
+            if time > last_event_time && last_event_time > 0 {
+                let gap = time - last_event_time;
+                
+                // Only add rest if gap is at least an eighth note (ppq/2)
+                // This prevents too many small rests from being added
+                if gap >= ppq as u32 / 2 {
+                    log::debug!("Adding rest at {} ticks, duration {} ticks (beats: {})", 
+                              last_event_time, gap, gap as f32 / ppq as f32);
+                    
+                    if let Some(duration_name) = duration_from_ticks(gap, ppq) {
+                        complete_chords.push((last_event_time, vec![Note {
                             pitch: 0,
-                            duration: duration.to_string(),
+                            duration: duration_name.to_string(),
                             hand: false,
                             note_type: 0,
-                        }],
-                    ));
+                        }]));
+                    }
                 }
             }
-            complete_chords.push((start_time, note_group.clone()));
-            last_time = start_time;
+            
+            complete_chords.push((time, notes));
+            last_event_time = time;
         }
 
         let mut measures = Vec::new();
@@ -220,7 +310,19 @@ pub fn parse_midi(data: &[u8]) -> Result<serde_json::Value, AppError> {
         let mut measure_start_time = 0u32;
         let mut previous_signature: Option<String> = None;
 
-        let mut ticks_per_measure = (numer as u32) * ppq as u32 / 2u32.pow(denom as u32);
+        // Calculate ticks per measure based on time signature
+        // For 4/4 time: 4 beats per measure * ppq ticks per beat
+        // For 3/4 time: 3 beats per measure * ppq ticks per beat
+        // For 6/8 time: 6 beats per measure * (ppq/2) ticks per beat (8th note gets the beat)
+        let mut ticks_per_measure = match denom {
+            // If denominator is 8 (eighth note gets the beat), adjust ppq accordingly
+            3 => (numer as u32) * (ppq as u32 / 2),
+            // For quarter note and half note denominators
+            _ => (numer as u32) * ppq as u32
+        };
+        
+        log::info!("Initial time signature: {}|{}, ticks per measure: {}", 
+            numer, 2u8.pow(denom.into()), ticks_per_measure);
 
         for (timestamp, notes) in complete_chords {
             if let Some(tsig) = time_sig_events.get(&timestamp) {
@@ -230,13 +332,27 @@ pub fn parse_midi(data: &[u8]) -> Result<serde_json::Value, AppError> {
                         if let (Ok(n), Ok(d)) = (parts[0].parse::<u8>(), parts[1].parse::<u8>()) {
                             numer = n;
                             denom = (d as f32).log2() as u8;
-                            ticks_per_measure = (numer as u32) * ppq as u32 / 2u32.pow(denom as u32);
+                            // Update ticks per measure based on new time signature
+                            ticks_per_measure = match denom {
+                                // If denominator is 8 (eighth note gets the beat), adjust ppq accordingly
+                                3 => (numer as u32) * (ppq as u32 / 2),
+                                // For quarter note and half note denominators
+                                _ => (numer as u32) * ppq as u32
+                            };
+                            log::info!("New time signature: {}|{}, ticks per measure: {}", 
+                                numer, 2u8.pow(denom.into()), ticks_per_measure);
                         }
                     }
                 }
             }
 
-            if timestamp >= measure_start_time + ticks_per_measure {
+            log::debug!("Current timestamp: {}, measure_start: {}, ticks_per_measure: {}", 
+                timestamp, measure_start_time, ticks_per_measure);
+            // Calculate current measure based on timestamp
+            let current_measure = timestamp / ticks_per_measure;
+            let start_measure = measure_start_time / ticks_per_measure;
+            
+            if current_measure > start_measure {
                 let signature = time_sig_events.get(&measure_start_time).cloned();
                 let include_sig = signature.as_ref().map_or(false, |sig| Some(sig) != previous_signature.as_ref());
 
@@ -249,7 +365,7 @@ pub fn parse_midi(data: &[u8]) -> Result<serde_json::Value, AppError> {
                 previous_signature = signature;
                 current_measure_chords = Vec::new();
                 measure_id += 1;
-                measure_start_time += ticks_per_measure;
+                measure_start_time = current_measure * ticks_per_measure;
             }
 
             current_measure_chords.push(Chord(notes));
@@ -273,19 +389,18 @@ pub fn parse_midi(data: &[u8]) -> Result<serde_json::Value, AppError> {
         });
     }
 
-    let output = Output {
-        metadata: Metadata {
-            work_title: work_title,
-            composer,
-            arranger,
-            tempo: tempo_bpm,
-            key_signature: key_signature,
-            difficulty: 2,
-            category: 2,
-        },
-        score_data: ScoreData { parts },
-    };
+    let metadata = serde_json::to_value(Metadata {
+        work_title: work_title,
+        composer,
+        arranger,
+        tempo: tempo_bpm,
+        key_signature: key_signature,
+        difficulty: 2,
+        category: 2,
+    }).map_err(|e| AppError::Parse(e.to_string()))?;
 
-    let json_value = serde_json::to_value(&output).map_err(|e| AppError::Parse(e.to_string()))?;
-    Ok(json_value)
+    let score_data = serde_json::to_value(ScoreData { parts })
+        .map_err(|e| AppError::Parse(e.to_string()))?;
+
+    Ok((metadata, score_data))
 }
