@@ -2,6 +2,7 @@ use crate::db::Database;
 use crate::parsers::mscx::parse_mscx;
 use crate::parsers::midi::parse_midi;
 use crate::utils::key_signature::{analyze_key_signature, verify_key_signature};
+use crate::utils::difficulty_analysis::analyze_difficulty;
 use crate::models::score::ScoreJson;
 use actix_multipart::Multipart;
 use actix_web::{web, HttpResponse};
@@ -125,13 +126,17 @@ pub async fn upload_file(mut payload: Multipart, _db: web::Data<Database>) -> Re
         // Analyze and update the key signature
         let detected_key = analyze_key_signature(&score_json);
         let original_key = score_json.metadata.key_signature.clone();
-        score_json.metadata.key_signature = detected_key.to_string();
+        score_json.metadata.key_signature = detected_key;
         
         // Verify if the detected key matches the original key
         let key_verified = verify_key_signature(&score_json);
         if !key_verified {
-            println!("Warning: Detected key '{}' differs from original key '{}'", detected_key, original_key);
+            println!("Warning: Detected key '{}' differs from original key '{}'", 
+                detected_key.to_string(), original_key.to_string());
         }
+        
+        // Analyze and update the difficulty level
+        analyze_difficulty(&mut score_json);
         
         // DEBUG: Database insertion disabled for debugging
         // if let Ok(_) = _db.insert_tab(score_json.clone()).await {

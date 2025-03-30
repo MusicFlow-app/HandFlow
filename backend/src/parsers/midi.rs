@@ -2,6 +2,7 @@ use midly::{MetaMessage, MidiMessage, Smf, Timing, TrackEventKind};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use crate::error::AppError;
 use crate::models::score::{self, Note, Part, Measure, NoteType, NoteDuration, Hand, default_unknown, default_cmaj, default_tempo, MidiPitch};
+use crate::models::{KeySignature, Category, Difficulty};
 
 #[derive(Debug, Clone)]
 enum TimelineEvent {
@@ -14,18 +15,41 @@ struct MeasureData {
     last_note_time: Option<u32>,
 }
 
-fn format_key_signature(key: i8, scale: u8) -> String {
-    let names = [
-        "C", "G", "D", "A", "E", "B", "F#", "C#", "F", "Bb", "Eb", "Ab", "Db", "Gb", "Cb",
-    ];
-    let index = if key >= 0 {
-        key as usize
-    } else {
-        (7 - key.abs() as usize) + 7
-    };
-    let name = names.get(index).unwrap_or(&"C");
-    let mode = if scale == 0 { "maj" } else { "min" };
-    format!("{}{}", name, mode)
+fn format_key_signature(key: i8, scale: u8) -> KeySignature {
+    // Convert key signature to the appropriate enum variant
+    match (key, scale) {
+        (0, 0) => KeySignature::Cmaj,
+        (1, 0) => KeySignature::Gmaj,
+        (2, 0) => KeySignature::Dmaj,
+        (3, 0) => KeySignature::Amaj,
+        (4, 0) => KeySignature::Emaj,
+        (5, 0) => KeySignature::Bmaj,
+        (6, 0) => KeySignature::FsMaj,
+        (7, 0) => KeySignature::CsMaj,
+        (-1, 0) => KeySignature::Fmaj,
+        (-2, 0) => KeySignature::Bbmaj,
+        (-3, 0) => KeySignature::Ebmaj,
+        (-4, 0) => KeySignature::Abmaj,
+        (-5, 0) => KeySignature::Dbmaj,
+        (-6, 0) => KeySignature::Gbmaj,
+        (-7, 0) => KeySignature::Cbmaj,
+        (0, 1) => KeySignature::Amin,
+        (1, 1) => KeySignature::Emin,
+        (2, 1) => KeySignature::Bmin,
+        (3, 1) => KeySignature::FsMin,
+        (4, 1) => KeySignature::CsMin,
+        (5, 1) => KeySignature::GsMin,
+        (6, 1) => KeySignature::DsMin,
+        (7, 1) => KeySignature::AsMin,
+        (-1, 1) => KeySignature::Dmin,
+        (-2, 1) => KeySignature::Gmin,
+        (-3, 1) => KeySignature::Cmin,
+        (-4, 1) => KeySignature::Fmin,
+        (-5, 1) => KeySignature::Bbmin,
+        (-6, 1) => KeySignature::Ebmin,
+        (-7, 1) => KeySignature::Abmin,
+        _ => KeySignature::Cmaj, // Default to C major for unknown keys
+    }
 }
 
 fn calculate_note_ticks(ppq: u16) -> (u32, u32, u32, u32, u32, u32, u32) {
@@ -144,7 +168,7 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
         // Track all note on/off events for better analysis
         let mut all_midi_events: Vec<(u32, String, u8)> = Vec::new();
 
-        let mut time_sig_events: BTreeMap<u32, String> = BTreeMap::new();
+        let mut time_sig_events: BTreeMap<u32, (u8, u8)> = BTreeMap::new();
         
         for event in track {
             abs_time += event.delta.as_int() as u32;
@@ -185,8 +209,8 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
                         key_signature = format_key_signature(key, scale.into());
                     }
                     MetaMessage::TimeSignature(n, d, _, _) => {
-                        let sig = format!("{}|{}", n, 2u8.pow(d.into()));
-                        time_sig_events.insert(abs_time, sig.clone());
+                        let sig = (n, 2u8.pow(d.into()));
+                        time_sig_events.insert(abs_time, sig);
                         numer = n;
                         denom = d;
                     }
@@ -463,7 +487,7 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
         let mut current_measure_chords = Vec::new();
         let mut measure_id = 1;
         let mut measure_start_time = 0u32;
-        let mut previous_signature: Option<String> = None;
+        let mut previous_signature: Option<(u8, u8)> = None;
         let mut current_hand = Hand::Right;
 
         // Calculate ticks per measure based on time signature
@@ -479,23 +503,19 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
 
         for (timestamp, notes) in complete_chords {
             if let Some(tsig) = time_sig_events.get(&timestamp) {
-                if Some(tsig.clone()) != previous_signature {
-                    let parts: Vec<_> = tsig.split('|').collect();
-                    if parts.len() == 2 {
-                        if let (Ok(n), Ok(d)) = (parts[0].parse::<u8>(), parts[1].parse::<u8>()) {
-                            numer = n;
-                            denom = (d as f32).log2() as u8;
-                            // Update ticks per measure based on new time signature
-                            ticks_per_measure = match denom {
-                                // If denominator is 8 (eighth note gets the beat), adjust ppq accordingly
-                                3 => (numer as u32) * (ppq as u32 / 2),
-                                // For quarter note and half note denominators
-                                _ => (numer as u32) * ppq as u32
-                            };
-                            log::info!("New time signature: {}|{}, ticks per measure: {}", 
-                                numer, 2u8.pow(denom.into()), ticks_per_measure);
-                        }
-                    }
+                if Some(*tsig) != previous_signature {
+                    let (n, d) = *tsig;
+                    numer = n;
+                    denom = (d as f32).log2() as u8;
+                    // Update ticks per measure based on new time signature
+                    ticks_per_measure = match denom {
+                        // If denominator is 8 (eighth note gets the beat), adjust ppq accordingly
+                        3 => (numer as u32) * (ppq as u32 / 2),
+                        // For quarter note and half note denominators
+                        _ => (numer as u32) * ppq as u32
+                    };
+                    log::info!("New time signature: {}|{}, ticks per measure: {}", 
+                        numer, 2u8.pow(denom.into()), ticks_per_measure);
                 }
             }
 
@@ -504,7 +524,7 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
             let start_measure = measure_start_time / ticks_per_measure;
             
             if current_measure > start_measure {
-                let signature = time_sig_events.get(&measure_start_time).cloned();
+                let signature = time_sig_events.get(&measure_start_time).copied();
                 let include_sig = signature.as_ref().map_or(false, |sig| Some(sig) != previous_signature.as_ref());
 
                 measures.push(Measure {
@@ -530,7 +550,7 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
         }
 
         if !current_measure_chords.is_empty() {
-            let signature = time_sig_events.get(&measure_start_time).cloned();
+            let signature = time_sig_events.get(&measure_start_time).copied();
             let include_sig = signature.as_ref().map_or(false, |sig| Some(sig) != previous_signature.as_ref());
 
             measures.push(Measure {
@@ -566,8 +586,8 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
         arranger,
         tempo: tempo_bpm,
         key_signature,
-        difficulty: 2,
-        category: 2,
+        difficulty: Difficulty::Skilled,
+        category: Category::Song,
     };
 
     let score_data = score::ScoreData {

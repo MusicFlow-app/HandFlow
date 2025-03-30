@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 use midly::num::u7;
+use crate::models::key_signature::KeySignature;
+use crate::models::{Category, Difficulty};
 
 #[derive(Debug, Clone, Copy)]
 pub struct MidiPitch(u7);
@@ -171,7 +173,7 @@ pub struct Chord {
 pub struct Measure {
     pub id: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub time_signature: Option<String>,
+    pub time_signature: Option<(u8, u8)>,
     pub chords: Vec<Vec<Note>>,
 }
 
@@ -191,17 +193,14 @@ pub fn default_unknown() -> String {
     "Unknown".to_string()
 }
 
-pub fn default_cmaj() -> String {
-    "Cmaj".to_string()
+pub fn default_cmaj() -> KeySignature {
+    KeySignature::Cmaj
 }
 
 pub fn default_tempo() -> u32 {
     120
 }
 
-pub fn default_level() -> u8 {
-    2
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Metadata {
@@ -212,13 +211,13 @@ pub struct Metadata {
     #[serde(default = "default_unknown")]
     pub arranger: String,
     #[serde(default = "default_cmaj")]
-    pub key_signature: String,
+    pub key_signature: KeySignature,
     #[serde(default = "default_tempo")]
     pub tempo: u32,
-    #[serde(default = "default_level")]
-    pub difficulty: u8,
-    #[serde(default = "default_level")]
-    pub category: u8,
+    #[serde(default)]
+    pub difficulty: Difficulty,
+    #[serde(default)]
+    pub category: Category,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

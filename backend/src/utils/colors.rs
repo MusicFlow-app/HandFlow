@@ -1,10 +1,12 @@
 pub fn get_color_for_duration(duration: &str) -> Option<&'static str> {
     match duration {
-        "whole" => Some("#FF0000"),     // Rouge
-        "half" => Some("#00FF00"),      // Vert
-        "quarter" => Some("#0000FF"),   // Bleu
-        "eighth" => Some("#FFA500"),    // Orange
-        "sixteenth" => Some("#800080"), // Violet
+        "64th" => Some("#B13B8E"),
+        "32nd" => Some("#4B348B"),
+        "16th" => Some("#4563AC"),
+        "eighth" => Some("#32CD32"),
+        "quarter" => Some("#DAA520"),
+        "half" => Some("#FF4500"),
+        "whole" => Some("#8B0000"),
         _ => None,
     }
 }

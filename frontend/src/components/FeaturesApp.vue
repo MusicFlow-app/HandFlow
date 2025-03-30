@@ -12,7 +12,7 @@
       <PhMagicWand :size="24" />
       <div class="feature-text">
         <h3>Smart Detection</h3>
-        <p>Automatic detection of notes, scales and musical patterns</p>
+        <p>Automatic detection of notes, scales, difficulty and musical patterns</p>
       </div>
     </div>
     <div class="feature-item">

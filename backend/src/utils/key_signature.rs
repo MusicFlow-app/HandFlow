@@ -1,5 +1,6 @@
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use crate::models::KeySignature;
+use crate::models::score::{ScoreJson, ScoreData, NoteType};
 
 // Key detection using the Krumhansl-Schmuckler algorithm
 // This algorithm correlates the frequency of pitch classes in music with
@@ -16,90 +17,8 @@ const MINOR_PROFILE: [f64; 12] = [
     6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17
 ];
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub enum KeySignature {
-    Cmaj, Gmaj, Dmaj, Amaj, Emaj, Bmaj, FsMaj, CsMaj,
-    Fmaj, Bbmaj, Ebmaj, Abmaj, Dbmaj, Gbmaj, Cbmaj,
-    Amin, Emin, Bmin, FsMin, CsMin, GsMin, DsMin, AsMin, 
-    Dmin, Gmin, Cmin, Fmin, Bbmin, Ebmin, Abmin,
-}
+// The KeySignature enum has been moved to models/key_signature.rs
 
-impl KeySignature {
-    // Convert KeySignature to string representation
-    pub fn to_string(&self) -> String {
-        match self {
-            KeySignature::Cmaj => "Cmaj".to_string(),
-            KeySignature::Gmaj => "Gmaj".to_string(),
-            KeySignature::Dmaj => "Dmaj".to_string(),
-            KeySignature::Amaj => "Amaj".to_string(),
-            KeySignature::Emaj => "Emaj".to_string(),
-            KeySignature::Bmaj => "Bmaj".to_string(),
-            KeySignature::FsMaj => "F#maj".to_string(),
-            KeySignature::CsMaj => "C#maj".to_string(),
-            KeySignature::Fmaj => "Fmaj".to_string(),
-            KeySignature::Bbmaj => "Bbmaj".to_string(),
-            KeySignature::Ebmaj => "Ebmaj".to_string(),
-            KeySignature::Abmaj => "Abmaj".to_string(),
-            KeySignature::Dbmaj => "Dbmaj".to_string(),
-            KeySignature::Gbmaj => "Gbmaj".to_string(),
-            KeySignature::Cbmaj => "Cbmaj".to_string(),
-            KeySignature::Amin => "Amin".to_string(),
-            KeySignature::Emin => "Emin".to_string(),
-            KeySignature::Bmin => "Bmin".to_string(),
-            KeySignature::FsMin => "F#min".to_string(),
-            KeySignature::CsMin => "C#min".to_string(),
-            KeySignature::GsMin => "G#min".to_string(),
-            KeySignature::DsMin => "D#min".to_string(),
-            KeySignature::AsMin => "A#min".to_string(),
-            KeySignature::Dmin => "Dmin".to_string(),
-            KeySignature::Gmin => "Gmin".to_string(),
-            KeySignature::Cmin => "Cmin".to_string(),
-            KeySignature::Fmin => "Fmin".to_string(),
-            KeySignature::Bbmin => "Bbmin".to_string(),
-            KeySignature::Ebmin => "Ebmin".to_string(),
-            KeySignature::Abmin => "Abmin".to_string(),
-        }
-    }
-
-    // Parse a string to KeySignature
-    pub fn from_string(key_str: &str) -> Option<Self> {
-        match key_str {
-            "Cmaj" => Some(KeySignature::Cmaj),
-            "Gmaj" => Some(KeySignature::Gmaj),
-            "Dmaj" => Some(KeySignature::Dmaj),
-            "Amaj" => Some(KeySignature::Amaj),
-            "Emaj" => Some(KeySignature::Emaj),
-            "Bmaj" => Some(KeySignature::Bmaj),
-            "F#maj" | "FsMaj" => Some(KeySignature::FsMaj),
-            "C#maj" | "CsMaj" => Some(KeySignature::CsMaj),
-            "Fmaj" => Some(KeySignature::Fmaj),
-            "Bbmaj" => Some(KeySignature::Bbmaj),
-            "Ebmaj" => Some(KeySignature::Ebmaj),
-            "Abmaj" => Some(KeySignature::Abmaj),
-            "Dbmaj" => Some(KeySignature::Dbmaj),
-            "Gbmaj" => Some(KeySignature::Gbmaj),
-            "Cbmaj" => Some(KeySignature::Cbmaj),
-            "Amin" => Some(KeySignature::Amin),
-            "Emin" => Some(KeySignature::Emin),
-            "Bmin" => Some(KeySignature::Bmin),
-            "F#min" | "FsMin" => Some(KeySignature::FsMin),
-            "C#min" | "CsMin" => Some(KeySignature::CsMin),
-            "G#min" | "GsMin" => Some(KeySignature::GsMin),
-            "D#min" | "DsMin" => Some(KeySignature::DsMin),
-            "A#min" | "AsMin" => Some(KeySignature::AsMin),
-            "Dmin" => Some(KeySignature::Dmin),
-            "Gmin" => Some(KeySignature::Gmin),
-            "Cmin" => Some(KeySignature::Cmin),
-            "Fmin" => Some(KeySignature::Fmin),
-            "Bbmin" => Some(KeySignature::Bbmin),
-            "Ebmin" => Some(KeySignature::Ebmin),
-            "Abmin" => Some(KeySignature::Abmin),
-            _ => None,
-        }
-    }
-}
-
-use crate::models::score::{ScoreJson, ScoreData, NoteType};
 
 /// Detects the most likely key signature using the Krumhansl-Schmuckler algorithm
 /// Returns the detected key signature with a confidence level of approximately 90% if sufficient data is available
@@ -119,8 +38,8 @@ pub fn detect_key_signature(score_json: &ScoreJson) -> KeySignature {
 /// Extracts the distribution of pitch classes from the score
 /// Counts occurrences of each pitch class (C, C#, D, etc.) and normalizes the values
 fn extract_pitch_classes(score_data: &ScoreData) -> [f64; 12] {
-    let mut pitch_count = [0.0; 12];
-    let mut total_notes = 0.0;
+    let mut pitch_count = [0.0f64; 12];
+    let mut total_notes = 0.0f64;
 
     // Process all parts
     for part in &score_data.parts {
@@ -134,16 +53,8 @@ fn extract_pitch_classes(score_data: &ScoreData) -> [f64; 12] {
                         // Convert MIDI pitch to pitch class (0-11)
                         let pitch_class = (note.pitch.as_int() % 12) as usize;
                         
-                        // Weight by note duration (approximate - could be refined)
-                        let duration_weight = match note.duration.to_str() {
-                            "whole" => 4.0,
-                            "half" => 2.0,
-                            "quarter" => 1.0,
-                            "eighth" => 0.5,
-                            "16th" => 0.25,
-                            "32nd" => 0.125,
-                            _ => 1.0, // default weight
-                        };
+                        // Weight by note duration using the built-in to_fraction method
+                        let duration_weight = note.duration.to_fraction() as f64;
                         
                         pitch_count[pitch_class] += duration_weight;
                         total_notes += duration_weight;
@@ -259,17 +170,11 @@ fn find_highest_correlation(correlations: &HashMap<KeySignature, f64>) -> (KeySi
 /// Returns true if the detected key matches the metadata
 pub fn verify_key_signature(score_json: &ScoreJson) -> bool {
     let detected_key = detect_key_signature(score_json);
-    let metadata_key = KeySignature::from_string(&score_json.metadata.key_signature);
-    
-    match metadata_key {
-        Some(key) => detected_key == key,
-        None => false,
-    }
+    detected_key == score_json.metadata.key_signature
 }
 
 /// Entry point for key detection from score JSON
-/// Returns the detected key as a string
-pub fn analyze_key_signature(score_json: &ScoreJson) -> String {
-    let detected_key = detect_key_signature(score_json);
-    detected_key.to_string()
+/// Returns the detected key as a KeySignature enum
+pub fn analyze_key_signature(score_json: &ScoreJson) -> KeySignature {
+    detect_key_signature(score_json)
 }

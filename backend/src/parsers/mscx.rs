@@ -1,5 +1,6 @@
 use crate::error::AppError;
 use crate::models::score::{self, Hand, NoteDuration, Note, Part, Measure, NoteType, Metadata, default_cmaj, MidiPitch};
+use crate::models::{Category, Difficulty};
 use roxmltree::Document;
 use serde_json::{json, Value as JsonValue};
 
@@ -79,7 +80,7 @@ pub fn parse_mscx_parts(content: &str) -> Result<Vec<(u32, String)>, AppError> {
     Ok(parts)
 }
 
-pub fn parse_mscx_score(content: &str, part_id: u32, _division: u32) -> Result<Vec<(u32, String, Vec<Vec<(u32, String, bool, u32)>>)>, AppError> {
+pub fn parse_mscx_score(content: &str, part_id: u32, _division: u32) -> Result<Vec<(u32, (u8, u8), Vec<Vec<(u32, String, bool, u32)>>)>, AppError> {
     
     let doc = Document::parse(content)
         .map_err(|e| AppError::Parse(e.to_string()))?;
@@ -91,7 +92,7 @@ pub fn parse_mscx_score(content: &str, part_id: u32, _division: u32) -> Result<V
     let mut measures = Vec::new();
     let mut measure_id = 0;
     let mut current_duration = String::from("quarter");
-    let mut current_time_signature = String::new();
+    let mut current_time_signature = (4u8, 4u8);
     let mut current_chord_notes = Vec::new();
     let mut measure_chords = Vec::new();
     // Initialize hand to Right (false) at the start
@@ -149,7 +150,7 @@ pub fn parse_mscx_score(content: &str, part_id: u32, _division: u32) -> Result<V
                 .find(|n| n.has_tag_name("sigD"))
                 .and_then(|n| n.text())
                 .unwrap_or("4");
-            current_time_signature = format!("{}|{}", sig_n, sig_d);
+            current_time_signature = (sig_n.parse::<u8>().unwrap_or(4), sig_d.parse::<u8>().unwrap_or(4));
         }
         
         // Tuplet handling - check if it's in a voice element first (MuseScore format)
@@ -363,7 +364,7 @@ pub fn parse_mscx_score(content: &str, part_id: u32, _division: u32) -> Result<V
         }
         
         // Add the processed measure to the list
-        measures.push((measure_id as u32, current_time_signature.clone(), measure_chords.clone()));
+        measures.push((measure_id as u32, current_time_signature, measure_chords.clone()));
     }
     
     Ok(measures)
@@ -463,8 +464,8 @@ pub fn parse_mscx(content: &str) -> Result<(JsonValue, JsonValue), AppError> {
         arranger,
         tempo,
         key_signature: default_cmaj(),
-        difficulty: 2,  // Default value, can be updated later
-        category: 2     // Default value, can be updated later
+        difficulty: Difficulty::Skilled,  // Default value, can be updated later
+        category: Category::Song     // Default value, can be updated later
     };
 
     // Parse available parts

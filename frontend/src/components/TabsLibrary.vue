@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import { useTheme } from '@/composables/useTheme'
 import { useTabsLibrary } from '@/composables/useTabsLibrary'
 import { useFavorites } from '@/composables/useFavorites'
@@ -112,19 +112,97 @@ const updateFilesList = async () => {
   }
 }
 
-const categories = [
+// Default categories and difficulty levels (will be updated from API)
+const categories = ref([
   { id: 'all', label: 'All', icon: PhInfinity },
   { id: 1, label: 'Scales', icon: PhAperture },
   { id: 2, label: 'Songs', icon: PhMusicNotes },
   { id: 3, label: 'Exercises', icon: PhBarbell }
-]
+])
 
-const difficultyLevels = [
+const difficultyLevels = ref([
   { id: 'all', label: 'All', icon: PhInfinity },
   { id: 1, label: 'Novice', icon: PhStarHalf },
   { id: 2, label: 'Skilled', icon: PhStar },
   { id: 3, label: 'Advanced', icon: PhShootingStar }
-]
+])
+
+// Icons mapping for categories and difficulty levels
+const categoryIcons = {
+  1: PhAperture,    // Scale
+  2: PhMusicNotes,  // Song
+  3: PhBarbell      // Exercise
+}
+
+const difficultyIcons = {
+  1: PhStarHalf,     // Novice
+  2: PhStar,         // Skilled
+  3: PhShootingStar  // Advanced
+}
+
+// Fetch categories and difficulty levels from API
+const fetchMetadata = async () => {
+  try {
+    console.log('Fetching metadata...')
+    
+    // Fetch categories
+    const categoriesResponse = await fetch('/api/metadata/categories')
+    console.log('Categories response status:', categoriesResponse.status)
+    
+    if (categoriesResponse.ok) {
+      const categoriesData = await categoriesResponse.json()
+      console.log('Categories data:', categoriesData)
+      
+      // Only update if we got data back
+      if (categoriesData && categoriesData.length > 0) {
+        // Add the 'all' option first
+        categories.value = [
+          { id: 'all', label: 'All', icon: PhInfinity },
+          ...categoriesData.map(cat => ({
+            id: cat.id,
+            label: cat.name,
+            icon: categoryIcons[cat.id] || PhAperture // Use mapped icon or default
+          }))
+        ]
+      }
+      console.log('Final categories.value:', categories.value)
+    } else {
+      console.error('Failed to fetch categories:', await categoriesResponse.text())
+    }
+    
+    // Fetch difficulty levels
+    const difficultyResponse = await fetch('/api/metadata/difficulties')
+    console.log('Difficulties response status:', difficultyResponse.status)
+    
+    if (difficultyResponse.ok) {
+      const difficultyData = await difficultyResponse.json()
+      console.log('Difficulties data:', difficultyData)
+      
+      // Only update if we got data back
+      if (difficultyData && difficultyData.length > 0) {
+        // Add the 'all' option first
+        difficultyLevels.value = [
+          { id: 'all', label: 'All', icon: PhInfinity },
+          ...difficultyData.map(diff => ({
+            id: diff.id,
+            label: diff.name,
+            icon: difficultyIcons[diff.id] || PhShootingStar // Use mapped icon or default
+          }))
+        ]
+      }
+      console.log('Final difficultyLevels.value:', difficultyLevels.value)
+    } else {
+      console.error('Failed to fetch difficulties:', await difficultyResponse.text())
+    }
+  } catch (error) {
+    console.error('Error fetching metadata:', error)
+  }
+}
+// Fetch metadata on component mount
+onMounted(async () => {
+  await fetchMetadata()
+})
+
 // Watch for changes in display mode and favorites
 watch([showOnlyFavorites, favoriteFiles], async () => {
   // Reset to first page when switching modes

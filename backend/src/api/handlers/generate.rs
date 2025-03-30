@@ -36,7 +36,9 @@ pub async fn generate_tab_html(
         part.measures.iter()
         .map(|measure| {
             let measure_number = measure.id;
-            let time_signature = measure.time_signature.clone().unwrap_or_default();
+            let time_signature = measure.time_signature
+                .map(|(num, denom)| format!("{num}|{denom}"))
+                .unwrap_or_else(|| "4|4".to_string());
             
             let chords = measure.chords.iter()
                 .map(|notes| {
