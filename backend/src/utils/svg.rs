@@ -28,6 +28,7 @@ pub fn load_default_note_svg() -> io::Result<String> {
 ///
 /// # Returns
 /// An `io::Result<String>` containing the SVG content.
+#[allow(dead_code)]
 pub fn load_svg_for_scale(scale_len: usize) -> io::Result<String> {
     let file_name = format!("static/img/hand-{}.svg", scale_len);
     let mut file = File::open(file_name)?;

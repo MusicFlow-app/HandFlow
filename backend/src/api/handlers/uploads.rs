@@ -1,6 +1,8 @@
 use crate::db::Database;
 use crate::parsers::mscx::parse_mscx;
 use crate::parsers::midi::parse_midi;
+use crate::utils::key_signature::{analyze_key_signature, verify_key_signature};
+use crate::models::score::ScoreJson;
 use actix_multipart::Multipart;
 use actix_web::{web, HttpResponse};
 use crate::error::AppError;
@@ -113,12 +115,35 @@ pub async fn upload_file(mut payload: Multipart, _db: web::Data<Database>) -> Re
             }
         };
 
-        // Return parsed data
-        Ok(HttpResponse::Ok().json(json!({
-            "file_size": file_size,
-            "metadata": metadata,
-            "score_data": score_data
-        })))
+        // Create ScoreJson for key detection
+        let mut score_json = ScoreJson {
+            file_size: file_size as u32,
+            metadata: serde_json::from_value(metadata).map_err(|e| AppError::Parse(e.to_string()))?,
+            score_data: serde_json::from_value(score_data).map_err(|e| AppError::Parse(e.to_string()))?,
+        };
+        
+        // Analyze and update the key signature
+        let detected_key = analyze_key_signature(&score_json);
+        let original_key = score_json.metadata.key_signature.clone();
+        score_json.metadata.key_signature = detected_key.to_string();
+        
+        // Verify if the detected key matches the original key
+        let key_verified = verify_key_signature(&score_json);
+        if !key_verified {
+            println!("Warning: Detected key '{}' differs from original key '{}'", detected_key, original_key);
+        }
+        
+        // DEBUG: Database insertion disabled for debugging
+        // if let Ok(_) = _db.insert_tab(score_json.clone()).await {
+        //     Ok(HttpResponse::Ok().json(score_json))
+        // } else {
+        //     Ok(HttpResponse::InternalServerError().json(json!({
+        //         "error": "Failed to save to database"
+        //     })))
+        // }
+        
+        // Return parsed data directly for debugging
+        Ok(HttpResponse::Ok().json(score_json))
     } else {
         Ok(HttpResponse::BadRequest().json(json!({
             "error": "No file provided"

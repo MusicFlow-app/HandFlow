@@ -2,10 +2,10 @@ use sqlx::postgres::PgPool;
 use sqlx::types::time::OffsetDateTime;
 use uuid::Uuid;
 use serde::{Serialize, Deserialize};
+use serde_json::json;
+use crate::models::score::{ScoreJson, Metadata, ScoreData};
 use sha2::{Sha256, Digest};
-
-
-use crate::models::tab::{TabMetadata, TabResponse, ScoreData, PartInfo};
+use crate::models::tab::{TabResponse, PartInfo};
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
 pub struct Tab {
@@ -20,14 +20,11 @@ pub struct Tab {
 
 impl Tab {
     pub fn to_response(&self) -> Result<TabResponse, serde_json::Error> {
-        let metadata: TabMetadata = serde_json::from_value(self.metadata.clone())?;
+        let metadata: Metadata = serde_json::from_value(self.metadata.clone())?;
         let score_data: ScoreData = serde_json::from_value(self.score_data.clone())?;
         
         let parts = score_data.parts.into_iter()
-            .map(|part| PartInfo {
-                id: part.id,
-                name: part.name,
-            })
+            .map(PartInfo::from)
             .collect();
 
         Ok(TabResponse {
@@ -55,22 +52,28 @@ impl Database {
         let pool = PgPool::connect(&config.database_url).await?;
         Ok(Self { pool })
     }
+}
 
-    pub async fn log_tab(
+
+
+impl Database {
+    pub async fn insert_tab(
         &self,
-        file_size: i64,
-        metadata: serde_json::Value,
-        score_data: serde_json::Value,
+        score_json: ScoreJson,
     ) -> Result<Tab, sqlx::Error> {
         // Generate deterministic UUID from metadata
         let mut hasher = Sha256::new();
-        hasher.update(metadata.to_string().as_bytes());
+        hasher.update(json!(score_json.score_data).to_string().as_bytes());
         let hash = hasher.finalize();
         let mut uuid_bytes = [0u8; 16];
         uuid_bytes.copy_from_slice(&hash[..16]);
         uuid_bytes[6] = (uuid_bytes[6] & 0x0f) | 0x40;
         uuid_bytes[8] = (uuid_bytes[8] & 0x3f) | 0x80;
         let id = Uuid::from_bytes(uuid_bytes);
+
+        // Convert metadata and score_data to JSON Values
+        let metadata_json = json!(score_json.metadata);
+        let score_data_json = json!(score_json.score_data);
 
         // Try to insert new record, if it fails due to duplicate ID,
         // update the existing record's last_used_at timestamp
@@ -85,9 +88,9 @@ impl Database {
             RETURNING *
         ")
         .bind(id)
-        .bind(file_size)
-        .bind(metadata)
-        .bind(score_data)
+        .bind(score_json.file_size as i64)
+        .bind(metadata_json)
+        .bind(score_data_json)
         .fetch_one(&self.pool)
         .await?;
 
@@ -125,7 +128,7 @@ impl Database {
         Ok(())
     }
 
-    pub async fn list_recent_tabs(
+    pub async fn list_library(
         &self,
         page: i64,
         per_page: i64,

@@ -23,29 +23,29 @@ pub async fn generate_tab_html(
         .ok_or_else(|| AppError::NotFound("Tab not found".to_string()))?;
 
     // Parse score data and get the part
-    let score_data: crate::models::tab::ScoreData = serde_json::from_value(tab.score_data)
+    let score_data: crate::models::ScoreData = serde_json::from_value(tab.score_data)
         .map_err(|e| AppError::Parse(format!("Invalid score data: {}", e)))?;
 
     // Find the requested part
     let part = score_data.parts.into_iter()
-        .find(|p| p.id == part_id)
+        .find(|p| p.id == part_id as u32)
         .ok_or_else(|| AppError::NotFound("Part not found".to_string()))?;
 
     // Convert measures to the format expected by generate_measures_html
     let formatted_measures: Vec<(u32, String, Vec<Vec<(u32, String, String, i32, Option<usize>)>>)> = 
         part.measures.iter()
         .map(|measure| {
-            let measure_number = measure.number as u32;
-            let time_signature = String::new(); // We don't use time signature anymore
+            let measure_number = measure.id;
+            let time_signature = measure.time_signature.clone().unwrap_or_default();
             
             let chords = measure.chords.iter()
-                .map(|chord| {
-                    chord.notes.iter()
+                .map(|notes| {
+                    notes.iter()
                         .map(|note| {
                             (
-                                note.pitch as u32,
-                                note.note_with_octave.clone(),
-                                note.duration.clone(),
+                                note.pitch.as_int() as u32,
+                                format!("note_{}", note.pitch), // Generate note name from pitch
+                                note.duration.to_string(),
                                 0, // No delta needed
                                 None // No index needed
                             )

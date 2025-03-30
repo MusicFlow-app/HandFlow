@@ -2,7 +2,7 @@ use actix_web::{web, HttpResponse};
 use uuid::Uuid;
 use crate::db::Database;
 use crate::error::AppError;
-use crate::models::tab::ScoreData;
+use crate::models::ScoreData;
 
 pub async fn get_tab_details(
     path: web::Path<Uuid>,
@@ -32,7 +32,7 @@ pub async fn get_part_measures(
         .map_err(|e| AppError::Parse(e.to_string()))?;
     
     let part = score_data.parts.into_iter()
-        .find(|p| p.id == part_id)
+        .find(|p| p.id == part_id as u32)
         .ok_or_else(|| AppError::NotFound("Part not found".to_string()))?;
     
     Ok(HttpResponse::Ok().json(part.measures))

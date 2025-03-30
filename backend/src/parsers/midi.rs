@@ -1,49 +1,7 @@
 use midly::{MetaMessage, MidiMessage, Smf, Timing, TrackEventKind};
-use serde::Serialize;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use crate::error::AppError;
-
-#[derive(Serialize, Debug, Clone)]
-struct Note {
-    pitch: u8,
-    duration: String,
-    hand: bool,
-    note_type: u8,
-}
-
-#[derive(Serialize)]
-struct Chord(Vec<Note>);
-
-#[derive(Serialize)]
-struct Measure {
-    id: usize,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    time_signature: Option<String>,
-    chords: Vec<Chord>,
-}
-
-#[derive(Serialize)]
-struct Part {
-    id: usize,
-    name: String,
-    measures: Vec<Measure>,
-}
-
-#[derive(Serialize)]
-struct Metadata {
-    work_title: String,
-    composer: String,
-    arranger: String,
-    tempo: u32,
-    key_signature: String,
-    difficulty: u8,
-    category: u8,
-}
-
-#[derive(Serialize)]
-struct ScoreData {
-    parts: Vec<Part>,
-}
+use crate::models::score::{self, Note, Part, Measure, NoteType, NoteDuration, Hand, default_unknown, default_cmaj, default_tempo, MidiPitch};
 
 #[derive(Debug, Clone)]
 enum TimelineEvent {
@@ -71,70 +29,74 @@ fn format_key_signature(key: i8, scale: u8) -> String {
 }
 
 fn calculate_note_ticks(ppq: u16) -> (u32, u32, u32, u32, u32, u32, u32) {
-    let whole_note_ticks = ppq as u32 * 4;
-    let half_note_ticks = ppq as u32 * 2;
-    let quarter_note_ticks = ppq as u32;
-    let eighth_note_ticks = ppq as u32 / 2;
-    let sixteenth_note_ticks = ppq as u32 / 4;
-    let thirty_second_note_ticks = ppq as u32 / 8;
-    let sixty_fourth_note_ticks = ppq as u32 / 16;
+    let durations = [
+        NoteDuration::Whole,
+        NoteDuration::Half,
+        NoteDuration::Quarter,
+        NoteDuration::Eighth,
+        NoteDuration::Sixteenth,
+        NoteDuration::ThirtySecond,
+        NoteDuration::SixtyFourth
+    ];
     
-    (whole_note_ticks, half_note_ticks, quarter_note_ticks, eighth_note_ticks,
-     sixteenth_note_ticks, thirty_second_note_ticks, sixty_fourth_note_ticks)
+    let ticks: Vec<u32> = durations.iter()
+        .map(|d| (ppq as f32 * d.to_fraction()) as u32)
+        .collect();
+    
+    (ticks[0], ticks[1], ticks[2], ticks[3], ticks[4], ticks[5], ticks[6])
 }
 
-fn duration_to_ticks(duration: &str, ppq: u16) -> u32 {
+fn duration_to_ticks(duration: &NoteDuration, ppq: u16) -> u32 {
     let (whole_note_ticks, half_note_ticks, quarter_note_ticks, eighth_note_ticks,
          sixteenth_note_ticks, thirty_second_note_ticks, sixty_fourth_note_ticks) = calculate_note_ticks(ppq);
          
     match duration {
-        "whole" => whole_note_ticks,
-        "half" => half_note_ticks,
-        "quarter" => quarter_note_ticks,
-        "eighth" => eighth_note_ticks,
-        "16th" => sixteenth_note_ticks,
-        "32nd" => thirty_second_note_ticks,
-        "64th" => sixty_fourth_note_ticks,
-        _ => quarter_note_ticks, // Default to quarter note
+        NoteDuration::Whole => whole_note_ticks,
+        NoteDuration::Half => half_note_ticks,
+        NoteDuration::Quarter => quarter_note_ticks,
+        NoteDuration::Eighth => eighth_note_ticks,
+        NoteDuration::Sixteenth => sixteenth_note_ticks,
+        NoteDuration::ThirtySecond => thirty_second_note_ticks,
+        NoteDuration::SixtyFourth => sixty_fourth_note_ticks,
     }
 }
 
-fn determine_rest_duration(gap: u32, ppq: u16) -> &'static str {
+fn determine_rest_duration(gap: u32, ppq: u16) -> NoteDuration {
     let (whole_note_ticks, half_note_ticks, quarter_note_ticks, eighth_note_ticks,
          sixteenth_note_ticks, thirty_second_note_ticks, sixty_fourth_note_ticks) = calculate_note_ticks(ppq);
     
     if gap >= whole_note_ticks {
-        "whole"
+        NoteDuration::Whole
     } else if gap >= half_note_ticks {
-        "half"
+        NoteDuration::Half
     } else if gap >= quarter_note_ticks {
-        "quarter"
+        NoteDuration::Quarter
     } else if gap >= eighth_note_ticks {
-        "eighth"
+        NoteDuration::Eighth
     } else if gap >= sixteenth_note_ticks {
-        "16th"
+        NoteDuration::Sixteenth
     } else if gap >= thirty_second_note_ticks {
-        "32nd"
+        NoteDuration::ThirtySecond
     } else if gap >= sixty_fourth_note_ticks {
-        "64th"
+        NoteDuration::SixtyFourth
     } else {
-        "32nd"
+        NoteDuration::ThirtySecond
     }
 }
 
-fn duration_from_ticks(ticks: u32, ppq: u16) -> Option<&'static str> {
+fn duration_from_ticks(ticks: u32, ppq: u16) -> Option<NoteDuration> {
     // Convert ticks to beats (1 beat = 1 quarter note)
     let beats = ticks as f32 / ppq as f32;
     
     // Calculate exact duration in beats
     let duration_map = [
-        (4.0, "whole"),
-        (2.0, "half"),
-        (1.0, "quarter"),
-        (0.5, "eighth"),
-        (0.25, "16th"),
-        (0.125, "32nd"),
-        (0.0625, "64th")
+        (NoteDuration::Whole.to_fraction(), NoteDuration::Whole),
+        (NoteDuration::Half.to_fraction(), NoteDuration::Half),
+        (NoteDuration::Quarter.to_fraction(), NoteDuration::Quarter),
+        (NoteDuration::Eighth.to_fraction(), NoteDuration::Eighth),
+        (NoteDuration::Sixteenth.to_fraction(), NoteDuration::Sixteenth),
+        (NoteDuration::ThirtySecond.to_fraction(), NoteDuration::ThirtySecond),
+        (NoteDuration::SixtyFourth.to_fraction(), NoteDuration::SixtyFourth)
     ];
 
     // Find the closest standard duration
@@ -143,7 +105,7 @@ fn duration_from_ticks(ticks: u32, ppq: u16) -> Option<&'static str> {
         .min_by(|&&(a, _), &&(b, _)| {
             (a - beats).abs().partial_cmp(&(b - beats).abs()).unwrap()
         })
-        .map(|&(_, name)| name)
+        .map(|(_, name)| *name)
 }
 
 pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value), AppError> {
@@ -158,12 +120,12 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
         _ => return Err(AppError::Parse("Only metrical timing supported".to_string())),
     };
 
-    let mut work_title = String::new();
-    let mut composer = String::new();
-    let mut arranger = String::new();
-    let mut tempo_bpm = 120; // Default tempo
+    let mut work_title = default_unknown();
+    let mut composer = default_unknown();
+    let mut arranger = default_unknown();
+    let mut tempo_bpm = default_tempo();
     let mut initial_tempo_set = false; // Flag to track if we've set the initial tempo
-    let mut key_signature = "Cmaj".to_string();
+    let mut key_signature = default_cmaj();
     
     // default time signature = 4/4
     let mut numer = 4;
@@ -176,6 +138,8 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
         let mut abs_time = 0u32;
         let mut active_notes: HashMap<u8, u32> = HashMap::new();
         let mut note_events: Vec<(u32, Note)> = Vec::new();
+        #[allow(unused_mut)]
+        let mut current_hand = Hand::Right; // Initialize hand state
         
         // Track all note on/off events for better analysis
         let mut all_midi_events: Vec<(u32, String, u8)> = Vec::new();
@@ -188,7 +152,7 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
             match event.kind {
                 TrackEventKind::Meta(meta) => match meta {
                     MetaMessage::TrackName(name) => {
-                        if work_title.is_empty() {
+                        if work_title == default_unknown() {
                             work_title = String::from_utf8_lossy(name).to_string();
                         }
                     }
@@ -198,7 +162,7 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
                             composer = text_str.split(':').nth(1).unwrap_or("").trim().to_string();
                         } else if text_str.to_lowercase().contains("arranger:") {
                             arranger = text_str.split(':').nth(1).unwrap_or("").trim().to_string();
-                        } else if work_title.is_empty() {
+                        } else if work_title == default_unknown() {
                             work_title = text_str;
                         }
                     }
@@ -236,10 +200,10 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
                         note_events.push((
                             abs_time,
                             Note {
-                                pitch: key.as_int(),
-                                duration: "quarter".to_string(), // Will be updated on NoteOff
-                                hand: i == 0,
-                                note_type: 1,
+                                pitch: MidiPitch::from(key),
+                                duration: NoteDuration::Quarter, // Will be updated on NoteOff
+                                hand: if i == 0 { Hand::Right } else { Hand::Left },
+                                note_type: NoteType::Normal,
                             },
                         ));
                     }
@@ -253,7 +217,7 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
                                 if let Some(idx) = note_events.iter().position(|(t, n)| 
                                     *t == start_time && n.pitch == key.as_int()
                                 ) {
-                                    note_events[idx].1.duration = duration_name.to_string();
+                                    note_events[idx].1.duration = duration_name;
                                 }
                             }
                         }
@@ -268,7 +232,7 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
                                 if let Some(idx) = note_events.iter().position(|(t, n)| 
                                     *t == start_time && n.pitch == key.as_int()
                                 ) {
-                                    note_events[idx].1.duration = duration_name.to_string();
+                                    note_events[idx].1.duration = duration_name;
                                 }
                             }
                         }
@@ -332,10 +296,10 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
                 
                 // Add a whole rest at the start of the measure
                 complete_chords.push((measure_start, vec![Note {
-                    pitch: 0,
-                    duration: "whole".to_string(),
-                    hand: false,
-                    note_type: 0,
+                    pitch: MidiPitch::new(0),
+                    duration: NoteDuration::Whole,
+                    hand: Hand::Right,
+                    note_type: NoteType::Rest,
                 }]));
                 continue;
             }
@@ -390,7 +354,7 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
                     
                     let prev_note_duration_ticks = if prev_note_idx < sorted_note_events.len() {
                         let (_, note) = &sorted_note_events[prev_note_idx];
-                        duration_to_ticks(note.duration.as_str(), ppq)
+                        duration_to_ticks(&note.duration, ppq)
                     } else {
                         0
                     };
@@ -411,10 +375,10 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
                         
                         // Add the rest to complete_chords
                         complete_chords.push((last_time, vec![Note {
-                            pitch: 0,
-                            duration: rest_duration.to_string(),
-                            hand: false,
-                            note_type: 0,
+                            pitch: MidiPitch::new(0),
+                            duration: rest_duration,
+                            hand: current_hand,
+                            note_type: NoteType::Rest,
                         }]));
                     }
                 } else if *time > measure_start && measure_data.first_note_time.unwrap_or(0) > measure_start {
@@ -428,10 +392,10 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
                         
                         // Add the rest at the start of the measure
                         complete_chords.push((measure_start, vec![Note {
-                            pitch: 0,
-                            duration: rest_duration.to_string(),
-                            hand: false,
-                            note_type: 0,
+                            pitch: MidiPitch::new(0),
+                            duration: rest_duration,
+                            hand: current_hand,
+                            note_type: NoteType::Rest,
                         }]));
                     }
                 }
@@ -461,7 +425,7 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
                     if *time >= measure_start && *time < measure_end {
                         // Iterate through each note in the chord
                         for note in notes {
-                            let duration_ticks = duration_to_ticks(note.duration.as_str(), ppq);
+                            let duration_ticks = duration_to_ticks(&note.duration, ppq);
 
                             used_ticks_in_measure += duration_ticks;
                         }
@@ -483,10 +447,10 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
                     
                     // Add the rest at the end of this measure
                     complete_chords.push((last_time, vec![Note {
-                        pitch: 0,
-                        duration: rest_duration.to_string(),
-                        hand: false,
-                        note_type: 0,
+                        pitch: MidiPitch::new(0),
+                        duration: rest_duration,
+                        hand: Hand::Right,
+                        note_type: NoteType::Rest,
                     }]));
                 }
             }
@@ -500,7 +464,7 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
         let mut measure_id = 1;
         let mut measure_start_time = 0u32;
         let mut previous_signature: Option<String> = None;
-        let mut current_hand = false;
+        let mut current_hand = Hand::Right;
 
         // Calculate ticks per measure based on time signature
         // For 4/4 time: 4 beats per measure * ppq ticks per beat
@@ -544,7 +508,7 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
                 let include_sig = signature.as_ref().map_or(false, |sig| Some(sig) != previous_signature.as_ref());
 
                 measures.push(Measure {
-                    id: measure_id,
+                    id: measure_id as u32,
                     time_signature: if include_sig { signature.clone() } else { None },
                     chords: current_measure_chords,
                 });
@@ -560,9 +524,9 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
             for note in &mut updated_notes {
                 note.hand = current_hand;
             }
-            current_hand = !current_hand; // Toggle hand for next chord
+            current_hand = match current_hand { Hand::Right => Hand::Left, Hand::Left => Hand::Right }; // Toggle hand for next chord
             
-            current_measure_chords.push(Chord(updated_notes));
+            current_measure_chords.push(updated_notes);
         }
 
         if !current_measure_chords.is_empty() {
@@ -570,7 +534,7 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
             let include_sig = signature.as_ref().map_or(false, |sig| Some(sig) != previous_signature.as_ref());
 
             measures.push(Measure {
-                id: measure_id,
+                id: measure_id as u32,
                 time_signature: if include_sig { signature } else { None },
                 chords: current_measure_chords,
             });
@@ -579,7 +543,7 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
         // Check if this part contains any actual notes (not just rests)
         let has_actual_notes = measures.iter().any(|measure| {
             measure.chords.iter().any(|chord| {
-                chord.0.iter().any(|note| note.pitch > 0)
+                chord.iter().any(|note| note.pitch > 0)
             })
         });
         
@@ -587,7 +551,7 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
         if has_actual_notes {
             log::info!("Adding part {} with {} measures", i + 1, measures.len());
             parts.push(Part {
-                id: i + 1,
+                id: (i + 1) as u32,
                 name: part_name,
                 measures,
             });
@@ -596,18 +560,22 @@ pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value),
         }
     }
 
-    let metadata = serde_json::to_value(Metadata {
-        work_title: work_title,
+    let metadata = score::Metadata {
+        work_title,
         composer,
         arranger,
         tempo: tempo_bpm,
-        key_signature: key_signature,
+        key_signature,
         difficulty: 2,
         category: 2,
-    }).map_err(|e| AppError::Parse(e.to_string()))?;
+    };
 
-    let score_data = serde_json::to_value(ScoreData { parts })
-        .map_err(|e| AppError::Parse(e.to_string()))?;
+    let score_data = score::ScoreData {
+        parts: parts.into_iter().map(|p| p.into()).collect(),
+    };
 
-    Ok((metadata, score_data))
+    Ok((
+        serde_json::to_value(metadata).map_err(|e| AppError::Parse(e.to_string()))?,
+        serde_json::to_value(score_data).map_err(|e| AppError::Parse(e.to_string()))?
+    ))
 }

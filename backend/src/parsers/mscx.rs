@@ -1,4 +1,5 @@
 use crate::error::AppError;
+use crate::models::score::Hand;
 use roxmltree::Document;
 use serde_json::{json, Value as JsonValue};
 
@@ -94,7 +95,7 @@ pub fn parse_mscx_score(content: &str, part_id: u32) -> Result<Vec<(u32, String,
     let mut current_time_signature = String::new();
     let mut current_chord_notes = Vec::new();
     let mut measure_chords = Vec::new();
-    let hand = 0;
+    let mut hand = Hand::Right;
     let note_type = 1;
     let note_type_rest = 0;
     
@@ -146,12 +147,17 @@ pub fn parse_mscx_score(content: &str, part_id: u32) -> Result<Vec<(u32, String,
                             .unwrap_or(0);
                         
                         if pitch > 0 {
-                            current_chord_notes.push((pitch, current_duration.clone(), hand != 0, note_type));
+                            current_chord_notes.push((pitch, current_duration.clone(), matches!(hand, Hand::Left), note_type));
                         }
                     }
                     
                     if !current_chord_notes.is_empty() {
                         measure_chords.push(current_chord_notes.clone());
+                        // Toggle hand after each chord
+                        hand = match hand {
+                            Hand::Right => Hand::Left,
+                            Hand::Left => Hand::Right
+                        };
                     }
                 },
                 "Rest" => {
@@ -164,8 +170,13 @@ pub fn parse_mscx_score(content: &str, part_id: u32) -> Result<Vec<(u32, String,
                         current_duration = dur.to_string();
                     }
                     
-                    current_chord_notes.push((0, current_duration.clone(), hand != 0, note_type_rest));
+                    current_chord_notes.push((0, current_duration.clone(), matches!(hand, Hand::Left), note_type_rest));
                     measure_chords.push(current_chord_notes.clone());
+                    // Toggle hand after each rest
+                    hand = match hand {
+                        Hand::Right => Hand::Left,
+                        Hand::Left => Hand::Right
+                    };
                 },
                 _ => {}
             }

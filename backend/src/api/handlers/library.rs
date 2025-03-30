@@ -13,7 +13,7 @@ pub async fn get_library(query: web::Query<PaginationParams>, db: web::Data<Data
     let sort_by = query.sort_by.as_deref().unwrap_or("created_at");
     let sort_order = query.sort_order.as_deref().unwrap_or("desc");
     
-    let (tabs, total_count) = db.list_recent_tabs(page, per_page, sort_by, sort_order)
+    let (tabs, total_count) = db.list_library(page, per_page, sort_by, sort_order)
         .await
         .map_err(AppError::Database)?;
 
