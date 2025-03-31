@@ -1,7 +1,8 @@
 # Backend (Rust)
 /backend/target/
 /backend/debug/
-/backend/oldies
+/backend/oldies/
+/backend/Cargo.lock
 /backend/**/*.rs.bk
 *.pdb
 

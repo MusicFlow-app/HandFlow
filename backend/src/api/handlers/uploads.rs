@@ -2,7 +2,7 @@ use crate::db::Database;
 use crate::parsers::mscx::parse_mscx;
 use crate::parsers::midi::parse_midi;
 use crate::utils::key_signature::{analyze_key_signature, verify_key_signature};
-use crate::utils::difficulty_analysis::analyze_difficulty;
+use crate::utils::difficulty::analyze_difficulty;
 use crate::models::score::ScoreJson;
 use actix_multipart::Multipart;
 use actix_web::{web, HttpResponse};

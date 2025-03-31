@@ -112,24 +112,8 @@ fn duration_from_ticks(ticks: u32, ppq: u16) -> Option<NoteDuration> {
     // Convert ticks to beats (1 beat = 1 quarter note)
     let beats = ticks as f32 / ppq as f32;
     
-    // Calculate exact duration in beats
-    let duration_map = [
-        (NoteDuration::Whole.to_fraction(), NoteDuration::Whole),
-        (NoteDuration::Half.to_fraction(), NoteDuration::Half),
-        (NoteDuration::Quarter.to_fraction(), NoteDuration::Quarter),
-        (NoteDuration::Eighth.to_fraction(), NoteDuration::Eighth),
-        (NoteDuration::Sixteenth.to_fraction(), NoteDuration::Sixteenth),
-        (NoteDuration::ThirtySecond.to_fraction(), NoteDuration::ThirtySecond),
-        (NoteDuration::SixtyFourth.to_fraction(), NoteDuration::SixtyFourth)
-    ];
-
-    // Find the closest standard duration
-    duration_map
-        .iter()
-        .min_by(|&&(a, _), &&(b, _)| {
-            (a - beats).abs().partial_cmp(&(b - beats).abs()).unwrap()
-        })
-        .map(|(_, name)| *name)
+    // Find the closest standard duration using the NoteDuration method
+    Some(NoteDuration::from_beats(beats))
 }
 
 pub fn parse_midi(data: &[u8]) -> Result<(serde_json::Value, serde_json::Value), AppError> {

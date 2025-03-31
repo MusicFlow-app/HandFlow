@@ -1,6 +1,7 @@
 pub mod svg;
 pub mod key_signature;
-pub mod difficulty_analysis;
+pub mod difficulty;
+pub mod midi;
 
 // oldies work on it
 #[allow(dead_code)]

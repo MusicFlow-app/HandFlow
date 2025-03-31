@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 use midly::num::u7;
 use crate::models::key_signature::KeySignature;
-use crate::models::{Category, Difficulty};
+use crate::models::categories::Category;
+use crate::models::difficulties::Difficulty;
 
 #[derive(Debug, Clone, Copy)]
 pub struct MidiPitch(u7);
@@ -145,6 +146,31 @@ impl NoteDuration {
             Self::ThirtySecond => 0.125,
             Self::SixtyFourth => 0.0625,
         }
+    }
+    
+    /// Returns a mapping of note durations to their fraction values
+    /// Used for finding the closest standard duration to a given beat value
+    pub fn get_duration_map() -> [(f32, NoteDuration); 7] {
+        [
+            (NoteDuration::Whole.to_fraction(), NoteDuration::Whole),
+            (NoteDuration::Half.to_fraction(), NoteDuration::Half),
+            (NoteDuration::Quarter.to_fraction(), NoteDuration::Quarter),
+            (NoteDuration::Eighth.to_fraction(), NoteDuration::Eighth),
+            (NoteDuration::Sixteenth.to_fraction(), NoteDuration::Sixteenth),
+            (NoteDuration::ThirtySecond.to_fraction(), NoteDuration::ThirtySecond),
+            (NoteDuration::SixtyFourth.to_fraction(), NoteDuration::SixtyFourth)
+        ]
+    }
+    
+    /// Find the closest standard duration to a given beat value
+    pub fn from_beats(beats: f32) -> Self {
+        Self::get_duration_map()
+            .iter()
+            .min_by(|&&(a, _), &&(b, _)| {
+                (a - beats).abs().partial_cmp(&(b - beats).abs()).unwrap()
+            })
+            .map(|(_, duration)| *duration)
+            .unwrap_or(Self::Quarter) // Default to quarter note if something goes wrong
     }
 }
 
