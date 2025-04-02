@@ -3,12 +3,25 @@ use serde::{Deserialize, Serialize};
 use crate::models::handpan::{ALL_DINGS, get_all_scales, get_notes_for_scale_and_ding, ScaleType, NoteHandpan, NotePosition, PanScaleCategory};
 use crate::utils::midi::note_to_midi;
 
+#[derive(Debug, Serialize, Deserialize)]
+struct CategoryResponse {
+    id: String,
+    name: String,
+    description: String,
+}
+
 // List all available categories
 pub async fn list_categories() -> impl Responder {
     let categories = PanScaleCategory::all()
         .into_iter()
-        .map(|cat| cat.to_string())
-        .collect::<Vec<String>>();
+        .map(|cat| {
+            CategoryResponse {
+                id: format!("{:?}", cat),
+                name: cat.to_string(),
+                description: cat.to_description(),
+            }
+        })
+        .collect::<Vec<CategoryResponse>>();
     HttpResponse::Ok().json(categories)
 }
 
@@ -17,10 +30,28 @@ pub async fn list_dings() -> impl Responder {
     HttpResponse::Ok().json(ALL_DINGS.to_vec())
 }
 
+#[derive(Debug, Serialize)]
+struct ScaleResponse {
+    name: String,
+    id: String,
+    category: String,
+    max_notes: usize,
+}
+
 // List all available scales
 pub async fn list_scales() -> impl Responder {
     let scales = get_all_scales();
-    HttpResponse::Ok().json(scales)
+    
+    let response: Vec<ScaleResponse> = scales.into_iter().map(|scale| {
+        ScaleResponse {
+            name: scale.name,
+            id: scale.id,
+            category: format!("{:?}", scale.category),
+            max_notes: scale.notes.len(),
+        }
+    }).collect();
+    
+    HttpResponse::Ok().json(response)
 }
 
 #[derive(Deserialize)]

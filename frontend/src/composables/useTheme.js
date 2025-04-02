@@ -1,6 +1,6 @@
 import { ref, watch } from 'vue'
 
-const THEME_KEY = 'handflow-theme'
+const THEME_KEY = 'handflow_favorite_theme'
 const THEME_SYSTEM = 'system'
 const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
 

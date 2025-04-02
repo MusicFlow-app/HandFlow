@@ -1,12 +1,38 @@
 import { ref, computed, watch } from 'vue'
-import Cookies from 'js-cookie'
+import { useCookies } from '@vueuse/integrations/useCookies'
+import useNotification from './useNotification'
 
 export function useFavorites() {
+  // Initialize notification system
+  const notification = useNotification()
+  
   // Initialize favorites from cookies
-  const FAVORITES_COOKIE_KEY = 'handflow_favorites'
-  const favoriteIds = ref(new Set(
-    JSON.parse(Cookies.get(FAVORITES_COOKIE_KEY) || '[]')
-  ))
+  const FAVORITES_COOKIE_KEY = 'handflow_tabs_favorites'
+  const cookies = useCookies([FAVORITES_COOKIE_KEY])
+  
+  // Safely parse cookie value with error handling
+  let initialFavorites = [];
+  try {
+    const cookieValue = cookies.get(FAVORITES_COOKIE_KEY);
+    //console.log('DEBUG - Raw cookie value:', cookieValue);
+    
+    if (cookieValue) {
+      // Handle both string and object formats
+      if (typeof cookieValue === 'string') {
+        initialFavorites = JSON.parse(cookieValue);
+      } else if (Array.isArray(cookieValue)) {
+        initialFavorites = cookieValue;
+      } else {
+        //console.warn('DEBUG - Unexpected cookie format:', typeof cookieValue);
+      }
+    }
+  } catch (error) {
+    //console.error('DEBUG - Error parsing favorites cookie:', error);
+    // Reset cookie if corrupted
+    cookies.set(FAVORITES_COOKIE_KEY, '[]', { maxAge: 60 * 60 * 24 * 365, path: '/' });
+  }
+  
+  const favoriteIds = ref(new Set(initialFavorites))
 
   // Reactive state for immediate UI updates
   const favoriteStates = ref({})
@@ -23,11 +49,13 @@ export function useFavorites() {
 
   // Save favorites to cookies
   const saveFavoritesToCookies = () => {
-    Cookies.set(
+    const favoritesArray = Array.from(favoriteIds.value)
+    cookies.set(
       FAVORITES_COOKIE_KEY, 
-      JSON.stringify(Array.from(favoriteIds.value)), 
-      { expires: 365 }
+      JSON.stringify(favoritesArray), 
+      { maxAge: 60 * 60 * 24 * 365, path: '/' }
     )
+    //console.log('DEBUG - Saved tabs favorites to cookies:', favoritesArray)
   }
 
   // Toggle favorite status
@@ -58,17 +86,21 @@ export function useFavorites() {
       // Update Set and cookies only after successful API call
       if (newState) {
         favoriteIds.value.add(fileId)
+        notification.success(`Tab added to favorites`)
       } else {
         favoriteIds.value.delete(fileId)
+        notification.warning(`Tab removed from favorites`)
       }
 
+      // Save to cookies after a successful update
       saveFavoritesToCookies()
       return true
 
     } catch (error) {
-      console.error('Error toggling favorite:', error)
+      //console.error('Error toggling favorite:', error)
       // Revert UI state on error
       favoriteStates.value[fileId] = isFavorite(fileId)
+      notification.error(`Failed to update favorite status: ${error.message}`)
       return false
     }
   }

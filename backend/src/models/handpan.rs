@@ -111,6 +111,19 @@ impl PanScaleCategory {
             PanScaleCategory::Experimental => "Experimental".to_string(),
         }
     }
+    
+    /// Retourne la description détaillée de la catégorie
+    pub fn to_description(&self) -> String {
+        match self {
+            PanScaleCategory::Modal => "Traditional Western or Greek modes, offering balanced and familiar tonalities".to_string(),
+            PanScaleCategory::Oriental => "Scales inspired by Arabic, Indian, or Middle Eastern musical traditions".to_string(),
+            PanScaleCategory::PentatonicAsian => "Asian-derived pentatonic scales, often minimalist and meditative".to_string(),
+            PanScaleCategory::Mystical => "Modern, airy, and spiritual scales evoking a dreamy or introspective feel".to_string(),
+            PanScaleCategory::MinorFolk => "Minor-based folk scales, including pygmy and Kurdish tonalities".to_string(),
+            PanScaleCategory::Ethnic => "Scales rooted in or inspired by specific cultural or traditional music".to_string(),
+            PanScaleCategory::Experimental => "Unconventional, rich, or extended scales pushing tonal boundaries".to_string(),
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

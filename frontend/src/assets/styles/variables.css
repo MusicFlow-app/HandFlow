@@ -49,6 +49,28 @@
     /* Background colors */
     --background-color: #f4f4f9;
     --container-bg: #ffffff;
+    
+    /* Shadow styles */
+    --shadow-default: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-hover: 0 8px 15px rgba(0, 0, 0, 0.15);
+    --shadow-elevated: 0 10px 25px rgba(0, 0, 0, 0.2);
+    
+    /* Border radius */
+    --border-radius-sm: 4px;
+    --border-radius-md: 8px;
+    --border-radius-lg: 16px;
+    
+    /* Heliocentric Design Colors - Pastel Rainbow avec plus de contraste */
+    --helio-category-1: #FF6B6B; /* Rouge pastel vif */
+    --helio-category-2: #FF85A1; /* Rose corail */
+    --helio-category-3: #BA7CF9; /* Violet lilas */
+    --helio-category-4: #7B68EE; /* Bleu-violet */
+    --helio-category-5: #5DA9E9; /* Bleu azur */
+    --helio-category-6: #66E0E0; /* Turquoise */
+    --helio-category-7: #6BD490; /* Vert menthe */
+    --helio-category-8: #FFD166; /* Jaune ambre - Import */
+    --helio-category-9: #FF9A3C; /* Orange pastel - Favoris */
+    --helio-category-10: #98D8C8; /* Vert d'eau (réserve) */
     --background-hover: #e9ecef;
     --background-light-transparent: rgba(255, 255, 255, 0.05);
     --background-hover-light: rgba(255, 255, 255, 0.15);
@@ -56,6 +78,7 @@
     /* Shadow */
     --shadow-color: rgba(0, 0, 0, 0.1);
     --shadow-text: rgba(16, 34, 51, 0.33);
+    --shadow-helio-element: rgba(34, 34, 34, 0.2);
     --shadow-default: 0 2px 10px var(--shadow-color);
     --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.15);
     

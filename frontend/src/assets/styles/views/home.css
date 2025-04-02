@@ -10,6 +10,36 @@
   overflow: hidden;
 }
 
+/* Handpan Scale Section */
+.handpan-scale-section {
+  width: 100%;
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-md);
+  background-color: var(--surface-secondary);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-default);
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+  min-height: 620px;
+}
+
+.handpan-scale-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, rgba(var(--primary-rgb), 0.05) 0%, transparent 70%);
+  z-index: 0;
+}
+
+.handpan-scale-section > * {
+  position: relative;
+  z-index: 1;
+}
+
 /* Home Content */
 .home-content {
   display: grid;

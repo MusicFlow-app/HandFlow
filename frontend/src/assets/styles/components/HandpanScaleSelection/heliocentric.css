@@ -1,0 +1,689 @@
+/* Styles pour le design héliocentriqe de la sélection de handpan */
+
+:root {
+  /* Using clamp for smoother transitions between screen sizes */
+  --orbit-size: clamp(300px, 60vh, 500px);
+  --center-size: clamp(120px, 20vw, 180px);
+  --item-size: clamp(50px, 8vw, 80px);
+  --transition-duration: 0.6s;
+  --transition-timing: cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  /* Spacing variables for responsive adjustments */
+  --container-padding: clamp(1rem, 3vw, 2rem);
+  --orbit-item-margin: clamp(-25px, -4vw, -40px);
+  --stage-indicator-gap: clamp(6px, 1vw, 10px);
+}
+
+/* Background musical avec portées */
+.heliocentric-container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+}
+
+/* Portées musicales */
+.heliocentric-container::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: 100% 100px;
+  z-index: -1;
+}
+
+/* Container principal avec design responsive */
+.heliocentric-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 600px; /* Adjusted to work with 620px container */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--container-padding);
+  overflow: hidden;
+  backdrop-filter: blur(5px);
+  /* Ensure content is centered on all devices */
+  box-sizing: border-box;
+}
+
+/* Cercle central */
+.center-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: var(--center-size);
+  height: var(--center-size);
+  border-radius: 50%;
+  background-color: var(--surface-primary);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15), 0 5px 15px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: clamp(0.8rem, 2vw, 1.5rem);
+  z-index: 10;
+  transition: box-shadow 0.3s ease, background-color 0.3s ease;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  will-change: transform; /* Optimisation pour la stabilité */
+  /* Ensure minimum touch target size for mobile */
+  min-width: 100px;
+  min-height: 100px;
+}
+
+.center-circle h3 {
+  margin-bottom: clamp(0.3rem, 1vw, 0.5rem);
+  font-size: clamp(0.9rem, 3vw, 1.2rem);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+  line-height: 1.3;
+  /* Prevent text overflow */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.center-circle p {
+  font-size: clamp(0.75rem, 2vw, 0.9rem);
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+  min-height: 1.2rem;
+  line-height: 1.4;
+  /* Prevent text overflow */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.center-circle.call-to-action {
+  cursor: pointer;
+  transform: translate(-50%, -50%) scale(1);
+  transition: transform 0.3s ease;
+}
+
+.center-circle.call-to-action:hover {
+  transform: translate(-50%, -50%) scale(1.05);
+  box-shadow: var(--shadow-hover);
+}
+
+/* Orbite des éléments */
+.orbit {
+  position: absolute;
+  width: var(--orbit-size);
+  height: var(--orbit-size);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none; /* Pour que les clics passent à travers l'orbite elle-même */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Animation de rotation pour l'apparition */
+@keyframes orbit-appear {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8) rotate(-10deg);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  }
+}
+
+.orbit {
+  animation: orbit-appear var(--transition-duration) var(--transition-timing);
+  will-change: transform, opacity; /* Optimisation pour les animations */
+}
+
+/* Styles spécifiques pour les orbites intérieure et extérieure */
+.inner-orbit, .outer-orbit {
+  position: absolute;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.inner-orbit {
+  width: 300px;
+  height: 300px;
+}
+
+.outer-orbit {
+  width: 500px;
+  height: 500px;
+}
+
+/* Éléments orbitaux */
+.orbit-item {
+  position: absolute;
+  width: var(--item-size);
+  height: var(--item-size);
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.5s var(--transition-timing), box-shadow 0.3s ease, background-color 0.3s ease;
+  box-shadow: var(--shadow-default);
+  overflow: hidden;
+  transform-origin: center;
+  z-index: 5;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(3px);
+  pointer-events: auto; /* S'assurer que les éléments orbitaux reçoivent les clics */
+  top: 50%;
+  left: 50%;
+  margin-top: calc(var(--item-size) / -2);
+  margin-left: calc(var(--item-size) / -2);
+  /* Ensure minimum touch target size for mobile */
+  min-width: 44px;
+  min-height: 44px;
+  /* Better tap targets on mobile */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  will-change: transform; /* Optimisation pour les animations */
+}
+
+.orbit-item:hover {
+  transform: scale(1.1) translateY(-5px);
+  box-shadow: var(--shadow-hover);
+  z-index: 6;
+}
+
+.orbit-item.selected {
+  transform: scale(1.2);
+  box-shadow: var(--shadow-elevated);
+  z-index: 7;
+}
+
+/* Animation pour l'élément sélectionné qui va au centre */
+@keyframes go-to-center {
+  0% {
+    transform: translate(0, 0) scale(1.2);
+  }
+  50% {
+    transform: translate(0, 0) scale(0.8);
+  }
+  100% {
+    transform: translate(0, 0) scale(0);
+  }
+}
+
+.orbit-item.moving-to-center {
+  animation: go-to-center var(--transition-duration) var(--transition-timing) forwards;
+}
+
+/* Animation pour l'élément qui sort du centre */
+@keyframes from-center {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.orbit-item.from-center {
+  animation: from-center var(--transition-duration) var(--transition-timing);
+}
+
+/* Abréviation de catégorie */
+.category-abbreviation,
+.scale-abbreviation {
+  font-size: clamp(0.9rem, 3vw, 1.2rem);
+  font-weight: 600;
+  color: var(--text-light);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  /* Ensure text doesn't overflow on small items */
+  max-width: 90%;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Abréviation de catégorie */
+.scale-abbreviation {
+  font-size: 1.5rem;
+  color: var(--text-light);
+  text-shadow: -1px -1px 0 var(--shadow-helio-element), 1px -1px 0 var(--shadow-helio-element), -1px 1px 0 var(--shadow-helio-element), 1px 1px 0 var(--shadow-helio-element);
+}
+
+/* Styles pour les icônes */
+.import-icon, .favorites-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--text-light);
+  filter: drop-shadow(-1px -1px 0 var(--shadow-helio-element))
+          drop-shadow(1px -1px 0 var(--shadow-helio-element))
+          drop-shadow(-1px 1px 0 var(--shadow-helio-element))
+          drop-shadow(1px 1px 0 var(--shadow-helio-element));}
+
+/* Styles spécifiques pour les catégories spéciales */
+.orbit-item.import-category,
+.orbit-item.favorites-category {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Effet de mise en évidence du cercle central lors du survol d'une catégorie */
+.center-circle.highlight {
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2), 0 8px 20px rgba(0, 0, 0, 0.15);
+  transform: translate(-50%, -50%) scale(1.03);
+}
+
+/* Étiquette de l'élément orbital */
+.orbit-item-label {
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.orbit-item:hover .orbit-item-label {
+  opacity: 1;
+}
+
+/* Bouton de retour */
+.back-button {
+  position: absolute;
+  top: clamp(10px, 3vh, 20px);
+  left: clamp(10px, 3vw, 20px);
+  width: clamp(40px, 8vw, 50px);
+  height: clamp(40px, 8vw, 50px);
+  border-radius: 50%;
+  background-color: var(--surface-primary);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  box-shadow: var(--shadow-default);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  /* Ensure minimum touch target size */
+  min-width: 44px;
+  min-height: 44px;
+  /* Better tap targets on mobile */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.back-button:hover {
+  background-color: var(--surface-hover);
+  box-shadow: var(--shadow-hover);
+}
+
+.back-button svg {
+  width: 24px;
+  height: 24px;
+  fill: var(--text-primary);
+}
+
+/* Indicateur d'étape */
+.stage-indicator {
+  position: absolute;
+  bottom: clamp(10px, 3vh, 20px);
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: var(--stage-indicator-gap);
+  z-index: 20;
+  /* Ensure visibility on all backgrounds */
+  padding: 5px;
+}
+
+.stage-dot {
+  width: clamp(8px, 1.5vw, 12px);
+  height: clamp(8px, 1.5vw, 12px);
+  border-radius: 50%;
+  background-color: var(--surface-disabled);
+  transition: all 0.3s ease;
+  /* Ensure minimum touch target size */
+  min-width: 8px;
+  min-height: 8px;
+}
+
+.stage-dot.active {
+  background-color: var(--primary-color);
+  transform: scale(1.2);
+}
+
+.stage-dot.completed {
+  background-color: var(--success-color);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  :root {
+    --orbit-size: min(90vw, 450px);
+    --center-size: 140px;
+    --item-size: 60px;
+  }
+  
+  .heliocentric-container {
+    padding: 1rem;
+  }
+  
+  
+
+  /* Adjust landscape orientation optimizations */
+@media (max-height: 500px) and (orientation: landscape) {
+  :root {
+    --orbit-size: min(80vw, 400px);
+    --center-size: min(25vh, 120px);
+    --item-size: min(10vh, 50px);
+  }
+  
+  .heliocentric-container {
+    min-height: 90vh;
+    padding: 0.5rem;
+  }
+  
+  /* Adjust vertical positioning to fit in landscape mode */
+  .stage-indicator {
+    bottom: 5px;
+  }
+  
+  .back-button {
+    top: 5px;
+    left: 5px;
+    width: 36px;
+    height: 36px;
+  }
+  
+  /* Optimize for landscape viewing */
+  .center-circle {
+    padding: 0.8rem;
+  }
+  
+  .center-circle h3 {
+    margin-bottom: 0.2rem;
+  }
+  
+  /* Ensure orbit fits in landscape view */
+  .orbit {
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+}
+
+  /* Adjust animation timing for better performance on mobile */
+  .orbit-item {
+    transition: transform 0.4s var(--transition-timing), box-shadow 0.3s ease, background-color 0.3s ease;
+  }
+  
+  /* Improve tap targets for mobile */
+  .back-button,
+  .favorite-button,
+  .close-button {
+    padding: 8px;
+  }
+  
+  /* Add simple adjustment for Firefox with dev tools open */
+@media (max-height: 650px) {
+  .orbit {
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  
+  /* Additional adjustment for narrow width + low height */
+  @media (max-width: 560px) {
+    .orbit {
+      transform: translate(-50%, -50%) scale(0.8);
+    }
+    
+    :root {
+      --orbit-size: min(75vw, 260px);
+      --center-size: 80px;
+      --item-size: 36px;
+    }
+  }
+}
+
+/* Add a new breakpoint for very small screens */
+@media (max-width: 360px) {
+  :root {
+    --orbit-size: min(70vw, 240px);
+    --center-size: 75px;
+    --item-size: 34px;
+  }
+  
+  .center-circle {
+    padding: 0.6rem;
+  }
+  
+  .center-circle h3 {
+    font-size: 0.9rem;
+    margin-bottom: 0.2rem;
+  }
+  
+  .center-circle p {
+    font-size: 0.7rem;
+    line-height: 1.1;
+  }
+  
+  /* Further reduce animations for very small devices */
+  .orbit-item[style*="var(--helio-category"]:hover {
+    transform: translateY(-1px) scale(1.01);
+    box-shadow: 0 3px 10px var(--shadow-color);
+  }
+  
+  /* Ensure minimum spacing between stage indicators */
+  .stage-indicator {
+    gap: 5px;
+  }
+  
+  .stage-dot {
+    width: 6px;
+    height: 6px;
+  }
+  
+  /* Adjust back button for very small screens */
+  .back-button {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+  .orbit-item[style*="var(--helio-category"]:hover {
+    transform: translateY(-3px) scale(1.03);
+  }
+}
+
+/* Specific handling for narrow widths */
+@media (max-width: 560px) {
+  :root {
+    --orbit-size: min(80vw, 280px);
+    --center-size: 90px;
+    --item-size: 40px;
+  }
+  
+  .orbit {
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+  
+  .center-circle h3 {
+    font-size: 0.85rem;
+    margin-bottom: 0.2rem;
+  }
+  
+  .center-circle p {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --orbit-size: min(75vw, 270px);
+    --center-size: 85px;
+    --item-size: 38px;
+  }
+  
+  .center-circle h3 {
+    font-size: 0.95rem;
+    margin-bottom: 0.3rem;
+  }
+  
+  .center-circle p {
+    font-size: 0.75rem;
+    line-height: 1.2;
+  }
+  
+  /* Optimize animations for mobile performance */
+  .orbit-item {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  /* Reduce hover effects for better performance */
+  .orbit-item[style*="var(--helio-category"]:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 5px 15px var(--shadow-color);
+  }
+  
+  /* Adjust back button size */
+  .back-button {
+    top: 10px;
+    left: 10px;
+  }
+  
+  /* Ensure text doesn't overflow */
+  .category-abbreviation,
+  .scale-abbreviation {
+    font-size: 0.85rem;
+  }
+}
+
+/* Animation de transition entre les étapes */
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.stage-transition-enter-active,
+.stage-transition-leave-active {
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.stage-transition-enter-from {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.stage-transition-leave-to {
+  opacity: 0;
+  transform: scale(1.1);
+}
+
+/* Optimize animations for mobile */
+@media (max-width: 768px) {
+  .stage-transition-enter-active,
+  .stage-transition-leave-active {
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+}
+
+@media (max-width: 480px) {
+  .stage-transition-enter-active,
+  .stage-transition-leave-active {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  
+  .stage-transition-enter-from {
+    transform: scale(0.95);
+  }
+  
+  .stage-transition-leave-to {
+    transform: scale(1.05);
+  }
+}
+
+.stage-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Styles pour les catégories avec dégradés pastel arc-en-ciel et meilleur contraste */
+
+/* Style générique pour toutes les catégories */
+.orbit-item[style*="var(--helio-category"] {
+  --category-color: currentColor; /* Sera remplacé par la couleur réelle */
+  --lighter-color: color-mix(in srgb, var(--category-color) 70%, white);
+  --border-color: var(--category-color);
+  --shadow-color: color-mix(in srgb, var(--category-color) 40%, transparent);
+  
+  background: linear-gradient(135deg, var(--lighter-color), var(--category-color));
+  border-color: var(--border-color);
+  color: var(--text-light);
+  box-shadow: 0 4px 15px var(--shadow-color);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
+}
+
+/* Styles spécifiques pour chaque catégorie */
+.orbit-item[style*="var(--helio-category-1)"] { --category-color: var(--helio-category-1); } /* Rouge pastel vif - Modal */
+.orbit-item[style*="var(--helio-category-2)"] { --category-color: var(--helio-category-2); } /* Rose corail - Oriental */
+.orbit-item[style*="var(--helio-category-3)"] { --category-color: var(--helio-category-3); } /* Violet lilas - PentatonicAsian */
+.orbit-item[style*="var(--helio-category-4)"] { --category-color: var(--helio-category-4); } /* Bleu-violet - MinorFolk */
+.orbit-item[style*="var(--helio-category-5)"] { --category-color: var(--helio-category-5); } /* Bleu azur - Mystical */
+.orbit-item[style*="var(--helio-category-6)"] { --category-color: var(--helio-category-6); } /* Turquoise - Ethnic */
+.orbit-item[style*="var(--helio-category-7)"] { --category-color: var(--helio-category-7); } /* Vert menthe - Experimental */
+.orbit-item[style*="var(--helio-category-8)"] { --category-color: var(--helio-category-8); } /* Jaune ambre - Import */
+.orbit-item[style*="var(--helio-category-9)"] { --category-color: var(--helio-category-9); } /* Orange pastel - Favoris */
+.orbit-item[style*="var(--helio-category-10)"] { --category-color: var(--helio-category-10); } /* Vert d'eau (réserve) */
+
+/* Effets de survol pour toutes les catégories */
+.orbit-item[style*="var(--helio-category"]:hover {
+  transform: translateY(-5px) scale(1.05);
+  filter: brightness(1.1);
+  --shadow-color: color-mix(in srgb, var(--category-color) 60%, transparent);
+  box-shadow: 0 8px 20px var(--shadow-color);
+}
