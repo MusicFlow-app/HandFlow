@@ -1,7 +1,7 @@
 use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 use crate::models::handpan::{ALL_DINGS, get_all_scales, get_notes_for_scale_and_ding, ScaleType, NoteHandpan, NotePosition, PanScaleCategory};
-use crate::utils::midi::note_to_midi;
+use crate::utils::midi::{note_to_midi, midi_to_note};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct CategoryResponse {
@@ -140,6 +140,15 @@ pub async fn import_from_handpanner_notation(request: web::Json<HandpannerNotati
     
     let mut handpan_notes = Vec::new();
 
+    // Create NoteHandpan object for ding
+    handpan_notes.push(NoteHandpan {
+        note_index: (0) as u32, // Note index starts at 1 (after ding at 0)
+        position: NotePosition::Top,
+        distance_relative_to_ding: 0,
+        calculated_pitch: Some(ding_midi),
+        calculated_note: Some(midi_to_note(ding_midi)),
+    });
+
     // Initialize tracking variables for octave progression
     let mut previous_note_octave = ding_wanted_obj.1.unwrap_or(3);
     let mut previous_note_index = get_note_index(&ding_wanted_obj.0);
@@ -187,6 +196,7 @@ pub async fn import_from_handpanner_notation(request: web::Json<HandpannerNotati
         };
         
         // Convert to MIDI
+        // This is fucked up i need to investigate
         match note_to_midi(&format!("{}{}", transposed_note.0, octave)) {
             Some(note_midi) => {
                 // Calculate distance from ding
@@ -205,6 +215,7 @@ pub async fn import_from_handpanner_notation(request: web::Json<HandpannerNotati
                     },
                     distance_relative_to_ding: distance,
                     calculated_pitch: Some(calculated_pitch),
+                    calculated_note: Some(midi_to_note(calculated_pitch)),
                 });
                 
                 // Update tracking variables for next note
@@ -232,11 +243,11 @@ pub async fn import_from_handpanner_notation(request: web::Json<HandpannerNotati
         
         // Format the recap part (e.g., "8+2+0+1")
         let nb_recap = match (nb_top, nb_bot, nb_inner) {
-            (t, b, i) if b > 0 && i > 0 => format!("{t}+{b}+{i}+1"),
-            (t, b, 0) if b > 0 => format!("{t}+{b}+1"),
-            (t, 0, i) if i > 0 => format!("{t}+0+{i}+1"),
-            (t, 0, 0) => format!("{t}+1"),
-            _ => format!("{nb_top}+1") // Fallback
+            (t, b, i) if b > 0 && i > 0 => format!("{t}+{b}+{i}"),
+            (t, b, 0) if b > 0 => format!("{t}+{b}"),
+            (t, 0, i) if i > 0 => format!("{t}+0+{i}"),
+            (t, 0, 0) => format!("{t}"),
+            _ => format!("{nb_top}") // Fallback
         };
         
         // Create the generic name

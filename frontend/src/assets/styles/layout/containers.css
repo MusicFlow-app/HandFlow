@@ -113,7 +113,7 @@
 }
 
 /* Responsive */
-@media (max-width: var(--tablet)) {
+@media (max-width: 768px) {
     .container,
     .content {
         padding: var(--spacing-md);
@@ -125,7 +125,7 @@
     }
 }
 
-@media (max-width: var(--mobile)) {
+@media (max-width: 480px) {
     .container,
     .content {
         padding: var(--spacing-sm);
@@ -147,7 +147,7 @@
 }
 
 /* Responsive Containers */
-@media (max-width: var(--tablet)) {
+@media (max-width: 768px) {
     .container {
         padding: var(--spacing-md);
     }
@@ -157,7 +157,7 @@
     }
 }
 
-@media (max-width: var(--mobile)) {
+@media (max-width: 480px) {
     .container {
         padding: var(--spacing-sm);
     }

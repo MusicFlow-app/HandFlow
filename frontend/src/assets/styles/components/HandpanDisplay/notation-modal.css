@@ -1,0 +1,113 @@
+/* Notation Modal */
+.notation-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: vargba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: var(--surface-primary);
+  padding: 2rem;
+  border-radius: var(--border-radius-md);
+  width: 90%;
+  max-width: 500px;
+  box-shadow: var(--shadow-elevated);
+  border: 1px solid var(--border-color);
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  color: var(--primary-color);
+}
+
+.notation-text {
+  background-color: var(--surface-secondary);
+  padding: 1rem;
+  border-radius: var(--border-radius-sm);
+  font-family: monospace;
+  font-size: 1.2rem;
+  word-break: break-all;
+  margin: 1rem 0;
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.copy-button, .close-button {
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.copy-button {
+  background-color: var(--primary-color);
+  color: var(--text-light);
+  border: none;
+}
+
+.copy-button:hover {
+  background-color: var(--primary-hover);
+  box-shadow: var(--shadow-hover);
+}
+
+.close-button {
+  background-color: var(--surface-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+.close-button:hover {
+  background-color: var(--surface-hover);
+  border-color: var(--border-hover);
+}
+
+/* Notes Badge Enhancements */
+.notes-badge {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.note-count {
+  color: var(--text-color);
+  margin-left: 0.5rem;
+}
+
+.info-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--primary-color);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, color 0.2s;
+}
+
+.info-button:hover {
+  transform: scale(1.1);
+  color: var(--primary-hover);
+}
+
+

@@ -1,7 +1,7 @@
 use actix_web::web;
 use super::handlers::{get_library, get_tab_details, toggle_favorite, get_part_measures, upload_file, generate_tab_html};
 use super::handlers::metadata::{get_difficulties, get_categories, get_difficulty, get_category};
-use super::handlers::{list_dings, list_scales, get_notes, import_from_handpanner_notation, list_categories};
+use super::handlers::{list_dings, list_scales, get_notes, import_from_handpanner_notation, list_categories, serve_audio};
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -21,5 +21,6 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
             .route("/handpan/categories", web::get().to(list_categories))
             .route("/handpan/{id}/notes/{ding}", web::get().to(get_notes))
             .route("/handpan/import/notation", web::post().to(import_from_handpanner_notation))
+            .route("/audio/{note}", web::get().to(serve_audio))
     );
 }

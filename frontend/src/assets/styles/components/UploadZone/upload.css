@@ -113,7 +113,7 @@
 }
 
 /* Responsive Design */
-@media (max-width: var(--tablet)) {
+@media (max-width: 768px) {
     .drop-zone {
         width: 85%;
         padding: var(--spacing-lg);
@@ -128,7 +128,7 @@
     }
 }
 
-@media (max-width: var(--mobile)) {
+@media (max-width: 480px) {
     .upload-section {
         padding: var(--spacing-sm);
     }
@@ -152,3 +152,65 @@
         height: 40px;
     }
 }
+
+.upload-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--shadow-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+  }
+  
+  .upload-modal {
+    background-color: var(--container-bg);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px var(--shadow-color);
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 24px;
+    animation: modal-appear 0.3s ease-out;
+  }
+  
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+  }
+  
+  .close-button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: color 0.2s;
+  }
+  
+  .close-button:hover {
+    color: var(--text-primary);
+  }
+  
+  @keyframes modal-appear {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }

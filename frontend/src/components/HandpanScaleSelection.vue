@@ -126,7 +126,7 @@
             <div class="scale-content">
               <!-- Indicateur de favori -->
               <span 
-                v-if="favorites.some(fav => fav.id === scale.id)" 
+                v-if="!isViewingFavorites && favorites.some(fav => fav.id === scale.id)" 
                 class="favorite-indicator"
               >★</span>
               
@@ -220,7 +220,7 @@
               borderColor: getColorVariation(getCategoryColor(selectedScale?.category), index, noteOptions.length),
               transform: orbitalPositions[index] ? `translate(${orbitalPositions[index].x}px, ${orbitalPositions[index].y}px)` : 'translate(0, 0)'
             }"
-            @click="selectNoteCount(count)"
+            @click="handleNoteCountSelection(count)"
           >
             <span class="category-abbreviation">{{ count }}</span>
           </div>
@@ -247,8 +247,11 @@
       <button class="close-button" @click="showImportForm = false">&times;</button>
       <h3>Import Custom Scale</h3>
       
-      <div class="import-instructions">
-        <h4>How to format your notation:</h4>
+      <div class="import-instructions-toggle" @click="toggleInstructions">
+        <h4>Format Instructions <span class="toggle-icon">{{ showInstructions ? '▼' : '▶' }}</span></h4>
+      </div>
+      
+      <div class="import-instructions" v-if="showInstructions">
         <ul>
           <li>Use the format: <code>D/ A B C E G A</code></li>
           <li>The note before the slash (/) is the ding note (minimum 6 notes)</li>
@@ -304,6 +307,17 @@ import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import useHandpanSelection from '../composables/useHandpanSelection'
 import { PhCaretLeft, PhMusicNotesPlus, PhStar } from '@phosphor-icons/vue'
 import '../assets/styles/components/HandpanScaleSelection/heliocentric.css'
+import '../assets/styles/components/HandpanScaleSelection/import-form.css'
+
+// Define emits
+const emit = defineEmits(['selection-complete'])
+
+// State for collapsible instructions
+const showInstructions = ref(false)
+const toggleInstructions = () => {
+  showInstructions.value = !showInstructions.value
+}
+
 
 const {
       // État
@@ -677,7 +691,52 @@ const {
       }, 800)
     })
     
-    // Fin des hooks et des fonctions
+    // Wrapper function for selectNoteCount to emit the selection-complete event
+const handleNoteCountSelection = async (count) => {
+  try {
+    // Call the original selectNoteCount function
+    await selectNoteCount(count);
+    
+    // Ensure that the stage is set to 5 (selection complete) before proceeding
+    // We stay at stage 5 and let the Home component handle the transition to stage 6
+    // Only set to stage 5 if we're not already at stage 5 or higher
+    if (currentStage.value < 5) {
+      await goToStage(5);
+    }
+    
+    // Add a small delay to ensure stage update is reflected
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Fetch notes from the API
+    await fetchNotes();
+    
+    // If we have a scale, ding, and note count, emit the selection-complete event
+    if (selectedScale.value && selectedDing.value && selectedNoteCount.value) {
+      console.log('Selection complete at stage 5, emitting event with data:', {
+        scale: selectedScale.value,
+        ding: selectedDing.value,
+        noteCount: selectedNoteCount.value,
+        notes: notes.value
+      });
+      
+      emit('selection-complete', {
+        stage: 5, // Explicitly set to stage 5 (selection complete)
+        scaleId: selectedScale.value?.id,
+        scaleName: selectedScale.value?.name,
+        scaleCategory: selectedScale.value?.category, // Add category information
+        dingNote: selectedDing.value,
+        noteCount: selectedNoteCount.value,
+        notes: notes.value || [], // Use the fetched notes
+        isFavorite: selectedScale.value?.isFavorite || false
+      });
+    }
+  } catch (error) {
+    console.error('Error during note count selection:', error);
+    notification.error('Failed to complete handpan selection');
+  }
+};
+
+// Fin des hooks et des fonctions
 </script>
 
 <style>

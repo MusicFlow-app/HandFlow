@@ -3,7 +3,7 @@ import { ref, computed, watch, nextTick, onMounted, markRaw } from 'vue'
 import { useTheme } from '@/composables/useTheme'
 import { useTabsLibrary } from '@/composables/useTabsLibrary'
 import { useFavorites } from '@/composables/useFavorites'
-import { PhInfinity, PhMusicNotes, PhBarbell, PhShootingStar, PhStar, PhStarHalf, PhArrowRight, PhCaretLeft, PhCaretRight, PhSortAscending, PhSortDescending, PhAperture, PhArrowsDownUp, PhMagnifyingGlass, PhPenNib, PhUserSound } from '@phosphor-icons/vue'
+import { PhInfinity, PhMusicNotes, PhMusicNotesPlus, PhBarbell, PhShootingStar, PhStar, PhStarHalf, PhArrowRight, PhCaretLeft, PhCaretRight, PhSortAscending, PhSortDescending, PhAperture, PhArrowsDownUp, PhMagnifyingGlass, PhPenNib, PhUserSound } from '@phosphor-icons/vue'
 import '@/assets/styles/components/TabsLibrary/index.css'
 
 const { isDark, toggleTheme } = useTheme()
@@ -254,7 +254,9 @@ watch([showOnlyFavorites, favoriteFiles], async () => {
 <template>
   <div class="tabs-library">
     <div class="library-header">
-      <h2>Tablatures Library</h2>
+      <div class="header-title-row">
+        <h2>Tablatures Library</h2>
+      </div>
       <div class="header-top">
         <div class="search-field">
           <PhMagnifyingGlass :size="20" weight="bold" />
@@ -265,6 +267,13 @@ watch([showOnlyFavorites, favoriteFiles], async () => {
           />
         </div>
         <div class="button-group">
+              <button 
+                class="import-btn"
+                @click="$emit('open-import-modal')"
+              >
+                <PhMusicNotesPlus :size="18" weight="bold" />
+                <span>Import</span>
+              </button>
               <button 
                 class="fav-filter-btn" 
                 :class="{ active: showOnlyFavorites }"

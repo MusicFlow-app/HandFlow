@@ -1,10 +1,10 @@
 use serde::{Deserialize, Serialize};
-use crate::utils::midi::note_to_midi;
+use crate::utils::midi::{note_to_midi, midi_to_note};
 use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, EnumString};
 
 // Import the enum variants for use throughout this file
-use self::NotePosition::{Top, Bottom};
+use self::NotePosition::{Top, Inner, Bottom};
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash, EnumIter, EnumString)]
 pub enum ScaleType {
@@ -148,6 +148,7 @@ pub struct NoteHandpan {
     pub position: NotePosition,
     pub distance_relative_to_ding: i32,
     pub calculated_pitch: Option<i32>,
+    pub calculated_note: Option<String>,
 }
 
 
@@ -168,14 +169,15 @@ impl ScaleType {
                 category: PanScaleCategory::Experimental,
                 relative_ding: "F3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 4, calculated_pitch: None },  // A3
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 11, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 16, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 18, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 23, calculated_pitch: None },  // E5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 4, calculated_pitch: None, calculated_note: None },  // A3
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 11, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 16, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 18, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 23, calculated_pitch: None, calculated_note: None },  // E5
                 ],
             },
             
@@ -185,14 +187,15 @@ impl ScaleType {
                 category: PanScaleCategory::Modal,
                 relative_ding: "E3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None },  // A3
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // B3
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 13, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // A4
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // A3
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // B3
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 13, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // A4
                 ],
             },
             
@@ -202,14 +205,15 @@ impl ScaleType {
                 category: PanScaleCategory::PentatonicAsian,
                 relative_ding: "E3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None },  // A3
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // B3
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 13, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 20, calculated_pitch: None },  // C5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // A3
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // B3
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 13, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 20, calculated_pitch: None, calculated_note: None },  // C5
                 ],
             },
             
@@ -219,14 +223,15 @@ impl ScaleType {
                 category: PanScaleCategory::MinorFolk,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // D5
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 22, calculated_pitch: None },  // G5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // D5
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 22, calculated_pitch: None, calculated_note: None },  // G5
                 ],
             },
             
@@ -236,14 +241,15 @@ impl ScaleType {
                 category: PanScaleCategory::MinorFolk,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // D5
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 24, calculated_pitch: None },  // A5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // D5
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 24, calculated_pitch: None, calculated_note: None },  // A5
                 ],
             },
             
@@ -253,18 +259,19 @@ impl ScaleType {
                 category: PanScaleCategory::MinorFolk,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Bottom, distance_relative_to_ding: 3, calculated_pitch: None },  // (C4)
-                    NoteHandpan { note_index: 2, position: Bottom, distance_relative_to_ding: 5, calculated_pitch: None },  // (D4)
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 4, position: Bottom, distance_relative_to_ding: 8, calculated_pitch: None },  // (F4)
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // D5
-                    NoteHandpan { note_index: 10, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
-                    NoteHandpan { note_index: 11, position: Bottom, distance_relative_to_ding: 20, calculated_pitch: None },  // (F5)
-                    NoteHandpan { note_index: 12, position: Bottom, distance_relative_to_ding: 22, calculated_pitch: None },  // (G5)
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Bottom, distance_relative_to_ding: 3, calculated_pitch: None, calculated_note: None },  // (C4)
+                    NoteHandpan { note_index: 2, position: Bottom, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // (D4)
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 4, position: Bottom, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // (F4)
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // D5
+                    NoteHandpan { note_index: 10, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
+                    NoteHandpan { note_index: 11, position: Bottom, distance_relative_to_ding: 20, calculated_pitch: None, calculated_note: None },  // (F5)
+                    NoteHandpan { note_index: 12, position: Bottom, distance_relative_to_ding: 22, calculated_pitch: None, calculated_note: None },  // (G5)
                 ],
             },
             
@@ -274,22 +281,23 @@ impl ScaleType {
                 category: PanScaleCategory::MinorFolk,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Bottom, distance_relative_to_ding: 3, calculated_pitch: None },  // (C4)
-                    NoteHandpan { note_index: 2, position: Bottom, distance_relative_to_ding: 5, calculated_pitch: None },  // (D4)
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 4, position: Bottom, distance_relative_to_ding: 8, calculated_pitch: None },  // (F4)
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 6, position: Bottom, distance_relative_to_ding: 11, calculated_pitch: None },  // (G#4)
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 10, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // D5
-                    NoteHandpan { note_index: 11, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
-                    NoteHandpan { note_index: 12, position: Bottom, distance_relative_to_ding: 20, calculated_pitch: None },  // (F5)
-                    NoteHandpan { note_index: 13, position: Top, distance_relative_to_ding: 22, calculated_pitch: None },  // G5
-                    NoteHandpan { note_index: 14, position: Top, distance_relative_to_ding: 24, calculated_pitch: None },  // A5
-                    NoteHandpan { note_index: 15, position: Bottom, distance_relative_to_ding: 26, calculated_pitch: None },  // (B5)
-                    NoteHandpan { note_index: 16, position: Bottom, distance_relative_to_ding: 27, calculated_pitch: None },  // (C6)
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Bottom, distance_relative_to_ding: 3, calculated_pitch: None, calculated_note: None },  // (C4)
+                    NoteHandpan { note_index: 2, position: Bottom, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // (D4)
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 4, position: Bottom, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // (F4)
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 6, position: Bottom, distance_relative_to_ding: 11, calculated_pitch: None, calculated_note: None },  // (G#4)
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 10, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // D5
+                    NoteHandpan { note_index: 11, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
+                    NoteHandpan { note_index: 12, position: Bottom, distance_relative_to_ding: 20, calculated_pitch: None, calculated_note: None },  // (F5)
+                    NoteHandpan { note_index: 13, position: Top, distance_relative_to_ding: 22, calculated_pitch: None, calculated_note: None },  // G5
+                    NoteHandpan { note_index: 14, position: Top, distance_relative_to_ding: 24, calculated_pitch: None, calculated_note: None },  // A5
+                    NoteHandpan { note_index: 15, position: Bottom, distance_relative_to_ding: 26, calculated_pitch: None, calculated_note: None },  // (B5)
+                    NoteHandpan { note_index: 16, position: Bottom, distance_relative_to_ding: 27, calculated_pitch: None, calculated_note: None },  // (C6)
                 ],
             },
             
@@ -299,14 +307,15 @@ impl ScaleType {
                 category: PanScaleCategory::Mystical,
                 relative_ding: "C3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // G3
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 9, calculated_pitch: None },  // A3
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 16, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 24, calculated_pitch: None },  // C5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // G3
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 9, calculated_pitch: None, calculated_note: None },  // A3
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 16, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 24, calculated_pitch: None, calculated_note: None },  // C5
                 ],
             },
             
@@ -316,14 +325,15 @@ impl ScaleType {
                 category: PanScaleCategory::Experimental,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 20, calculated_pitch: None },  // F5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 22, calculated_pitch: None },  // G5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 20, calculated_pitch: None, calculated_note: None },  // F5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 22, calculated_pitch: None, calculated_note: None },  // G5
                 ],
             },
             
@@ -333,22 +343,23 @@ impl ScaleType {
                 category: PanScaleCategory::Experimental,
                 relative_ding: "C3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Bottom, distance_relative_to_ding: 2, calculated_pitch: None },  // (D3)
-                    NoteHandpan { note_index: 2, position: Bottom, distance_relative_to_ding: 4, calculated_pitch: None },  // (E3)
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 5, calculated_pitch: None },  // F3
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // G3
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 9, calculated_pitch: None },  // A3
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 11, calculated_pitch: None },  // B3
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 16, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 10, position: Bottom, distance_relative_to_ding: 17, calculated_pitch: None },  // (F4)
-                    NoteHandpan { note_index: 11, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 12, position: Top, distance_relative_to_ding: 21, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 13, position: Bottom, distance_relative_to_ding: 23, calculated_pitch: None },  // (B4)
-                    NoteHandpan { note_index: 14, position: Bottom, distance_relative_to_ding: 24, calculated_pitch: None },  // (C5)
-                    NoteHandpan { note_index: 15, position: Bottom, distance_relative_to_ding: 26, calculated_pitch: None },  // (D5)
-                    NoteHandpan { note_index: 16, position: Bottom, distance_relative_to_ding: 28, calculated_pitch: None },  // (E5)
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Bottom, distance_relative_to_ding: 2, calculated_pitch: None, calculated_note: None },  // (D3)
+                    NoteHandpan { note_index: 2, position: Bottom, distance_relative_to_ding: 4, calculated_pitch: None, calculated_note: None },  // (E3)
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // F3
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // G3
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 9, calculated_pitch: None, calculated_note: None },  // A3
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 11, calculated_pitch: None, calculated_note: None },  // B3
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 16, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 10, position: Bottom, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // (F4)
+                    NoteHandpan { note_index: 11, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 12, position: Top, distance_relative_to_ding: 21, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 13, position: Bottom, distance_relative_to_ding: 23, calculated_pitch: None, calculated_note: None },  // (B4)
+                    NoteHandpan { note_index: 14, position: Bottom, distance_relative_to_ding: 24, calculated_pitch: None, calculated_note: None },  // (C5)
+                    NoteHandpan { note_index: 15, position: Bottom, distance_relative_to_ding: 26, calculated_pitch: None, calculated_note: None },  // (D5)
+                    NoteHandpan { note_index: 16, position: Bottom, distance_relative_to_ding: 28, calculated_pitch: None, calculated_note: None },  // (E5)
                 ],
             },
             
@@ -358,14 +369,15 @@ impl ScaleType {
                 category: PanScaleCategory::Mystical,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 3, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 5, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // D5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 3, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // D5
                 ],
             },
             
@@ -375,14 +387,15 @@ impl ScaleType {
                 category: PanScaleCategory::Ethnic,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 11, calculated_pitch: None },  // G#4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // D5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 20, calculated_pitch: None },  // F5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 11, calculated_pitch: None, calculated_note: None },  // G#4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // D5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 20, calculated_pitch: None, calculated_note: None },  // F5
                 ],
             },
             
@@ -392,14 +405,15 @@ impl ScaleType {
                 category: PanScaleCategory::PentatonicAsian,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 3, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 5, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // D5
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 22, calculated_pitch: None },  // G5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 3, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // D5
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 22, calculated_pitch: None, calculated_note: None },  // G5
                 ],
             },
             
@@ -409,14 +423,15 @@ impl ScaleType {
                 category: PanScaleCategory::Ethnic,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 3, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // D5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 3, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // D5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
                 ],
             },
             
@@ -426,15 +441,16 @@ impl ScaleType {
                 category: PanScaleCategory::Ethnic,
                 relative_ding: "E3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None },  // A3
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // B3
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 13, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 20, calculated_pitch: None },  // C5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // A3
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // B3
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 13, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 20, calculated_pitch: None, calculated_note: None },  // C5
                 ],
             },
             
@@ -444,14 +460,15 @@ impl ScaleType {
                 category: PanScaleCategory::Modal,
                 relative_ding: "D3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // A3
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 9, calculated_pitch: None },  // B3
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // A4
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // A3
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 9, calculated_pitch: None, calculated_note: None },  // B3
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // A4
                 ],
             },
             
@@ -461,14 +478,15 @@ impl ScaleType {
                 category: PanScaleCategory::MinorFolk,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 3, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 3, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
                 ],
             },
             
@@ -478,16 +496,17 @@ impl ScaleType {
                 category: PanScaleCategory::MinorFolk,
                 relative_ding: "F3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Bottom, distance_relative_to_ding: -4, calculated_pitch: None },  // (C#3)
-                    NoteHandpan { note_index: 2, position: Bottom, distance_relative_to_ding: 2, calculated_pitch: None },  // (G3)
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 3, calculated_pitch: None },  // G#3
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // C#4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // D#4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // G#4
-                    NoteHandpan { note_index: 10, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // C5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Bottom, distance_relative_to_ding: -4, calculated_pitch: None, calculated_note: None },  // (C#3)
+                    NoteHandpan { note_index: 2, position: Bottom, distance_relative_to_ding: 2, calculated_pitch: None, calculated_note: None },  // (G3)
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 3, calculated_pitch: None, calculated_note: None },  // G#3
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // C#4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // D#4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // G#4
+                    NoteHandpan { note_index: 10, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // C5
                 ],
             },
             
@@ -497,17 +516,18 @@ impl ScaleType {
                 category: PanScaleCategory::Experimental,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Bottom, distance_relative_to_ding: 2, calculated_pitch: None },  // (B3)
-                    NoteHandpan { note_index: 2, position: Bottom, distance_relative_to_ding: 3, calculated_pitch: None },  // (C4)
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 5, position: Bottom, distance_relative_to_ding: 9, calculated_pitch: None },  // (F#4)
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 10, position: Bottom, distance_relative_to_ding: 17, calculated_pitch: None },  // (D5)
-                    NoteHandpan { note_index: 11, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Bottom, distance_relative_to_ding: 2, calculated_pitch: None, calculated_note: None },  // (B3)
+                    NoteHandpan { note_index: 2, position: Bottom, distance_relative_to_ding: 3, calculated_pitch: None, calculated_note: None },  // (C4)
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 5, position: Bottom, distance_relative_to_ding: 9, calculated_pitch: None, calculated_note: None },  // (F#4)
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 10, position: Bottom, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // (D5)
+                    NoteHandpan { note_index: 11, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
                 ],
             },
             
@@ -517,14 +537,15 @@ impl ScaleType {
                 category: PanScaleCategory::Mystical,
                 relative_ding: "C3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 4, calculated_pitch: None },  // E3
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // G3
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 11, calculated_pitch: None },  // B3
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 18, calculated_pitch: None },  // F#4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 23, calculated_pitch: None },  // B4
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 4, calculated_pitch: None, calculated_note: None },  // E3
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // G3
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 11, calculated_pitch: None, calculated_note: None },  // B3
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 18, calculated_pitch: None, calculated_note: None },  // F#4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 23, calculated_pitch: None, calculated_note: None },  // B4
                 ],
             },
             
@@ -534,21 +555,22 @@ impl ScaleType {
                 category: PanScaleCategory::Experimental,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Bottom, distance_relative_to_ding: 2, calculated_pitch: None },  // (B3)
-                    NoteHandpan { note_index: 2, position: Bottom, distance_relative_to_ding: 3, calculated_pitch: None },  // (C4)
-                    NoteHandpan { note_index: 3, position: Bottom, distance_relative_to_ding: 5, calculated_pitch: None },  // (D4)
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 11, calculated_pitch: None },  // G#4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 10, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // D5
-                    NoteHandpan { note_index: 11, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
-                    NoteHandpan { note_index: 12, position: Bottom, distance_relative_to_ding: 23, calculated_pitch: None },  // (G#5)
-                    NoteHandpan { note_index: 13, position: Top, distance_relative_to_ding: 24, calculated_pitch: None },  // A5
-                    NoteHandpan { note_index: 14, position: Bottom, distance_relative_to_ding: 26, calculated_pitch: None },  // (B5)
-                    NoteHandpan { note_index: 15, position: Bottom, distance_relative_to_ding: 27, calculated_pitch: None },  // (C6)
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Bottom, distance_relative_to_ding: 2, calculated_pitch: None, calculated_note: None },  // (B3)
+                    NoteHandpan { note_index: 2, position: Bottom, distance_relative_to_ding: 3, calculated_pitch: None, calculated_note: None },  // (C4)
+                    NoteHandpan { note_index: 3, position: Bottom, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // (D4)
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 11, calculated_pitch: None, calculated_note: None },  // G#4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 10, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // D5
+                    NoteHandpan { note_index: 11, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
+                    NoteHandpan { note_index: 12, position: Bottom, distance_relative_to_ding: 23, calculated_pitch: None, calculated_note: None },  // (G#5)
+                    NoteHandpan { note_index: 13, position: Top, distance_relative_to_ding: 24, calculated_pitch: None, calculated_note: None },  // A5
+                    NoteHandpan { note_index: 14, position: Bottom, distance_relative_to_ding: 26, calculated_pitch: None, calculated_note: None },  // (B5)
+                    NoteHandpan { note_index: 15, position: Bottom, distance_relative_to_ding: 27, calculated_pitch: None, calculated_note: None },  // (C6)
                 ],
             },
             
@@ -558,23 +580,24 @@ impl ScaleType {
                 category: PanScaleCategory::Experimental,
                 relative_ding: "A2".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Bottom, distance_relative_to_ding: 2, calculated_pitch: None },  // (B2)
-                    NoteHandpan { note_index: 2, position: Bottom, distance_relative_to_ding: 3, calculated_pitch: None },  // (C3)
-                    NoteHandpan { note_index: 3, position: Bottom, distance_relative_to_ding: 5, calculated_pitch: None },  // (D3)
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E3
-                    NoteHandpan { note_index: 5, position: Bottom, distance_relative_to_ding: 8, calculated_pitch: None },  // (F3)
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 11, calculated_pitch: None },  // G#3
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A3
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B3
-                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 10, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 11, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 12, position: Top, distance_relative_to_ding: 20, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 13, position: Top, distance_relative_to_ding: 23, calculated_pitch: None },  // G#4
-                    NoteHandpan { note_index: 14, position: Bottom, distance_relative_to_ding: 24, calculated_pitch: None },  // (A4)
-                    NoteHandpan { note_index: 15, position: Bottom, distance_relative_to_ding: 26, calculated_pitch: None },  // (B4)
-                    NoteHandpan { note_index: 16, position: Bottom, distance_relative_to_ding: 27, calculated_pitch: None },  // (C5)
-                    NoteHandpan { note_index: 17, position: Bottom, distance_relative_to_ding: 29, calculated_pitch: None },  // (D5)
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Bottom, distance_relative_to_ding: 2, calculated_pitch: None, calculated_note: None },  // (B2)
+                    NoteHandpan { note_index: 2, position: Bottom, distance_relative_to_ding: 3, calculated_pitch: None, calculated_note: None },  // (C3)
+                    NoteHandpan { note_index: 3, position: Bottom, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // (D3)
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E3
+                    NoteHandpan { note_index: 5, position: Bottom, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // (F3)
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 11, calculated_pitch: None, calculated_note: None },  // G#3
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A3
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B3
+                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 10, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 11, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 12, position: Top, distance_relative_to_ding: 20, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 13, position: Top, distance_relative_to_ding: 23, calculated_pitch: None, calculated_note: None },  // G#4
+                    NoteHandpan { note_index: 14, position: Bottom, distance_relative_to_ding: 24, calculated_pitch: None, calculated_note: None },  // (A4)
+                    NoteHandpan { note_index: 15, position: Bottom, distance_relative_to_ding: 26, calculated_pitch: None, calculated_note: None },  // (B4)
+                    NoteHandpan { note_index: 16, position: Bottom, distance_relative_to_ding: 27, calculated_pitch: None, calculated_note: None },  // (C5)
+                    NoteHandpan { note_index: 17, position: Bottom, distance_relative_to_ding: 29, calculated_pitch: None, calculated_note: None },  // (D5)
                 ],
             },
             
@@ -584,14 +607,15 @@ impl ScaleType {
                 category: PanScaleCategory::Mystical,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 3, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 5, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // D5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 3, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // D5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
                 ],
             },
             
@@ -601,14 +625,15 @@ impl ScaleType {
                 category: PanScaleCategory::Oriental,
                 relative_ding: "B3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 6, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 9, calculated_pitch: None },  // G#4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 13, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // D5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // E5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 6, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 9, calculated_pitch: None, calculated_note: None },  // G#4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 13, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // D5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // E5
                 ],
             },
             
@@ -618,14 +643,15 @@ impl ScaleType {
                 category: PanScaleCategory::Oriental,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 11, calculated_pitch: None },  // G#4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // D5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 11, calculated_pitch: None, calculated_note: None },  // G#4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // D5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
                 ],
             },
             
@@ -635,14 +661,15 @@ impl ScaleType {
                 category: PanScaleCategory::Oriental,
                 relative_ding: "B3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 6, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 9, calculated_pitch: None },  // G#4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 13, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // D5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 16, calculated_pitch: None },  // D#5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 6, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 9, calculated_pitch: None, calculated_note: None },  // G#4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 13, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // D5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 16, calculated_pitch: None, calculated_note: None },  // D#5
                 ],
             },
             
@@ -652,14 +679,15 @@ impl ScaleType {
                 category: PanScaleCategory::Oriental,
                 relative_ding: "E3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // B3
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 13, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 16, calculated_pitch: None },  // G#4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // B4
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // B3
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 13, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 16, calculated_pitch: None, calculated_note: None },  // G#4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // B4
                 ],
             },
             
@@ -669,16 +697,17 @@ impl ScaleType {
                 category: PanScaleCategory::Oriental,
                 relative_ding: "D3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // A3
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // A#3
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 13, calculated_pitch: None },  // D#4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 16, calculated_pitch: None },  // F#4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 22, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 10, position: Top, distance_relative_to_ding: 24, calculated_pitch: None },  // D5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // A3
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // A#3
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 13, calculated_pitch: None, calculated_note: None },  // D#4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 16, calculated_pitch: None, calculated_note: None },  // F#4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 22, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 10, position: Top, distance_relative_to_ding: 24, calculated_pitch: None, calculated_note: None },  // D5
                 ],
             },
             
@@ -688,14 +717,15 @@ impl ScaleType {
                 category: PanScaleCategory::PentatonicAsian,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // D5
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 20, calculated_pitch: None },  // F5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // D5
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 20, calculated_pitch: None, calculated_note: None },  // F5
                 ],
             },
             
@@ -705,14 +735,15 @@ impl ScaleType {
                 category: PanScaleCategory::Experimental,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 22, calculated_pitch: None },  // G5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 22, calculated_pitch: None, calculated_note: None },  // G5
                 ],
             },
             
@@ -722,14 +753,15 @@ impl ScaleType {
                 category: PanScaleCategory::Experimental,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 20, calculated_pitch: None },  // F5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 20, calculated_pitch: None, calculated_note: None },  // F5
                 ],
             },
             
@@ -739,14 +771,15 @@ impl ScaleType {
                 category: PanScaleCategory::Ethnic,
                 relative_ding: "D3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None },  // G3
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // A3
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 9, calculated_pitch: None },  // B3
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // G4
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // G3
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // A3
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 9, calculated_pitch: None, calculated_note: None },  // B3
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // G4
                 ],
             },
             
@@ -756,20 +789,21 @@ impl ScaleType {
                 category: PanScaleCategory::Oriental,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Bottom, distance_relative_to_ding: 2, calculated_pitch: None },  // (B3)
-                    NoteHandpan { note_index: 2, position: Bottom, distance_relative_to_ding: 3, calculated_pitch: None },  // (C4)
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 5, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 6, position: Bottom, distance_relative_to_ding: 10, calculated_pitch: None },  // (G4)
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 11, calculated_pitch: None },  // G#4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 10, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 11, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // D5
-                    NoteHandpan { note_index: 12, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
-                    NoteHandpan { note_index: 13, position: Bottom, distance_relative_to_ding: 20, calculated_pitch: None },  // (F5)
-                    NoteHandpan { note_index: 14, position: Top, distance_relative_to_ding: 24, calculated_pitch: None },  // A5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Bottom, distance_relative_to_ding: 2, calculated_pitch: None, calculated_note: None },  // (B3)
+                    NoteHandpan { note_index: 2, position: Bottom, distance_relative_to_ding: 3, calculated_pitch: None, calculated_note: None },  // (C4)
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 6, position: Bottom, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // (G4)
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 11, calculated_pitch: None, calculated_note: None },  // G#4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 10, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 11, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // D5
+                    NoteHandpan { note_index: 12, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
+                    NoteHandpan { note_index: 13, position: Bottom, distance_relative_to_ding: 20, calculated_pitch: None, calculated_note: None },  // (F5)
+                    NoteHandpan { note_index: 14, position: Top, distance_relative_to_ding: 24, calculated_pitch: None, calculated_note: None },  // A5
                 ],
             },
             
@@ -779,14 +813,15 @@ impl ScaleType {
                 category: PanScaleCategory::Ethnic,
                 relative_ding: "E3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // B3
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 13, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 16, calculated_pitch: None },  // G#4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 20, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 24, calculated_pitch: None },  // E5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // B3
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 13, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 16, calculated_pitch: None, calculated_note: None },  // G#4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 20, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 24, calculated_pitch: None, calculated_note: None },  // E5
                 ],
             },
             
@@ -796,22 +831,23 @@ impl ScaleType {
                 category: PanScaleCategory::MinorFolk,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Bottom, distance_relative_to_ding: 3, calculated_pitch: None },  // (C4)
-                    NoteHandpan { note_index: 2, position: Bottom, distance_relative_to_ding: 5, calculated_pitch: None },  // (D4)
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // D5
-                    NoteHandpan { note_index: 10, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
-                    NoteHandpan { note_index: 11, position: Top, distance_relative_to_ding: 20, calculated_pitch: None },  // F5
-                    NoteHandpan { note_index: 12, position: Top, distance_relative_to_ding: 22, calculated_pitch: None },  // G5
-                    NoteHandpan { note_index: 13, position: Bottom, distance_relative_to_ding: 24, calculated_pitch: None },  // (A5)
-                    NoteHandpan { note_index: 14, position: Bottom, distance_relative_to_ding: 26, calculated_pitch: None },  // (B5)
-                    NoteHandpan { note_index: 15, position: Bottom, distance_relative_to_ding: 27, calculated_pitch: None },  // (C6)
-                    NoteHandpan { note_index: 16, position: Bottom, distance_relative_to_ding: 29, calculated_pitch: None },  // (D6)
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Bottom, distance_relative_to_ding: 3, calculated_pitch: None, calculated_note: None },  // (C4)
+                    NoteHandpan { note_index: 2, position: Bottom, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // (D4)
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // D5
+                    NoteHandpan { note_index: 10, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
+                    NoteHandpan { note_index: 11, position: Top, distance_relative_to_ding: 20, calculated_pitch: None, calculated_note: None },  // F5
+                    NoteHandpan { note_index: 12, position: Top, distance_relative_to_ding: 22, calculated_pitch: None, calculated_note: None },  // G5
+                    NoteHandpan { note_index: 13, position: Bottom, distance_relative_to_ding: 24, calculated_pitch: None, calculated_note: None },  // (A5)
+                    NoteHandpan { note_index: 14, position: Bottom, distance_relative_to_ding: 26, calculated_pitch: None, calculated_note: None },  // (B5)
+                    NoteHandpan { note_index: 15, position: Bottom, distance_relative_to_ding: 27, calculated_pitch: None, calculated_note: None },  // (C6)
+                    NoteHandpan { note_index: 16, position: Bottom, distance_relative_to_ding: 29, calculated_pitch: None, calculated_note: None },  // (D6)
                 ],
             },
             
@@ -821,22 +857,23 @@ impl ScaleType {
                 category: PanScaleCategory::MinorFolk,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Bottom, distance_relative_to_ding: -4, calculated_pitch: None },  // (F3)
-                    NoteHandpan { note_index: 2, position: Bottom, distance_relative_to_ding: -2, calculated_pitch: None },  // (G3)
-                    NoteHandpan { note_index: 3, position: Bottom, distance_relative_to_ding: 2, calculated_pitch: None },  // (B3)
-                    NoteHandpan { note_index: 4, position: Bottom, distance_relative_to_ding: 3, calculated_pitch: None },  // (C4)
-                    NoteHandpan { note_index: 5, position: Bottom, distance_relative_to_ding: 5, calculated_pitch: None },  // (D4)
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 10, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 11, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 12, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // D5
-                    NoteHandpan { note_index: 13, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
-                    NoteHandpan { note_index: 14, position: Top, distance_relative_to_ding: 20, calculated_pitch: None },  // F5
-                    NoteHandpan { note_index: 15, position: Top, distance_relative_to_ding: 22, calculated_pitch: None },  // G5
-                    NoteHandpan { note_index: 16, position: Top, distance_relative_to_ding: 24, calculated_pitch: None },  // A5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Bottom, distance_relative_to_ding: -4, calculated_pitch: None, calculated_note: None },  // (F3)
+                    NoteHandpan { note_index: 2, position: Bottom, distance_relative_to_ding: -2, calculated_pitch: None, calculated_note: None },  // (G3)
+                    NoteHandpan { note_index: 3, position: Bottom, distance_relative_to_ding: 2, calculated_pitch: None, calculated_note: None },  // (B3)
+                    NoteHandpan { note_index: 4, position: Bottom, distance_relative_to_ding: 3, calculated_pitch: None, calculated_note: None },  // (C4)
+                    NoteHandpan { note_index: 5, position: Bottom, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // (D4)
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 10, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 11, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 12, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // D5
+                    NoteHandpan { note_index: 13, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
+                    NoteHandpan { note_index: 14, position: Top, distance_relative_to_ding: 20, calculated_pitch: None, calculated_note: None },  // F5
+                    NoteHandpan { note_index: 15, position: Top, distance_relative_to_ding: 22, calculated_pitch: None, calculated_note: None },  // G5
+                    NoteHandpan { note_index: 16, position: Top, distance_relative_to_ding: 24, calculated_pitch: None, calculated_note: None },  // A5
                 ],
             },
             
@@ -846,14 +883,15 @@ impl ScaleType {
                 category: PanScaleCategory::Ethnic,
                 relative_ding: "D3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 3, calculated_pitch: None },  // F3
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // A3
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 9, calculated_pitch: None },  // B3
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // A4
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 3, calculated_pitch: None, calculated_note: None },  // F3
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // A3
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 9, calculated_pitch: None, calculated_note: None },  // B3
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // A4
                 ],
             },
             
@@ -863,13 +901,14 @@ impl ScaleType {
                 category: PanScaleCategory::Mystical,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 3, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 3, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
                 ],
             },
             
@@ -879,14 +918,15 @@ impl ScaleType {
                 category: PanScaleCategory::MinorFolk,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 2, calculated_pitch: None },  // B3
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 3, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 2, calculated_pitch: None, calculated_note: None },  // B3
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 3, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
                 ],
             },
             
@@ -896,14 +936,15 @@ impl ScaleType {
                 category: PanScaleCategory::MinorFolk,
                 relative_ding: "A2".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A3
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B3
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 22, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 24, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 26, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 27, calculated_pitch: None },  // C5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A3
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B3
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 22, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 24, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 26, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 27, calculated_pitch: None, calculated_note: None },  // C5
                 ],
             },
             
@@ -913,14 +954,15 @@ impl ScaleType {
                 category: PanScaleCategory::Modal,
                 relative_ding: "F3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 11, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 16, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 18, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 23, calculated_pitch: None },  // E5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 11, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 16, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 18, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 23, calculated_pitch: None, calculated_note: None },  // E5
                 ],
             },
             
@@ -930,14 +972,15 @@ impl ScaleType {
                 category: PanScaleCategory::Mystical,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 3, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 22, calculated_pitch: None },  // G5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 3, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 22, calculated_pitch: None, calculated_note: None },  // G5
                 ],
             },
             
@@ -947,14 +990,15 @@ impl ScaleType {
                 category: PanScaleCategory::Modal,
                 relative_ding: "C3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None },  // F3
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // G3
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 9, calculated_pitch: None },  // A3
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 11, calculated_pitch: None },  // B3
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 16, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // G4
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // F3
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // G3
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 9, calculated_pitch: None, calculated_note: None },  // A3
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 11, calculated_pitch: None, calculated_note: None },  // B3
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 16, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // G4
                 ],
             },
             
@@ -964,14 +1008,15 @@ impl ScaleType {
                 category: PanScaleCategory::PentatonicAsian,
                 relative_ding: "C3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 4, calculated_pitch: None },  // E3
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 5, calculated_pitch: None },  // F3
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // G3
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 11, calculated_pitch: None },  // B3
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 16, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // G4
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 4, calculated_pitch: None, calculated_note: None },  // E3
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // F3
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // G3
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 11, calculated_pitch: None, calculated_note: None },  // B3
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 16, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // G4
                 ],
             },
             
@@ -981,14 +1026,15 @@ impl ScaleType {
                 category: PanScaleCategory::Modal,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // D5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // D5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
                 ],
             },
             
@@ -998,14 +1044,15 @@ impl ScaleType {
                 category: PanScaleCategory::Modal,
                 relative_ding: "G3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 9, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 16, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // D5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 21, calculated_pitch: None },  // E5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 9, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 16, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // D5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 21, calculated_pitch: None, calculated_note: None },  // E5
                 ],
             },
             
@@ -1015,14 +1062,15 @@ impl ScaleType {
                 category: PanScaleCategory::Modal,
                 relative_ding: "G3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 9, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 16, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // D5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 21, calculated_pitch: None },  // E5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 9, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 16, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // D5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 21, calculated_pitch: None, calculated_note: None },  // E5
                 ],
             },
             
@@ -1032,13 +1080,14 @@ impl ScaleType {
                 category: PanScaleCategory::Mystical,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 22, calculated_pitch: None },  // G5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 22, calculated_pitch: None, calculated_note: None },  // G5
                 ],
             },
             
@@ -1048,14 +1097,15 @@ impl ScaleType {
                 category: PanScaleCategory::Mystical,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // D5
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 22, calculated_pitch: None },  // G5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // D5
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 22, calculated_pitch: None, calculated_note: None },  // G5
                 ],
             },
             
@@ -1065,23 +1115,24 @@ impl ScaleType {
                 category: PanScaleCategory::Experimental,
                 relative_ding: "B2".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Bottom, distance_relative_to_ding: 1, calculated_pitch: None },  // (C3)
-                    NoteHandpan { note_index: 2, position: Bottom, distance_relative_to_ding: 5, calculated_pitch: None },  // (E3)
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // F#3
-                    NoteHandpan { note_index: 4, position: Bottom, distance_relative_to_ding: 8, calculated_pitch: None },  // (G3)
-                    NoteHandpan { note_index: 5, position: Bottom, distance_relative_to_ding: 10, calculated_pitch: None },  // (A3)
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // B3
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 13, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 8, position: Bottom, distance_relative_to_ding: 15, calculated_pitch: None },  // (D4)
-                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 16, calculated_pitch: None },  // D#4
-                    NoteHandpan { note_index: 10, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 11, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // F#4
-                    NoteHandpan { note_index: 12, position: Top, distance_relative_to_ding: 20, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 13, position: Top, distance_relative_to_ding: 22, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 14, position: Top, distance_relative_to_ding: 24, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 15, position: Bottom, distance_relative_to_ding: 25, calculated_pitch: None },  // (C5)
-                    NoteHandpan { note_index: 16, position: Bottom, distance_relative_to_ding: 28, calculated_pitch: None },  // (D#5)
-                    NoteHandpan { note_index: 17, position: Bottom, distance_relative_to_ding: 29, calculated_pitch: None },  // (E5)
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Bottom, distance_relative_to_ding: 1, calculated_pitch: None, calculated_note: None },  // (C3)
+                    NoteHandpan { note_index: 2, position: Bottom, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // (E3)
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // F#3
+                    NoteHandpan { note_index: 4, position: Bottom, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // (G3)
+                    NoteHandpan { note_index: 5, position: Bottom, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // (A3)
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // B3
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 13, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 8, position: Bottom, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // (D4)
+                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 16, calculated_pitch: None, calculated_note: None },  // D#4
+                    NoteHandpan { note_index: 10, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 11, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // F#4
+                    NoteHandpan { note_index: 12, position: Top, distance_relative_to_ding: 20, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 13, position: Top, distance_relative_to_ding: 22, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 14, position: Top, distance_relative_to_ding: 24, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 15, position: Bottom, distance_relative_to_ding: 25, calculated_pitch: None, calculated_note: None },  // (C5)
+                    NoteHandpan { note_index: 16, position: Bottom, distance_relative_to_ding: 28, calculated_pitch: None, calculated_note: None },  // (D#5)
+                    NoteHandpan { note_index: 17, position: Bottom, distance_relative_to_ding: 29, calculated_pitch: None, calculated_note: None },  // (E5)
                 ],
             },
             
@@ -1091,14 +1142,15 @@ impl ScaleType {
                 category: PanScaleCategory::Mystical,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 16, calculated_pitch: None },  // C#5
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // D5
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 20, calculated_pitch: None },  // F5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 24, calculated_pitch: None },  // A5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 16, calculated_pitch: None, calculated_note: None },  // C#5
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // D5
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 20, calculated_pitch: None, calculated_note: None },  // F5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 24, calculated_pitch: None, calculated_note: None },  // A5
                 ],
             },
             
@@ -1108,14 +1160,15 @@ impl ScaleType {
                 category: PanScaleCategory::Mystical,
                 relative_ding: "C3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 4, calculated_pitch: None },  // E3
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 5, calculated_pitch: None },  // F3
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // G3
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 9, calculated_pitch: None },  // A3
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 16, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // G4
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 4, calculated_pitch: None, calculated_note: None },  // E3
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // F3
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // G3
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 9, calculated_pitch: None, calculated_note: None },  // A3
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 16, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // G4
                 ],
             },
             
@@ -1125,13 +1178,14 @@ impl ScaleType {
                 category: PanScaleCategory::Ethnic,
                 relative_ding: "C3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 4, calculated_pitch: None },  // E3
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // G3
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 11, calculated_pitch: None },  // B3
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 16, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // G4
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 4, calculated_pitch: None, calculated_note: None },  // E3
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // G3
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 11, calculated_pitch: None, calculated_note: None },  // B3
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 16, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // G4
                 ],
             },
             
@@ -1141,13 +1195,14 @@ impl ScaleType {
                 category: PanScaleCategory::Ethnic,
                 relative_ding: "C3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 4, calculated_pitch: None },  // E3
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 5, calculated_pitch: None },  // F3
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // G3
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 16, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // G4
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 4, calculated_pitch: None, calculated_note: None },  // E3
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // F3
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // G3
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 16, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // G4
                 ],
             },
             
@@ -1157,14 +1212,15 @@ impl ScaleType {
                 category: PanScaleCategory::Modal,
                 relative_ding: "C3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None },  // F3
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // G3
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 9, calculated_pitch: None },  // A3
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 21, calculated_pitch: None },  // A4
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // F3
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // G3
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 9, calculated_pitch: None, calculated_note: None },  // A3
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 21, calculated_pitch: None, calculated_note: None },  // A4
                 ],
             },
             
@@ -1174,14 +1230,15 @@ impl ScaleType {
                 category: PanScaleCategory::MinorFolk,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // D5
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 20, calculated_pitch: None },  // F5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // D5
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 20, calculated_pitch: None, calculated_note: None },  // F5
                 ],
             },
             
@@ -1191,14 +1248,15 @@ impl ScaleType {
                 category: PanScaleCategory::Oriental,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 16, calculated_pitch: None },  // C#5
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // D5
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 22, calculated_pitch: None },  // G5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 24, calculated_pitch: None },  // A5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 16, calculated_pitch: None, calculated_note: None },  // C#5
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // D5
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 22, calculated_pitch: None, calculated_note: None },  // G5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 24, calculated_pitch: None, calculated_note: None },  // A5
                 ],
             },
             
@@ -1208,15 +1266,16 @@ impl ScaleType {
                 category: PanScaleCategory::Oriental,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 11, calculated_pitch: None },  // G#4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // D5
-                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 11, calculated_pitch: None, calculated_note: None },  // G#4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // D5
+                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
                 ],
             },
             
@@ -1226,14 +1285,15 @@ impl ScaleType {
                 category: PanScaleCategory::Oriental,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 3, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 11, calculated_pitch: None },  // G#4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 3, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 11, calculated_pitch: None, calculated_note: None },  // G#4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
                 ],
             },
             
@@ -1243,21 +1303,22 @@ impl ScaleType {
                 category: PanScaleCategory::Ethnic,
                 relative_ding: "C3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Bottom, distance_relative_to_ding: 2, calculated_pitch: None },  // (D3)
-                    NoteHandpan { note_index: 2, position: Bottom, distance_relative_to_ding: 4, calculated_pitch: None },  // (E3)
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 5, calculated_pitch: None },  // F3
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // G3
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 9, calculated_pitch: None },  // A3
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 11, calculated_pitch: None },  // B3
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 16, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 10, position: Bottom, distance_relative_to_ding: 17, calculated_pitch: None },  // (F4)
-                    NoteHandpan { note_index: 11, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 12, position: Bottom, distance_relative_to_ding: 21, calculated_pitch: None },  // (A4)
-                    NoteHandpan { note_index: 13, position: Bottom, distance_relative_to_ding: 23, calculated_pitch: None },  // (B4)
-                    NoteHandpan { note_index: 14, position: Bottom, distance_relative_to_ding: 24, calculated_pitch: None },  // (C5)
-                    NoteHandpan { note_index: 15, position: Bottom, distance_relative_to_ding: 26, calculated_pitch: None },  // (D5)
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Bottom, distance_relative_to_ding: 2, calculated_pitch: None, calculated_note: None },  // (D3)
+                    NoteHandpan { note_index: 2, position: Bottom, distance_relative_to_ding: 4, calculated_pitch: None, calculated_note: None },  // (E3)
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // F3
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // G3
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 9, calculated_pitch: None, calculated_note: None },  // A3
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 11, calculated_pitch: None, calculated_note: None },  // B3
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 16, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 10, position: Bottom, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // (F4)
+                    NoteHandpan { note_index: 11, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 12, position: Bottom, distance_relative_to_ding: 21, calculated_pitch: None, calculated_note: None },  // (A4)
+                    NoteHandpan { note_index: 13, position: Bottom, distance_relative_to_ding: 23, calculated_pitch: None, calculated_note: None },  // (B4)
+                    NoteHandpan { note_index: 14, position: Bottom, distance_relative_to_ding: 24, calculated_pitch: None, calculated_note: None },  // (C5)
+                    NoteHandpan { note_index: 15, position: Bottom, distance_relative_to_ding: 26, calculated_pitch: None, calculated_note: None },  // (D5)
                 ],
             },
             
@@ -1267,14 +1328,15 @@ impl ScaleType {
                 category: PanScaleCategory::Oriental,
                 relative_ding: "E3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None },  // A3
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // B3
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 13, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 16, calculated_pitch: None },  // G#4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // B4
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 5, calculated_pitch: None, calculated_note: None },  // A3
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // B3
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 13, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 16, calculated_pitch: None, calculated_note: None },  // G#4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // B4
                 ],
             },
             
@@ -1284,15 +1346,16 @@ impl ScaleType {
                 category: PanScaleCategory::Ethnic,
                 relative_ding: "C3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // G3
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 10, calculated_pitch: None },  // A#3
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // D#4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 20, calculated_pitch: None },  // G#4
-                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 24, calculated_pitch: None },  // C5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // G3
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 10, calculated_pitch: None, calculated_note: None },  // A#3
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // D#4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 20, calculated_pitch: None, calculated_note: None },  // G#4
+                    NoteHandpan { note_index: 9, position: Top, distance_relative_to_ding: 24, calculated_pitch: None, calculated_note: None },  // C5
                 ],
             },
             
@@ -1302,14 +1365,15 @@ impl ScaleType {
                 category: PanScaleCategory::MinorFolk,
                 relative_ding: "A3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 8, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // A4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // B4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 15, calculated_pitch: None },  // C5
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // D5
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // E5
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 24, calculated_pitch: None },  // A5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 8, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // A4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // B4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 15, calculated_pitch: None, calculated_note: None },  // C5
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // D5
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // E5
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 24, calculated_pitch: None, calculated_note: None },  // A5
                 ],
             },
             
@@ -1319,14 +1383,15 @@ impl ScaleType {
                 category: PanScaleCategory::PentatonicAsian,
                 relative_ding: "C3".to_string(), // not used, reference only to be a helper to understand the scale
                 notes: vec![
-                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None },  // G3
-                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 11, calculated_pitch: None },  // B3
-                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None },  // C4
-                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 14, calculated_pitch: None },  // D4
-                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 16, calculated_pitch: None },  // E4
-                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None },  // F4
-                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None },  // G4
-                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 24, calculated_pitch: None },  // C5
+                    NoteHandpan { note_index: 0, position: Top, distance_relative_to_ding: 0, calculated_pitch: None, calculated_note: None },  // ding
+                    NoteHandpan { note_index: 1, position: Top, distance_relative_to_ding: 7, calculated_pitch: None, calculated_note: None },  // G3
+                    NoteHandpan { note_index: 2, position: Top, distance_relative_to_ding: 11, calculated_pitch: None, calculated_note: None },  // B3
+                    NoteHandpan { note_index: 3, position: Top, distance_relative_to_ding: 12, calculated_pitch: None, calculated_note: None },  // C4
+                    NoteHandpan { note_index: 4, position: Top, distance_relative_to_ding: 14, calculated_pitch: None, calculated_note: None },  // D4
+                    NoteHandpan { note_index: 5, position: Top, distance_relative_to_ding: 16, calculated_pitch: None, calculated_note: None },  // E4
+                    NoteHandpan { note_index: 6, position: Top, distance_relative_to_ding: 17, calculated_pitch: None, calculated_note: None },  // F4
+                    NoteHandpan { note_index: 7, position: Top, distance_relative_to_ding: 19, calculated_pitch: None, calculated_note: None },  // G4
+                    NoteHandpan { note_index: 8, position: Top, distance_relative_to_ding: 24, calculated_pitch: None, calculated_note: None },  // C5
                 ],
             },
             
@@ -1363,6 +1428,7 @@ pub fn get_notes_for_scale_and_ding(scale_type: &ScaleType, ding: &str) -> Optio
     let notes = scale.notes.iter().map(|note| {
         let mut note = note.clone();
         note.calculated_pitch = Some(ding_midi + note.distance_relative_to_ding);
+        note.calculated_note = Some(midi_to_note(note.calculated_pitch.unwrap()));
         note
     }).collect();
     

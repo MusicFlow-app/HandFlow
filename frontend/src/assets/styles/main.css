@@ -8,3 +8,6 @@
 /* Layout imports */
 @import '@/assets/styles/layout/containers.css';
 @import '@/assets/styles/layout/app.css';
+
+/* Component imports */
+@import '@/assets/styles/components/HandpanDisplay/notation-modal.css';

@@ -70,13 +70,13 @@
 }
 
 /* Responsive */
-@media (max-width: var(--tablet)) {
+@media (max-width: 768px) {
   .home {
     padding: var(--spacing-md);
   }
 }
 
-@media (max-width: var(--mobile)) {
+@media (max-width: 480px) {
   .home {
     padding: var(--spacing-sm);
   }

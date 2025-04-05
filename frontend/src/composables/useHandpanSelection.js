@@ -15,42 +15,53 @@ const CATEGORY_COLORS = {
   'Favorites': 'var(--helio-category-9)'     // Orange pastel
 }
 
-export default function useHandpanSelection() {
+// Move state variables outside the function to create a singleton pattern
+// This ensures all components share the same state
+
+// État de l'interface
+const currentStage = ref(1)
+const isLoading = ref(false)
+const isTransitioning = ref(false)
+const error = ref(null) // Gardé pour compatibilité avec le code existant
+const errorType = ref('error') // Gardé pour compatibilité avec le code existant
+const showImportForm = ref(false)
+
+// Données
+const categories = ref([])
+const scales = ref([])
+const dings = ref([])
+const noteOptions = ref([])
+const notes = ref([])
+
+// Sélections de l'utilisateur
+const selectedCategory = ref(null)
+const selectedScale = ref(null)
+const selectedDing = ref(null)
+const selectedNoteCount = ref(null)
+const importNotation = ref('')
+const importScaleName = ref('My Custom Scale')
+const cameFromImport = ref(false) // Pour suivre si on vient de l'importation
+
+// Favoris
+const favorites = ref([])
+
+// Indique si nous sommes dans la vue des favoris
+const isViewingFavorites = ref(false)
+
+// Échelles personnalisées (pour les favoris)
+const customScales = ref([])
+
+// We'll define these functions within useHandpanSelection and export them at the end of the file
+let goToStage;
+let selectScale;
+let selectDing;
+let selectNoteCount;
+let fetchNotes;
+let resetSelection;
+
+function useHandpanSelection() {
   // Initialiser le système de notification
   const notification = useNotification()
-  
-  // État de l'interface
-  const currentStage = ref(1)
-  const isLoading = ref(false)
-  const isTransitioning = ref(false)
-  const error = ref(null) // Gardé pour compatibilité avec le code existant
-  const errorType = ref('error') // Gardé pour compatibilité avec le code existant
-  const showImportForm = ref(false)
-  
-  // Données
-  const categories = ref([])
-  const scales = ref([])
-  const dings = ref([])
-  const noteOptions = ref([])
-  const notes = ref([])
-  
-  // Sélections de l'utilisateur
-  const selectedCategory = ref(null)
-  const selectedScale = ref(null)
-  const selectedDing = ref(null)
-  const selectedNoteCount = ref(null)
-  const importNotation = ref('')
-  const importScaleName = ref('My Custom Scale')
-  const cameFromImport = ref(false) // Pour suivre si on vient de l'importation
-  
-  // Favoris
-  const favorites = ref([])
-  
-  // Indique si nous sommes dans la vue des favoris
-  const isViewingFavorites = ref(false)
-  
-  // Échelles personnalisées (pour les favoris)
-  const customScales = ref([])
   
   // Filtres
   const filteredScales = computed(() => {
@@ -188,7 +199,7 @@ export default function useHandpanSelection() {
     }
   }
   
-  const fetchNotes = async () => {
+  fetchNotes = async () => {
     if (!selectedScale.value || !selectedDing.value) return
     
     isLoading.value = true
@@ -423,135 +434,209 @@ export default function useHandpanSelection() {
   }
   
   // Réinitialiser toutes les sélections
-  const resetSelection = () => {
+  resetSelection = () => {
     selectedCategory.value = null
     selectedScale.value = null
     selectedDing.value = null
     selectedNoteCount.value = null
     importNotation.value = ''
-    showImportForm.value = false
-    notes.value = []
   }
-
-  // Navigation entre les étapes
-  const goToStage = (stage) => {
-
-    
-    if (isTransitioning.value) {
-
-      return
-    }
+  
+  // Define goToStage function
+  goToStage = (stage) => {
+    if (isTransitioning.value) return
     
     isTransitioning.value = true
     
+    // Special case: Always allow going back to stage 3 (scale selection) from stage 6
+    // This is specifically for the "Choose Different Scale" functionality
+    const isBackToScalesFromDisplay = currentStage.value === 6 && stage === 3;
+    
+    // For other cases, prevent going back to lower stages once at stage 6
+    if (currentStage.value === 6 && stage < 6 && stage !== 3) {
+      console.log(`PREVENTED: Attempt to go back from stage 6 to stage ${stage}`);
+      isTransitioning.value = false;
+      return;
+    }
+  
+    // Log the transition attempt
+    console.log(`Attempting to transition from stage ${currentStage.value} to stage ${stage}`);
+    console.log(`isBackToScalesFromDisplay: ${isBackToScalesFromDisplay}`);
+  
     // Vérifier si on peut avancer à cette étape
     // Exceptions:
     // 1. L'importation peut aller directement à l'étape 4
     // 2. Les favoris avec un ding sélectionné peuvent aller directement à l'étape 5
+    // 3. Retour à l'étape 3 depuis l'étape 6 (Choose Different Scale)
     const isFavoriteWithDing = selectedScale.value && 
-                              favorites.value.some(fav => 
-                                fav.id === selectedScale.value.id && fav.selectedDing === selectedDing.value);
+                               favorites.value.some(fav => 
+                                 fav.id === selectedScale.value.id && fav.selectedDing === selectedDing.value);
                              
     if (stage > currentStage.value + 1 && 
         stage !== 1 && 
         !(showImportForm.value && stage === 4) && 
-        !(isFavoriteWithDing && stage === 5)) {
+        !(isFavoriteWithDing && stage === 5) &&
+        !isBackToScalesFromDisplay) {
 
-      isTransitioning.value = false
-      return
+      console.log(`PREVENTED: Cannot skip from stage ${currentStage.value} to stage ${stage}`);
+      isTransitioning.value = false;
+      return;
     }
-    
+
     // Logique spécifique à chaque étape
     if (stage === 1) {
       // Retour à l'écran d'accueil (sans reset)
-      currentStage.value = stage
-      isTransitioning.value = false
-      return
+      currentStage.value = stage;
+      isTransitioning.value = false;
+      return;
     } else if (stage === 2) {
       // Passer à la sélection de catégorie
       // Charger les catégories si ce n'est pas déjà fait
       if (categories.value.length === 0) {
         fetchCategories().then(() => {
-          currentStage.value = stage
-          isTransitioning.value = false
-        })
+          currentStage.value = stage;
+          isTransitioning.value = false;
+        });
       } else {
-        currentStage.value = stage
-        isTransitioning.value = false
+        currentStage.value = stage;
+        isTransitioning.value = false;
       }
-      return
+      return;
     } else if (stage === 3) {
       // Passer à la sélection d'échelle
       // Vérifier si une catégorie a été sélectionnée
-      if (!selectedCategory.value) {
-
-        isTransitioning.value = false
-        return
+      if (!selectedCategory.value && !isBackToScalesFromDisplay) {
+        isTransitioning.value = false;
+        return;
       }
       
       // Si la catégorie est "Import", ouvrir le formulaire d'importation
-      if (selectedCategory.value.id === 'Import') {
-        showImportForm.value = true
+      if (selectedCategory.value && selectedCategory.value.id === 'Import' && !isBackToScalesFromDisplay) {
+        showImportForm.value = true;
         if (dings.value.length === 0) {
-          fetchDings()
+          fetchDings();
         }
-        isTransitioning.value = false
-        return
+        isTransitioning.value = false;
+        return;
       }
       
       // Charger les échelles si ce n'est pas déjà fait
       if (scales.value.length === 0) {
         fetchScales().then(() => {
-          // Filtrer les échelles par catégorie
+          // Filtrer les échelles par catégorie si une catégorie est sélectionnée
+          if (selectedCategory.value) {
+            filteredScales.value = scales.value.filter(scale => 
+              scale.category === selectedCategory.value.id
+            );
+          }
+          
+          // Special case: Always allow going back to stage 3 from stage 6
+          if (isBackToScalesFromDisplay) {
+            console.log('Special case: Going back to scale selection from display');
+            // Force the stage change regardless of current stage
+            currentStage.value = stage;
+            console.log(`Successfully transitioned to stage ${stage} from display`);
+          } else if (currentStage.value < stage) {
+            currentStage.value = stage;
+            console.log(`Set stage to ${stage} (was at ${currentStage.value})`);
+          } else {
+            console.log(`Kept stage at ${currentStage.value} instead of setting to ${stage}`);
+          }
+          isTransitioning.value = false;
+        });
+      } else {
+        // Filtrer les échelles par catégorie si une catégorie est sélectionnée
+        if (selectedCategory.value) {
           filteredScales.value = scales.value.filter(scale => 
             scale.category === selectedCategory.value.id
-          )
-          currentStage.value = stage
-          isTransitioning.value = false
-        })
-      } else {
-        // Filtrer les échelles par catégorie
-        filteredScales.value = scales.value.filter(scale => 
-          scale.category === selectedCategory.value.id
-        )
-        currentStage.value = stage
-        isTransitioning.value = false
+          );
+        }
+        
+        // Special case: Always allow going back to stage 3 from stage 6
+        if (isBackToScalesFromDisplay) {
+          console.log('Special case: Going back to scale selection from display');
+          // Force the stage change regardless of current stage
+          currentStage.value = stage;
+          console.log(`Successfully transitioned to stage ${stage} from display`);
+        } else if (currentStage.value < stage) {
+          currentStage.value = stage;
+          console.log(`Set stage to ${stage} (was at ${currentStage.value})`);
+        } else {
+          console.log(`Kept stage at ${currentStage.value} instead of setting to ${stage}`);
+        }
+        
+        isTransitioning.value = false;
       }
-      return
+      return;
     } else if (stage === 4) {
-      // Passer à la sélection du ding
       // Vérifier si une échelle a été sélectionnée
       if (!selectedScale.value) {
-
-        isTransitioning.value = false
-        return
+        console.log('Cannot go to stage 4: No scale selected');
+        isTransitioning.value = false;
+        return;
       }
       
       // Charger les dings si ce n'est pas déjà fait
       if (dings.value.length === 0) {
         fetchDings().then(() => {
-          currentStage.value = stage
-          isTransitioning.value = false
-        })
+          // Only set the stage if we're not already at a higher stage
+          if (currentStage.value < stage) {
+            currentStage.value = stage;
+            console.log(`Set stage to ${stage} (was at lower stage)`);
+          } else {
+            console.log(`Kept stage at ${currentStage.value} instead of setting to ${stage}`);
+          }
+          isTransitioning.value = false;
+        });
       } else {
-        currentStage.value = stage
-        isTransitioning.value = false
+        // Only set the stage if we're not already at a higher stage
+        if (currentStage.value < stage) {
+          currentStage.value = stage;
+          console.log(`Set stage to ${stage} (was at lower stage)`);
+        } else {
+          console.log(`Kept stage at ${currentStage.value} instead of setting to ${stage}`);
+        }
+        isTransitioning.value = false;
       }
-      return
+      return;
+
     } else if (stage === 5) {
       // Passer à la sélection du nombre de notes
       // Vérifier si un ding a été sélectionné
       if (!selectedDing.value) {
-
-        isTransitioning.value = false
-        return
+        console.log('Cannot go to stage 5: No ding selected');
+        isTransitioning.value = false;
+        return;
       }
       
       // Charger les notes pour cette échelle et ce ding
       fetchNotes().then(() => {
-        currentStage.value = stage
-        isTransitioning.value = false
+        // Only set the stage if we're not already at a higher stage
+        if (currentStage.value < stage) {
+          currentStage.value = stage;
+          console.log('Successfully transitioned to stage 5');
+        } else {
+          console.log(`Kept stage at ${currentStage.value} instead of setting to ${stage}`);
+        }
+        isTransitioning.value = false;
       })
+      return
+    } else if (stage === 6) {
+      // Passer à l'affichage du handpan
+      console.log('Attempting to transition to stage 6 (display handpan)');
+      
+      // Vérifier si un nombre de notes a été sélectionné
+      // Vérifier si les notes ont été chargées
+      if (!selectedNoteCount.value) {
+        console.log('Cannot go to stage 6: No note count selected');
+        isTransitioning.value = false
+        return
+      }
+      
+      // Set the stage to 6 (always set this one since it's the highest stage)
+      currentStage.value = stage
+      isTransitioning.value = false
+      console.log('Successfully transitioned to stage 6');
       return
     }
     
@@ -674,15 +759,17 @@ export default function useHandpanSelection() {
     }
   }
   
-  const selectScale = (scale) => {
-
-    
+  selectScale = (scale) => {
     // Check if this is a favorite with a saved ding
     const favorite = favorites.value.find(fav => fav.id === scale.id);
+    const currentDing = selectedDing.value || null;
+    
+    // Check if this scale is a favorite with the current ding
+    const isFavoriteWithCurrentDing = favorites.value.some(fav => 
+      fav.id === scale.id && fav.selectedDing === currentDing
+    );
+    
     if (favorite && favorite.selectedDing) {
-
-
-      
       // Create a new scale object that includes properties from both the original scale and the favorite
       const mergedScale = {
         ...scale,
@@ -690,7 +777,9 @@ export default function useHandpanSelection() {
         notation: favorite.notation || scale.notation || '',
         // Include any other properties from the favorite that might be needed
         selectedDing: favorite.selectedDing,
-        uniqueId: favorite.uniqueId
+        uniqueId: favorite.uniqueId,
+        // Set isFavorite property
+        isFavorite: true
       }
       
       // Set the merged scale as the selected scale
@@ -704,8 +793,11 @@ export default function useHandpanSelection() {
       return
     }
     
-    // If not a favorite, just set the scale as is
-    selectedScale.value = scale
+    // If not a favorite with a saved ding, set the scale with isFavorite property
+    selectedScale.value = {
+      ...scale,
+      isFavorite: isFavoriteWithCurrentDing
+    }
     
     // Précharger les dings si nécessaire
     if (dings.value.length === 0) {
@@ -717,7 +809,7 @@ export default function useHandpanSelection() {
     }
   }
   
-  const selectDing = (ding) => {
+  selectDing = (ding) => {
 
     selectedDing.value = ding
     
@@ -725,13 +817,11 @@ export default function useHandpanSelection() {
     setTimeout(() => goToStage(5), 100)
   }
   
-  const selectNoteCount = (count) => {
+  selectNoteCount = (count) => {
     selectedNoteCount.value = count
     
-    // Filtrer les notes en fonction du nombre sélectionné
-    if (notes.value.length > count) {
-      notes.value = notes.value.slice(0, count)
-    }
+    // Don't truncate notes here - let useHandpanDisplay handle the prioritization and limiting
+    // This allows the display to prioritize notes by position (top, inner, bottom) first
   }
   
   // Gestion des favoris
@@ -764,7 +854,11 @@ export default function useHandpanSelection() {
         notation: selectedScale.value.notation || ''
       }
       favorites.value.push(favoriteScale)
-
+      
+      // Update the isFavorite property of the selectedScale object
+      if (selectedScale.value) {
+        selectedScale.value.isFavorite = true
+      }
       
       // Notification for adding to favorites
       const dingInfo = currentDing ? ` with ding ${currentDing}` : ''
@@ -772,7 +866,11 @@ export default function useHandpanSelection() {
     } else {
       // Retirer des favoris
       favorites.value.splice(index, 1)
-
+      
+      // Update the isFavorite property of the selectedScale object
+      if (selectedScale.value) {
+        selectedScale.value.isFavorite = false
+      }
       
       // Notification for removing from favorites
       const dingInfo = currentDing ? ` with ding ${currentDing}` : ''
@@ -1127,3 +1225,21 @@ export default function useHandpanSelection() {
     resetSelection
   }
 }
+
+// Export the shared state/functions
+export { 
+  currentStage,
+  selectedCategory,
+  selectedScale,
+  selectedDing,
+  selectedNoteCount,
+  notes,
+  goToStage,
+  selectScale,
+  selectDing,
+  selectNoteCount,
+  fetchNotes,
+  resetSelection
+}
+
+export default useHandpanSelection;

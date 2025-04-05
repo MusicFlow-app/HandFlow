@@ -1,0 +1,350 @@
+/* Import Form Modal Styles
+ * Responsive modal for importing custom handpan scales
+ */
+
+/* Import Form Modal */
+.import-form {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+/* Musical background overlay */
+.import-form::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(10px);
+  z-index: -1;
+}
+
+
+
+/* Main form content */
+.import-form {
+  background-color: var(--surface-primary);
+  width: min(90%, 550px);
+  max-height: min(90vh, 700px);
+  border-radius: 20px;
+  box-shadow: var(--shadow-default);
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  animation: modal-appear 0.3s ease-out forwards;
+  overflow: auto;
+  position: relative;
+}
+
+@keyframes modal-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modal header */
+.import-form h3 {
+  margin: 0;
+  padding: 1.5rem 1.5rem 1rem;
+  color: var(--text-color);
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Content container */
+.import-form > :not(.close-button):not(h3) {
+  padding: 0 1.5rem;
+}
+
+/* Close button */
+.import-form .close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-secondary);
+  border: none;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--text-light);
+  transition: all 0.2s ease;
+  z-index: 2;
+}
+
+.import-form .close-button:hover {
+  background: var(--surface-hover);
+  color: var(--text-light);
+  transform: rotate(90deg);
+}
+
+/* Instructions section */
+.import-instructions-toggle {
+  margin: 0.5rem 0;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  background-color: var(--surface-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.import-instructions-toggle:hover {
+  background-color: var(--surface-hover);
+}
+
+.import-instructions-toggle h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.toggle-icon {
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
+  transition: transform 0.2s ease;
+}
+
+.import-instructions {
+  margin: 0.5rem 0 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border-left: 3px solid var(--border-color);
+  background-color: var(--surface-secondary);
+  font-size: 0.9rem;
+  max-height: 200px;
+  overflow-y: auto;
+  animation: slideDown 0.3s ease;
+  transform-origin: top;
+}
+
+.import-instructions ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--text-color-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.import-instructions li {
+  margin-bottom: 0.5rem;
+}
+
+.import-instructions li:last-child {
+  margin-bottom: 0;
+}
+
+.import-instructions code {
+  display: inline-block;
+  padding: 0.15rem 0.4rem;
+  background-color:var(--surface-active);
+  border-radius: 4px;
+  font-family: monospace;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+}
+
+/* Form groups */
+.import-form-group {
+  margin-bottom: 1.25rem;
+}
+
+.import-form-group:last-of-type {
+  margin-bottom: 1.5rem;
+}
+
+.import-form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text-color);
+  font-size: 0.95rem;
+}
+
+/* Form inputs */
+.import-input,
+.import-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--surface-secondary);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 1px 3px var(--shadow-color);
+}
+
+.import-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.import-input:focus,
+.import-textarea:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  background-color: white;
+  box-shadow: 
+    inset 0 1px 3px var(--shadow-color),
+    0 0 0 3px var(--shadow-color);
+}
+
+/* Actions section */
+.import-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin: 1.5rem 1.5rem 1.5rem;
+  padding-top: 0.5rem;
+}
+
+.import-actions button {
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.import-actions .cancel-button {
+  background-color: var(--surface-disabled);
+  color: var(--text-color);
+}
+
+.import-actions .cancel-button:hover {
+  background-color: var(--surface-hover);
+}
+
+.import-actions .import-button {
+  background-color: var(--primary-color);
+  color: var(--text-light);
+  box-shadow: 0 2px 5px var(--shadow-color);
+}
+
+.import-actions .import-button:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px var(--shadow-color);
+}
+
+.import-actions .import-button:disabled {
+  background-color: var(--surface-disabled);
+  color: var(--text-muted);
+  transform: none;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* Animation for collapsible section */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: scaleY(0);
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+    max-height: 200px;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .import-form {
+    width: 95%;
+    max-height: 95vh;
+  }
+  
+  .import-form h3 {
+    padding: 1.25rem 1rem 0.75rem;
+    font-size: 1.3rem;
+  }
+  
+  .import-form > :not(.close-button):not(h3) {
+    padding: 0 1rem;
+  }
+  
+  .import-actions {
+    margin: 1.25rem 1rem 1.25rem;
+  }
+  
+  .import-instructions {
+    padding: 0.75rem;
+  }
+  
+  .import-instructions h4 {
+    font-size: 0.95rem;
+  }
+  
+  .import-instructions ul {
+    font-size: 0.85rem;
+    padding-left: 1rem;
+  }
+  
+  .import-form-group label {
+    font-size: 0.9rem;
+  }
+  
+  .import-input,
+  .import-textarea {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .import-form {
+    width: 100%;
+    border-radius: 15px;
+  }
+  
+  .import-form h3 {
+    font-size: 1.2rem;
+  }
+  
+  .import-actions {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+    margin: 1rem 1rem 1rem;
+  }
+  
+  .import-actions button {
+    width: 100%;
+    padding: 0.8rem 1rem;
+  }
+  
+  .import-form .close-button {
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 28px;
+    height: 28px;
+    font-size: 1rem;
+  }
+}
