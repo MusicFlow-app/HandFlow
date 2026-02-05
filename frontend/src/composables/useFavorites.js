@@ -1,36 +1,26 @@
 import { ref, computed, watch } from 'vue'
-import { useCookies } from '@vueuse/integrations/useCookies'
+import Cookies from 'js-cookie'
 import useNotification from './useNotification'
 import { apiUrl } from '@/services/api'
 
 export function useFavorites() {
   // Initialize notification system
   const notification = useNotification()
-  
+
   // Initialize favorites from cookies
   const FAVORITES_COOKIE_KEY = 'handflow_tabs_favorites'
-  const cookies = useCookies([FAVORITES_COOKIE_KEY])
-  
+
   // Safely parse cookie value with error handling
   let initialFavorites = [];
   try {
-    const cookieValue = cookies.get(FAVORITES_COOKIE_KEY);
-    //console.log('DEBUG - Raw cookie value:', cookieValue);
-    
+    const cookieValue = Cookies.get(FAVORITES_COOKIE_KEY);
+
     if (cookieValue) {
-      // Handle both string and object formats
-      if (typeof cookieValue === 'string') {
-        initialFavorites = JSON.parse(cookieValue);
-      } else if (Array.isArray(cookieValue)) {
-        initialFavorites = cookieValue;
-      } else {
-        //console.warn('DEBUG - Unexpected cookie format:', typeof cookieValue);
-      }
+      initialFavorites = JSON.parse(cookieValue);
     }
   } catch (error) {
-    //console.error('DEBUG - Error parsing favorites cookie:', error);
     // Reset cookie if corrupted
-    cookies.set(FAVORITES_COOKIE_KEY, '[]', { maxAge: 60 * 60 * 24 * 365, path: '/' });
+    Cookies.set(FAVORITES_COOKIE_KEY, '[]', { expires: 365, path: '/' });
   }
   
   const favoriteIds = ref(new Set(initialFavorites))
@@ -51,12 +41,11 @@ export function useFavorites() {
   // Save favorites to cookies
   const saveFavoritesToCookies = () => {
     const favoritesArray = Array.from(favoriteIds.value)
-    cookies.set(
-      FAVORITES_COOKIE_KEY, 
-      JSON.stringify(favoritesArray), 
-      { maxAge: 60 * 60 * 24 * 365, path: '/' }
+    Cookies.set(
+      FAVORITES_COOKIE_KEY,
+      JSON.stringify(favoritesArray),
+      { expires: 365, path: '/' }
     )
-    //console.log('DEBUG - Saved tabs favorites to cookies:', favoritesArray)
   }
 
   // Toggle favorite status

@@ -1,5 +1,5 @@
 import { ref, computed, watch, nextTick } from 'vue'
-import { useCookies } from '@vueuse/integrations/useCookies'
+import Cookies from 'js-cookie'
 import useNotification from '@/composables/useNotification'
 import { apiUrl } from '@/services/api'
 
@@ -912,67 +912,36 @@ function useHandpanSelection() {
   // Gestion des cookies pour les favoris
   const cookie_Key = 'handflow_handpan_favorites'
   const saveFavoritesToCookies = () => {
-    const cookies = useCookies([cookie_Key])
     const favoritesJson = JSON.stringify(favorites.value)
-    cookies.set(cookie_Key, favoritesJson, { path: '/', maxAge: 31536000 }) // 1 an
-
+    Cookies.set(cookie_Key, favoritesJson, { path: '/', expires: 365 })
   }
-  
+
   const loadFavoritesFromCookies = () => {
+    const favoritesJson = Cookies.get(cookie_Key)
 
-    const cookies = useCookies([cookie_Key])
-    const favoritesJson = cookies.get(cookie_Key)
-
-    
     if (favoritesJson) {
       try {
-        // Handle the case where the value might already be an object
-        // (useCookies might automatically parse JSON unlike document.cookie)
-        let parsed = favoritesJson
-        
-        // If it's a string, try to parse it
-        if (typeof favoritesJson === 'string') {
+        const parsed = JSON.parse(favoritesJson)
 
-          parsed = JSON.parse(favoritesJson)
-        } else {
-
-        }
-
-        
-        // Vérifier que les favoris sont un tableau valide
         if (Array.isArray(parsed)) {
-
-          
-          // S'assurer que chaque favori a toutes les propriétés nécessaires
-          const validFavorites = parsed.map(fav => {
-
-            return {
-              id: fav.id || `unknown-${Math.random().toString(36).substring(7)}`,
-              name: fav.name, // Preserve the original name without fallback
-              category: fav.category || 'Import',
-              notes: fav.notes || [],
-              max_notes: fav.max_notes || 8,
-              // Load the selected ding if available
-              selectedDing: fav.selectedDing || null,
-              // Preserve the original notation for imported scales
-              notation: fav.notation || '',
-              // Preserve the unique ID
-              uniqueId: fav.uniqueId || `${fav.id}:${fav.selectedDing || ''}`
-            }
-          })
-          
+          const validFavorites = parsed.map(fav => ({
+            id: fav.id || `unknown-${Math.random().toString(36).substring(7)}`,
+            name: fav.name,
+            category: fav.category || 'Import',
+            notes: fav.notes || [],
+            max_notes: fav.max_notes || 8,
+            selectedDing: fav.selectedDing || null,
+            notation: fav.notation || '',
+            uniqueId: fav.uniqueId || `${fav.id}:${fav.selectedDing || ''}`
+          }))
           favorites.value = validFavorites
-
         } else {
-
           favorites.value = []
         }
       } catch (err) {
-
         favorites.value = []
       }
     } else {
-
       favorites.value = []
     }
   }
