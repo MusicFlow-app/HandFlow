@@ -3,6 +3,7 @@ import { ref, computed, watch, nextTick, onMounted, markRaw } from 'vue'
 import { useTheme } from '@/composables/useTheme'
 import { useTabsLibrary } from '@/composables/useTabsLibrary'
 import { useFavorites } from '@/composables/useFavorites'
+import { apiUrl } from '@/services/api'
 import { PhInfinity, PhMusicNotes, PhMusicNotesPlus, PhBarbell, PhShootingStar, PhStar, PhStarHalf, PhArrowRight, PhCaretLeft, PhCaretRight, PhSortAscending, PhSortDescending, PhAperture, PhArrowsDownUp, PhMagnifyingGlass, PhPenNib, PhUserSound } from '@phosphor-icons/vue'
 import '@/assets/styles/components/TabsLibrary/index.css'
 
@@ -145,7 +146,7 @@ const fetchMetadata = async () => {
   try {
     
     // Fetch categories
-    const categoriesResponse = await fetch('/api/metadata/categories')
+    const categoriesResponse = await fetch(apiUrl('/api/metadata/categories'))
     
     if (categoriesResponse.ok) {
       const categoriesData = await categoriesResponse.json()
@@ -167,7 +168,7 @@ const fetchMetadata = async () => {
     }
     
     // Fetch difficulty levels
-    const difficultyResponse = await fetch('/api/metadata/difficulties')
+    const difficultyResponse = await fetch(apiUrl('/api/metadata/difficulties'))
     
     if (difficultyResponse.ok) {
       const difficultyData = await difficultyResponse.json()

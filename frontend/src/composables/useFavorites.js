@@ -1,6 +1,7 @@
 import { ref, computed, watch } from 'vue'
 import { useCookies } from '@vueuse/integrations/useCookies'
 import useNotification from './useNotification'
+import { apiUrl } from '@/services/api'
 
 export function useFavorites() {
   // Initialize notification system
@@ -69,7 +70,7 @@ export function useFavorites() {
       favoriteStates.value[fileId] = newState
       
       // Make API request
-      const response = await fetch(`/api/tabs/${fileId}/favorite`, {
+      const response = await fetch(apiUrl(`/api/tabs/${fileId}/favorite`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

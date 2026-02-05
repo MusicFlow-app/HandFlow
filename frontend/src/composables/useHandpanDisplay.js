@@ -1,4 +1,5 @@
 import { ref, computed, watch } from 'vue';
+import { apiUrl } from '@/services/api';
 
 /**
  * Composable for handling the handpan display logic
@@ -769,8 +770,8 @@ export default function useHandpanDisplay(options) {
       
       // Special sounds to preload
       const specialSounds = [
-        { key: 'slack', url: '/api/audio/slack' },
-        { key: 'gu', url: '/api/audio/gu' }
+        { key: 'slack', url: apiUrl('/api/audio/slack') },
+        { key: 'gu', url: apiUrl('/api/audio/gu') }
       ];
       
       // Process all selected notes
@@ -792,7 +793,7 @@ export default function useHandpanDisplay(options) {
         
         // Create and preload the audio
         if (!audioCache.value[pitch]) {
-          const audio = new Audio(`/api/audio/${pitch}`);
+          const audio = new Audio(apiUrl(`/api/audio/${pitch}`));
           audio.preload = 'auto';
           
           // Force preloading
@@ -859,7 +860,7 @@ export default function useHandpanDisplay(options) {
         console.log(`Using cached note sound for pitch ${pitch}`);
       } else {
         // Create a new audio element as fallback
-        audioElement = new Audio(`/api/audio/${pitch}`);
+        audioElement = new Audio(apiUrl(`/api/audio/${pitch}`));
         console.log(`Creating new note sound for pitch ${pitch} (not in cache)`);
       }
       
@@ -895,7 +896,7 @@ export default function useHandpanDisplay(options) {
         audioElement = audioCache.value['slack'].cloneNode();
         console.log('Using cached slack sound');
       } else {
-        audioElement = new Audio('/api/audio/slack');
+        audioElement = new Audio(apiUrl('/api/audio/slack'));
         console.log('Creating new slack sound (not in cache)');
       }
       
@@ -919,7 +920,7 @@ export default function useHandpanDisplay(options) {
         audioElement = audioCache.value['gu'].cloneNode();
         console.log('Using cached gu sound');
       } else {
-        audioElement = new Audio('/api/audio/gu');
+        audioElement = new Audio(apiUrl('/api/audio/gu'));
         console.log('Creating new gu sound (not in cache)');
       }
       

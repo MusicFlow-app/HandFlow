@@ -1,8 +1,7 @@
 // useFileUpload.js
 import { ref } from 'vue'
 import axios from 'axios'
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+import { apiUrl } from '@/services/api'
 
 export function useFileUpload() {
   const isUploading = ref(false)
@@ -18,7 +17,7 @@ export function useFileUpload() {
     formData.append('file', file)
 
     try {
-      const response = await axios.post(`${API_URL}/api/upload`, formData, {
+      const response = await axios.post(apiUrl('/api/upload'), formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         },

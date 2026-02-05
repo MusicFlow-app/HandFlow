@@ -1,6 +1,7 @@
 import { ref, computed, watch, nextTick } from 'vue'
 import { useCookies } from '@vueuse/integrations/useCookies'
 import useNotification from '@/composables/useNotification'
+import { apiUrl } from '@/services/api'
 
 // Définition des couleurs avec dégradé arc-en-ciel pour les catégories
 const CATEGORY_COLORS = {
@@ -141,7 +142,7 @@ function useHandpanSelection() {
     error.value = null
     
     try {
-      const response = await fetch('/api/handpan/categories')
+      const response = await fetch(apiUrl('/api/handpan/categories'))
       if (!response.ok) throw new Error('Failed to fetch categories')
       
       const data = await response.json()
@@ -169,7 +170,7 @@ function useHandpanSelection() {
     error.value = null
     
     try {
-      const response = await fetch('/api/handpan/scales')
+      const response = await fetch(apiUrl('/api/handpan/scales'))
       if (!response.ok) throw new Error('Failed to fetch scales')
       
       scales.value = await response.json()
@@ -186,7 +187,7 @@ function useHandpanSelection() {
     error.value = null
     
     try {
-      const response = await fetch('/api/handpan/dings')
+      const response = await fetch(apiUrl('/api/handpan/dings'))
       if (!response.ok) throw new Error('Failed to fetch dings')
       
       dings.value = await response.json()
@@ -226,7 +227,7 @@ function useHandpanSelection() {
 
         
         // For imported scales, use the POST endpoint with the notation and selected ding
-        response = await fetch('/api/handpan/import/notation', {
+        response = await fetch(apiUrl('/api/handpan/import/notation'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -243,7 +244,7 @@ function useHandpanSelection() {
         const scaleId = encodeURIComponent(selectedScale.value.id)
         const dingNote = encodeURIComponent(selectedDing.value)
         
-        response = await fetch(`/api/handpan/${scaleId}/notes/${dingNote}`)
+        response = await fetch(apiUrl(`/api/handpan/${scaleId}/notes/${dingNote}`))
       }
       
       if (!response.ok) {
@@ -350,7 +351,7 @@ function useHandpanSelection() {
       
 
       
-      const response = await fetch('/api/handpan/import/notation', {
+      const response = await fetch(apiUrl('/api/handpan/import/notation'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

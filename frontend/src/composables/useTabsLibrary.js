@@ -1,4 +1,5 @@
 import { ref, onMounted, computed, watch } from 'vue'
+import { apiUrl } from '@/services/api'
 
 export function useTabsLibrary() {
   const allFiles = ref([])
@@ -102,7 +103,7 @@ export function useTabsLibrary() {
     currentPage.value = page
     
     try {
-      const response = await fetch(`/api/library?page=1&per_page=1000&sort_by=${sortBy.value}&sort_order=${sortOrder.value}`, {
+      const response = await fetch(apiUrl(`/api/library?page=1&per_page=1000&sort_by=${sortBy.value}&sort_order=${sortOrder.value}`), {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
