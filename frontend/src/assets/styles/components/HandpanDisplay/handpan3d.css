@@ -266,15 +266,13 @@
 }
 
 .ding-note .note-name {
-  color: #ffffff;
-  background: rgba(0, 0, 0, 0.5);
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 15px;
+  color: #fff;
+  font-size: 14px;
   font-weight: 700;
   z-index: 10;
   position: relative;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  -webkit-text-stroke: 1.5px rgba(0, 0, 0, 0.6);
+  paint-order: stroke fill;
 }
 
 .ding-note:hover {
@@ -382,12 +380,10 @@
 
 .note-name {
   font-weight: 700;
-  font-size: 12px;
-  color: #ffffff;
-  background: rgba(0, 0, 0, 0.55);
-  padding: 2px 5px;
-  border-radius: 3px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  font-size: 11px;
+  color: #fff;
+  -webkit-text-stroke: 1px rgba(0, 0, 0, 0.7);
+  paint-order: stroke fill;
   letter-spacing: 0.02em;
 }
 
@@ -541,12 +537,10 @@
 
   .note-name {
     font-size: 10px;
-    padding: 2px 4px;
   }
 
   .ding-note .note-name {
-    font-size: 13px;
-    padding: 2px 6px;
+    font-size: 12px;
   }
 }
 
@@ -616,12 +610,10 @@
 
   .note-name {
     font-size: 9px;
-    padding: 1px 3px;
   }
 
   .ding-note .note-name {
-    font-size: 11px;
-    padding: 2px 5px;
+    font-size: 10px;
   }
 
   .reflection-1 {
