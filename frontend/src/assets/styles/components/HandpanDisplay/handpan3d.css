@@ -389,9 +389,8 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  /* Order: 1) move to bottom of oval in note's space, 2) counter-rotate, 3) center horizontally in screen space */
-  /* Use --label-offset from JS (accounts for rotation), fallback to 42px for vertical ovals (65/2 + margin) */
-  transform: translateX(-50%) rotate(var(--label-rotation, 0deg)) translateY(var(--label-offset, 42px));
+  /* Order: 1) counter-rotate to horizontal, 2) move down in screen space, 3) center horizontally */
+  transform: translateX(-50%) translateY(var(--label-offset, 42px)) rotate(var(--label-rotation, 0deg));
   font-weight: 600;
   font-size: 11px;
   color: var(--text-primary);
@@ -563,7 +562,7 @@
 
   .note-name {
     font-size: 10px;
-    transform: translateX(-50%) rotate(var(--label-rotation, 0deg)) translateY(var(--label-offset, 36px));
+    transform: translateX(-50%) translateY(var(--label-offset, 36px)) rotate(var(--label-rotation, 0deg));
   }
 
   .ding-note .note-name {
@@ -635,7 +634,7 @@
 
   .note-name {
     font-size: 10px;
-    transform: translateX(-50%) rotate(var(--label-rotation, 0deg)) translateY(var(--label-offset, 34px));
+    transform: translateX(-50%) translateY(var(--label-offset, 34px)) rotate(var(--label-rotation, 0deg));
   }
 
   .ding-note .note-name {
@@ -711,7 +710,7 @@
 
   .note-name {
     font-size: 9px;
-    transform: translateX(-50%) rotate(var(--label-rotation, 0deg)) translateY(var(--label-offset, 28px));
+    transform: translateX(-50%) translateY(var(--label-offset, 28px)) rotate(var(--label-rotation, 0deg));
   }
 
   .ding-note .note-name {
