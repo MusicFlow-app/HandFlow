@@ -267,9 +267,9 @@
 
 .ding-note .note-name {
   position: absolute;
-  bottom: -36px;
+  top: 100%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateY(8px);
   font-weight: 600;
   font-size: 13px;
   color: var(--text-primary);
@@ -387,9 +387,10 @@
 
 .note-name {
   position: absolute;
-  bottom: -32px;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%) rotate(var(--label-rotation, 0deg));
+  /* Order matters: first rotate to screen coords, then translate in screen space */
+  transform: translate(-50%, 45px) rotate(var(--label-rotation, 0deg));
   font-weight: 600;
   font-size: 11px;
   color: var(--text-primary);
@@ -561,12 +562,12 @@
 
   .note-name {
     font-size: 10px;
-    bottom: -28px;
+    transform: translate(-50%, 38px) rotate(var(--label-rotation, 0deg));
   }
 
   .ding-note .note-name {
     font-size: 12px;
-    bottom: -32px;
+    transform: translateX(-50%) translateY(6px);
   }
 }
 
@@ -633,12 +634,12 @@
 
   .note-name {
     font-size: 10px;
-    bottom: -26px;
+    transform: translate(-50%, 35px) rotate(var(--label-rotation, 0deg));
   }
 
   .ding-note .note-name {
     font-size: 11px;
-    bottom: -30px;
+    transform: translateX(-50%) translateY(5px);
   }
 }
 
@@ -709,12 +710,12 @@
 
   .note-name {
     font-size: 9px;
-    bottom: -22px;
+    transform: translate(-50%, 30px) rotate(var(--label-rotation, 0deg));
   }
 
   .ding-note .note-name {
     font-size: 10px;
-    bottom: -26px;
+    transform: translateX(-50%) translateY(4px);
   }
 
   .reflection-1 {
