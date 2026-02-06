@@ -134,6 +134,7 @@ import FallingNotesOverlay from './FallingNotesOverlay.vue';
 import useNoteScheduler from '@/composables/useNoteScheduler';
 import useScorePlayback from '@/composables/useScorePlayback';
 import useHandpanSelection from '@/composables/useHandpanSelection';
+import useHandpanDisplay from '@/composables/useHandpanDisplay';
 
 // Props for external score data
 const props = defineProps({
@@ -192,53 +193,37 @@ const fallHeight = ref(400);
 const scheduler = useNoteScheduler();
 const playback = useScorePlayback();
 
+// Use the same handpan display logic as HandpanDisplay.vue
+const {
+  isReadyToDisplay,
+  selectedNotes,
+  topNotes,
+  innerNotes,
+  dingData,
+  ding,
+  getNoteStyle,
+  playNote,
+  cleanup: cleanupHandpanDisplay
+} = useHandpanDisplay({
+  notes,
+  selectedScale,
+  selectedDing,
+  selectedNoteCount,
+  currentStage
+});
+
 // Check if handpan is configured
 const isHandpanReady = computed(() => {
-  return selectedScale.value && selectedDing.value && notes.value && notes.value.length > 0;
+  return isReadyToDisplay.value;
 });
 
-// Get the ding note data
-const dingData = computed(() => {
-  if (!notes.value || !Array.isArray(notes.value)) return null;
-  return notes.value.find(note => note.id === 0 || note.note_index === 0);
-});
-
-// Display value for ding
+// Display value for ding (use ding from useHandpanDisplay)
 const dingNoteDisplay = computed(() => {
-  if (dingData.value) {
-    return dingData.value.note || dingData.value.calculated_note || selectedDing.value;
-  }
-  return selectedDing.value || 'D';
+  return ding.value || selectedDing.value || 'D';
 });
 
-// Filter notes by position (excluding ding)
-const displayedNotes = computed(() => {
-  if (!notes.value || !Array.isArray(notes.value)) return [];
-
-  // Filter out ding and limit by selectedNoteCount
-  let filtered = notes.value.filter(note =>
-    note.id !== 0 && note.note_index !== 0
-  );
-
-  // Limit by note count if specified
-  if (selectedNoteCount.value && selectedNoteCount.value > 0) {
-    filtered = filtered.slice(0, selectedNoteCount.value);
-  }
-
-  return filtered;
-});
-
-// Top notes (position === 'Top' or undefined)
-const topNotes = computed(() => {
-  return displayedNotes.value.filter(note =>
-    note.position === 'Top' || !note.position
-  );
-});
-
-// Inner notes
-const innerNotes = computed(() => {
-  return displayedNotes.value.filter(note => note.position === 'Inner');
-});
+// Alias for consistency with template
+const displayedNotes = computed(() => selectedNotes.value || []);
 
 // All handpan notes for lane mapping (ding first, then others)
 const allHandpanNotes = computed(() => {
@@ -344,114 +329,23 @@ const calculateInnerNotePosition = (index, total) => {
   return { x, y, rotation: rotationDegrees };
 };
 
-// Sort displayed notes by pitch for rank-based scaling (same as useHandpanDisplay.js)
-const sortedNotesByPitch = computed(() => {
-  const allNotes = displayedNotes.value;
-  if (!allNotes || allNotes.length === 0) return [];
+// Note positioning - use getNoteStyle from useHandpanDisplay for consistency
+// These wrapper functions match the template's expected signature
 
-  // Map notes with their pitches and original indices
-  const notesWithPitches = allNotes.map((note, index) => {
-    let pitch = note.calculated_pitch;
-    if (!pitch && note.note) {
-      // Fallback: calculate from note name
-      pitch = noteToPitchValue(note.note || note.calculated_note || '');
-    }
-    return {
-      originalIndex: index,
-      pitch: pitch || 0,
-      note: note
-    };
-  });
-
-  // Sort by pitch (lowest to highest)
-  notesWithPitches.sort((a, b) => a.pitch - b.pitch);
-  return notesWithPitches;
-});
-
-// Convert note name to pitch value (same logic as useHandpanDisplay.js)
-const noteToPitchValue = (noteStr) => {
-  if (!noteStr) return 0;
-  const match = noteStr.match(/([A-G][#b]?)([0-9])/);
-  if (!match) return 0;
-
-  const [, noteName, octave] = match;
-  const noteValues = {
-    'C': 0, 'C#': 1, 'Db': 1,
-    'D': 2, 'D#': 3, 'Eb': 3,
-    'E': 4, 'F': 5, 'F#': 6, 'Gb': 6,
-    'G': 7, 'G#': 8, 'Ab': 8,
-    'A': 9, 'A#': 10, 'Bb': 10,
-    'B': 11
-  };
-
-  return parseInt(octave) * 12 + noteValues[noteName];
-};
-
-// Calculate scale factor based on rank (lower pitch = larger, same as useHandpanDisplay.js)
-const calculateScaleFactor = (note) => {
-  if (!note) return 1;
-
-  const sorted = sortedNotesByPitch.value;
-  if (sorted.length <= 1) return 1.0;
-
-  // Find this note's rank in the sorted list
-  const rank = sorted.findIndex(n => n.note === note);
-  if (rank === -1) return 1.0;
-
-  // Scale range: 1.1 (lowest pitch = rank 0) to 0.8 (highest pitch = rank N-1)
-  const maxScale = 1.1;
-  const minScale = 0.8;
-  const noteCount = sorted.length;
-  const step = (maxScale - minScale) / (noteCount - 1);
-
-  return maxScale - (rank * step);
-};
-
-// Note positioning (for handpan display) - same pattern as useHandpanDisplay.js
-// Wrapper = position only, Inner = rotation + scale
 const getNoteWrapperStyle = (index, total, position, note) => {
-  const pos = calculateTopNotePosition(index, total);
-
-  return {
-    '--tx': `${pos.x}px`,
-    '--ty': `${pos.y}px`,
-    transform: `translate(var(--tx), var(--ty))`,
-    position: 'absolute',
-    zIndex: '5'
-  };
+  return getNoteStyle(index, total, 1, position, note).wrapper;
 };
 
 const getNoteInnerStyle = (index, total, position, note) => {
-  const pos = calculateTopNotePosition(index, total);
-  const scaleFactor = calculateScaleFactor(note);
-
-  return {
-    transform: `rotate(${pos.rotation}deg) scale(${scaleFactor})`,
-    transformOrigin: 'center center'
-  };
+  return getNoteStyle(index, total, 1, position, note).note;
 };
 
-// Inner note positioning - same pattern
 const getInnerNoteWrapperStyle = (index, total, note) => {
-  const pos = calculateInnerNotePosition(index, total);
-
-  return {
-    '--tx': `${pos.x}px`,
-    '--ty': `${pos.y}px`,
-    transform: `translate(var(--tx), var(--ty))`,
-    position: 'absolute',
-    zIndex: '5'
-  };
+  return getNoteStyle(index, total, 0.7, 'inner', note).wrapper;
 };
 
 const getInnerNoteInnerStyle = (index, total, note) => {
-  const pos = calculateInnerNotePosition(index, total);
-  const scaleFactor = calculateScaleFactor(note);
-
-  return {
-    transform: `rotate(${pos.rotation}deg) scale(${scaleFactor})`,
-    transformOrigin: 'center center'
-  };
+  return getNoteStyle(index, total, 0.7, 'inner', note).note;
 };
 
 // Get hit animation class
@@ -628,6 +522,7 @@ onMounted(() => {
 onUnmounted(() => {
   playback.cleanup();
   scheduler.clearSchedule();
+  cleanupHandpanDisplay();
   window.removeEventListener('resize', updateLayoutMeasurements);
 
   Object.values(audioCache.value).forEach(audio => {
