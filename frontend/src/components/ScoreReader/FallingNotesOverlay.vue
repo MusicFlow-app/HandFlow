@@ -135,12 +135,17 @@ const pitchRange = computed(() => {
 
 // Size based on pitch: lower pitch = larger (like handpan stage 6)
 const getPitchScale = (pitch) => {
-  if (!pitch || pitchRange.value.range === 0) return 1;
+  if (!pitch || pitchRange.value.range === 0) {
+    console.log('getPitchScale: no pitch or zero range', { pitch, range: pitchRange.value });
+    return 1;
+  }
   const normalized = (pitch - pitchRange.value.min) / pitchRange.value.range;
-  // Scale range: 1.15 (lowest) to 0.75 (highest)
-  const maxScale = 1.15;
-  const minScale = 0.75;
-  return maxScale - (normalized * (maxScale - minScale));
+  // Scale range: 1.3 (lowest) to 0.7 (highest) - more dramatic for visibility
+  const maxScale = 1.3;
+  const minScale = 0.7;
+  const scale = maxScale - (normalized * (maxScale - minScale));
+  console.log(`getPitchScale: pitch=${pitch}, normalized=${normalized.toFixed(2)}, scale=${scale.toFixed(2)}`);
+  return scale;
 };
 
 // Bar width based on pitch scale
@@ -248,6 +253,8 @@ const getToneFieldStyle = (event) => {
   const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
   const targetPos = getNotePosition(noteIndex);
   const size = getToneFieldSize(event.pitch);
+
+  console.log(`getToneFieldStyle: event.pitch=${event.pitch}, size=${size.width.toFixed(1)}x${size.height.toFixed(1)}`);
 
   return {
     '--rotation': `${targetPos.rotation || 0}deg`,
