@@ -407,16 +407,15 @@ const calculateScaleFactor = (note) => {
   return maxScale - (rank * step);
 };
 
-// Note positioning (for handpan display) with pitch-based scaling
+// Note positioning (for handpan display) - same pattern as useHandpanDisplay.js
+// Wrapper = position only, Inner = rotation + scale
 const getNoteWrapperStyle = (index, total, position, note) => {
   const pos = calculateTopNotePosition(index, total);
-  const scale = calculateScaleFactor(note);
 
   return {
     '--tx': `${pos.x}px`,
     '--ty': `${pos.y}px`,
-    '--scale': scale,
-    transform: `translate(var(--tx), var(--ty)) scale(var(--scale))`,
+    transform: `translate(var(--tx), var(--ty))`,
     position: 'absolute',
     zIndex: '5'
   };
@@ -424,23 +423,22 @@ const getNoteWrapperStyle = (index, total, position, note) => {
 
 const getNoteInnerStyle = (index, total, position, note) => {
   const pos = calculateTopNotePosition(index, total);
+  const scaleFactor = calculateScaleFactor(note);
 
   return {
-    transform: `rotate(${pos.rotation}deg)`,
+    transform: `rotate(${pos.rotation}deg) scale(${scaleFactor})`,
     transformOrigin: 'center center'
   };
 };
 
-// Inner note positioning with pitch-based scaling
+// Inner note positioning - same pattern
 const getInnerNoteWrapperStyle = (index, total, note) => {
   const pos = calculateInnerNotePosition(index, total);
-  const scale = calculateScaleFactor(note);
 
   return {
     '--tx': `${pos.x}px`,
     '--ty': `${pos.y}px`,
-    '--scale': scale,
-    transform: `translate(var(--tx), var(--ty)) scale(var(--scale))`,
+    transform: `translate(var(--tx), var(--ty))`,
     position: 'absolute',
     zIndex: '5'
   };
@@ -448,9 +446,10 @@ const getInnerNoteWrapperStyle = (index, total, note) => {
 
 const getInnerNoteInnerStyle = (index, total, note) => {
   const pos = calculateInnerNotePosition(index, total);
+  const scaleFactor = calculateScaleFactor(note);
 
   return {
-    transform: `rotate(${pos.rotation}deg)`,
+    transform: `rotate(${pos.rotation}deg) scale(${scaleFactor})`,
     transformOrigin: 'center center'
   };
 };
