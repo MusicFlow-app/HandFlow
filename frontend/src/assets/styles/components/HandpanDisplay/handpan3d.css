@@ -308,7 +308,21 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  /* Note: position and transform set via inline style */
+  /* Smooth hover/active transitions */
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Note: position and transform set via inline style using --tx and --ty */
+}
+
+/* Hover effect on wrapper - smooth scale up with bounce */
+.note-wrapper:hover {
+  transform: translate(var(--tx, 0), var(--ty, 0)) scale(1.12);
+  z-index: 10;
+}
+
+/* Active/clicked effect on wrapper - smooth scale down */
+.note-wrapper:active {
+  transform: translate(var(--tx, 0), var(--ty, 0)) scale(0.92);
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ========================================
@@ -320,7 +334,9 @@
   align-items: center;
   cursor: pointer;
   z-index: 5;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  /* Smooth transitions for visual effects */
+  transition: box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              background 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .tone-field {
@@ -339,6 +355,10 @@
     inset 2px 2px 6px rgba(0, 0, 0, 0.25),
     inset -1px -1px 4px rgba(255, 255, 255, 0.08),
     0 1px 3px rgba(0, 0, 0, 0.15);
+
+  /* Smooth transitions for hover/active effects */
+  transition: box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              background 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Nipple in center of tone field */
@@ -424,25 +444,16 @@
   pointer-events: none;
 }
 
-/* Hover state */
-.note:hover {
-  transform: scale(1.08);
-  z-index: 10;
-}
-
-.tone-field:hover {
+/* Hover state - visual feedback on tone field */
+.note-wrapper:hover .tone-field {
   box-shadow:
-    inset 2px 2px 6px rgba(0, 0, 0, 0.2),
-    inset -1px -1px 4px rgba(255, 255, 255, 0.12),
-    0 3px 8px rgba(0, 0, 0, 0.2);
+    inset 2px 2px 6px rgba(0, 0, 0, 0.15),
+    inset -1px -1px 4px rgba(255, 255, 255, 0.15),
+    0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
-/* Active/playing state */
-.note.active {
-  transform: scale(0.92) !important;
-}
-
-.tone-field.active,
+/* Active/playing state - visual feedback on tone field */
+.note-wrapper:active .tone-field,
 .note.active .tone-field {
   box-shadow:
     inset 3px 3px 10px rgba(0, 0, 0, 0.35),

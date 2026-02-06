@@ -581,7 +581,9 @@ export default function useHandpanDisplay(options) {
     // Return separate styles for wrapper (position only) and note (rotation only)
     return {
       wrapper: {
-        transform: `translate(${x}px, ${y}px)`,
+        '--tx': `${x}px`,
+        '--ty': `${y}px`,
+        transform: `translate(var(--tx), var(--ty))`,
         position: 'absolute',
         zIndex: '5'
       },
@@ -634,7 +636,9 @@ export default function useHandpanDisplay(options) {
     // Return separate styles for wrapper (position only) and note (rotation only)
     return {
       wrapper: {
-        transform: `translate(${x}px, ${y}px)`,
+        '--tx': `${x}px`,
+        '--ty': `${y}px`,
+        transform: `translate(var(--tx), var(--ty))`,
         position: 'absolute',
         zIndex: '5'
       },
@@ -728,7 +732,9 @@ export default function useHandpanDisplay(options) {
     // Return separate styles for wrapper (position only) and note (rotation only)
     return {
       wrapper: {
-        transform: `translate(${x}px, ${y}px)`,
+        '--tx': `${x}px`,
+        '--ty': `${y}px`,
+        transform: `translate(var(--tx), var(--ty))`,
         position: 'absolute',
         zIndex: '5'
       },
