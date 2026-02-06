@@ -344,39 +344,67 @@ const calculateInnerNotePosition = (index, total) => {
   return { x, y, rotation: rotationDegrees };
 };
 
-// Calculate pitch range from all displayed notes
-const pitchRange = computed(() => {
+// Sort displayed notes by pitch for rank-based scaling (same as useHandpanDisplay.js)
+const sortedNotesByPitch = computed(() => {
   const allNotes = displayedNotes.value;
-  if (!allNotes || allNotes.length === 0) return { min: 48, max: 72, range: 24 };
+  if (!allNotes || allNotes.length === 0) return [];
 
-  const pitches = allNotes
-    .map(n => n.calculated_pitch)
-    .filter(p => p !== undefined && p > 0);
+  // Map notes with their pitches and original indices
+  const notesWithPitches = allNotes.map((note, index) => {
+    let pitch = note.calculated_pitch;
+    if (!pitch && note.note) {
+      // Fallback: calculate from note name
+      pitch = noteToPitchValue(note.note || note.calculated_note || '');
+    }
+    return {
+      originalIndex: index,
+      pitch: pitch || 0,
+      note: note
+    };
+  });
 
-  if (pitches.length === 0) return { min: 48, max: 72, range: 24 };
-
-  const min = Math.min(...pitches);
-  const max = Math.max(...pitches);
-  return { min, max, range: max - min || 1 };
+  // Sort by pitch (lowest to highest)
+  notesWithPitches.sort((a, b) => a.pitch - b.pitch);
+  return notesWithPitches;
 });
 
-// Calculate scale factor based on pitch (lower = larger, higher = smaller)
+// Convert note name to pitch value (same logic as useHandpanDisplay.js)
+const noteToPitchValue = (noteStr) => {
+  if (!noteStr) return 0;
+  const match = noteStr.match(/([A-G][#b]?)([0-9])/);
+  if (!match) return 0;
+
+  const [, noteName, octave] = match;
+  const noteValues = {
+    'C': 0, 'C#': 1, 'Db': 1,
+    'D': 2, 'D#': 3, 'Eb': 3,
+    'E': 4, 'F': 5, 'F#': 6, 'Gb': 6,
+    'G': 7, 'G#': 8, 'Ab': 8,
+    'A': 9, 'A#': 10, 'Bb': 10,
+    'B': 11
+  };
+
+  return parseInt(octave) * 12 + noteValues[noteName];
+};
+
+// Calculate scale factor based on rank (lower pitch = larger, same as useHandpanDisplay.js)
 const calculateScaleFactor = (note) => {
-  if (!note || !note.calculated_pitch) return 1;
+  if (!note) return 1;
 
-  const pitch = note.calculated_pitch;
-  const { min, max, range } = pitchRange.value;
+  const sorted = sortedNotesByPitch.value;
+  if (sorted.length <= 1) return 1.0;
 
-  if (range === 0) return 1;
+  // Find this note's rank in the sorted list
+  const rank = sorted.findIndex(n => n.note === note);
+  if (rank === -1) return 1.0;
 
-  // Normalize to 0-1 (0 = lowest, 1 = highest)
-  const normalized = (pitch - min) / range;
-
-  // Scale range: 1.1 (lowest) to 0.8 (highest)
+  // Scale range: 1.1 (lowest pitch = rank 0) to 0.8 (highest pitch = rank N-1)
   const maxScale = 1.1;
   const minScale = 0.8;
+  const noteCount = sorted.length;
+  const step = (maxScale - minScale) / (noteCount - 1);
 
-  return maxScale - (normalized * (maxScale - minScale));
+  return maxScale - (rank * step);
 };
 
 // Note positioning (for handpan display) with pitch-based scaling

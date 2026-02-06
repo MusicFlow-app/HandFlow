@@ -124,41 +124,81 @@ const hitNotes = ref(new Set());
 // Pixels per millisecond (fall speed)
 const pixelsPerMs = computed(() => props.fallHeight / props.leadTime);
 
-// Calculate pitch range for sizing
-const pitchRange = computed(() => {
-  const pitches = props.events.map(e => e.pitch).filter(p => p > 0);
-  if (pitches.length === 0) return { min: 48, max: 72, range: 24 };
-  const min = Math.min(...pitches);
-  const max = Math.max(...pitches);
-  return { min, max, range: max - min || 1 };
+// Sort handpan notes by pitch for rank-based scaling (same as useHandpanDisplay.js)
+const sortedHandpanNotes = computed(() => {
+  if (!props.handpanNotes || props.handpanNotes.length === 0) return [];
+
+  // Map notes with their pitches and original indices
+  const notesWithPitches = props.handpanNotes.map((note, index) => {
+    let pitch = note.calculated_pitch;
+    if (!pitch && note.note) {
+      // Fallback: calculate from note name
+      pitch = noteToPitchValue(note.note || note.calculated_note || '');
+    }
+    return {
+      originalIndex: index,
+      pitch: pitch || 0,
+      note: note
+    };
+  });
+
+  // Sort by pitch (lowest to highest)
+  notesWithPitches.sort((a, b) => a.pitch - b.pitch);
+
+  console.log('Sorted handpan notes by pitch:', notesWithPitches.map(n => `${n.note?.note || n.note?.calculated_note}(${n.pitch})`));
+  return notesWithPitches;
 });
 
-// Size based on pitch: lower pitch = larger (like handpan stage 6)
-const getPitchScale = (pitch) => {
-  if (!pitch || pitchRange.value.range === 0) {
-    console.log('getPitchScale: no pitch or zero range', { pitch, range: pitchRange.value });
-    return 1;
-  }
-  const normalized = (pitch - pitchRange.value.min) / pitchRange.value.range;
-  // Scale range: 1.3 (lowest) to 0.7 (highest) - more dramatic for visibility
-  const maxScale = 1.3;
-  const minScale = 0.7;
-  const scale = maxScale - (normalized * (maxScale - minScale));
-  console.log(`getPitchScale: pitch=${pitch}, normalized=${normalized.toFixed(2)}, scale=${scale.toFixed(2)}`);
+// Convert note name to pitch value (same logic as useHandpanDisplay.js)
+const noteToPitchValue = (noteStr) => {
+  if (!noteStr) return 0;
+  const match = noteStr.match(/([A-G][#b]?)([0-9])/);
+  if (!match) return 0;
+
+  const [, note, octave] = match;
+  const noteValues = {
+    'C': 0, 'C#': 1, 'Db': 1,
+    'D': 2, 'D#': 3, 'Eb': 3,
+    'E': 4, 'F': 5, 'F#': 6, 'Gb': 6,
+    'G': 7, 'G#': 8, 'Ab': 8,
+    'A': 9, 'A#': 10, 'Bb': 10,
+    'B': 11
+  };
+
+  return parseInt(octave) * 12 + noteValues[note];
+};
+
+// Get rank-based scale factor for a handpan note index (same logic as useHandpanDisplay.js)
+const getScaleFactorForNoteIndex = (handpanNoteIndex) => {
+  const sorted = sortedHandpanNotes.value;
+  if (sorted.length <= 1) return 1.0;
+
+  // Find the rank of this note in the sorted list
+  const rank = sorted.findIndex(n => n.originalIndex === handpanNoteIndex);
+  if (rank === -1) return 1.0;
+
+  // Scale range: 1.1 (lowest pitch = rank 0) to 0.8 (highest pitch = rank N-1)
+  const maxScale = 1.1;
+  const minScale = 0.8;
+  const noteCount = sorted.length;
+  const step = (maxScale - minScale) / (noteCount - 1);
+
+  const scale = maxScale - (rank * step);
+  console.log(`getScaleFactorForNoteIndex: index=${handpanNoteIndex}, rank=${rank}/${noteCount-1}, scale=${scale.toFixed(2)}`);
   return scale;
 };
 
-// Bar width based on pitch scale
-const getBarWidth = (pitch) => {
-  const scale = getPitchScale(pitch);
+// Bar width based on rank scale
+const getBarWidth = (handpanNoteIndex) => {
+  const scale = getScaleFactorForNoteIndex(handpanNoteIndex);
   const baseWidth = 20;
   return baseWidth * scale;
 };
 
-// Tone field dimensions based on pitch
-const getToneFieldSize = (pitch) => {
-  const scale = getPitchScale(pitch);
-  // Base size matches handpan tone fields
+// Tone field dimensions based on rank scale
+const getToneFieldSize = (handpanNoteIndex) => {
+  const scale = getScaleFactorForNoteIndex(handpanNoteIndex);
+  // Base size matches handpan tone fields (65x52px)
   return {
     width: 65 * scale,
     height: 52 * scale
@@ -216,8 +256,9 @@ const getNoteBarStyle = (event) => {
   const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
   const targetPos = getNotePosition(noteIndex);
 
-  const toneFieldSize = getToneFieldSize(event.pitch);
-  const barWidth = getBarWidth(event.pitch);
+  // Use handpanNoteIndex for rank-based sizing (same as handpan display)
+  const toneFieldSize = getToneFieldSize(noteIndex);
+  const barWidth = getBarWidth(noteIndex);
   const barHeight = durationToPixels(event.duration || 500);
 
   // Y position: bottom of bar = hit time
@@ -248,13 +289,12 @@ const getNoteBarStyle = (event) => {
   };
 };
 
-// Style for the tone field at bottom of bar (with pitch-based size)
+// Style for the tone field at bottom of bar (rank-based size like handpan display)
 const getToneFieldStyle = (event) => {
   const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
   const targetPos = getNotePosition(noteIndex);
-  const size = getToneFieldSize(event.pitch);
-
-  console.log(`getToneFieldStyle: event.pitch=${event.pitch}, size=${size.width.toFixed(1)}x${size.height.toFixed(1)}`);
+  // Use handpanNoteIndex for rank-based sizing (same as handpan display)
+  const size = getToneFieldSize(noteIndex);
 
   return {
     '--rotation': `${targetPos.rotation || 0}deg`,
@@ -291,7 +331,8 @@ const getLineOpacity = (event) => {
 const getTargetGlowStyle = (event) => {
   const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
   const targetPos = getNotePosition(noteIndex);
-  const size = getToneFieldSize(event.pitch);
+  // Use handpanNoteIndex for rank-based sizing (same as handpan display)
+  const size = getToneFieldSize(noteIndex);
 
   return {
     '--tx': `${targetPos.x}px`,
@@ -409,16 +450,20 @@ watch(() => props.currentTime, () => {
 watch(() => props.events, (newEvents) => {
   console.log('=== FallingNotesOverlay: Events received ===');
   console.log('Event count:', newEvents?.length || 0);
-  if (newEvents && newEvents.length > 0) {
-    const pitches = newEvents.map(e => e.pitch).filter(p => p > 0);
-    console.log('Unique pitches:', [...new Set(pitches)].sort((a, b) => a - b));
-    console.log('Computed pitch range:', pitchRange.value);
+  console.log('Handpan notes count:', props.handpanNotes?.length || 0);
 
-    // Log first few events with their calculated sizes
+  if (newEvents && newEvents.length > 0) {
+    // Log handpan notes sorted by pitch
+    console.log('Sorted handpan notes:', sortedHandpanNotes.value.map(n =>
+      `idx${n.originalIndex}:${n.note?.note || n.note?.calculated_note}(pitch=${n.pitch})`
+    ));
+
+    // Log first few events with their calculated sizes using rank-based scaling
     newEvents.slice(0, 5).forEach((event, i) => {
-      const scale = getPitchScale(event.pitch);
-      const size = getToneFieldSize(event.pitch);
-      console.log(`Event ${i}: pitch=${event.pitch}, scale=${scale.toFixed(2)}, size=${size.width.toFixed(1)}x${size.height.toFixed(1)}`);
+      const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
+      const scale = getScaleFactorForNoteIndex(noteIndex);
+      const size = getToneFieldSize(noteIndex);
+      console.log(`Event ${i}: noteIndex=${noteIndex}, scale=${scale.toFixed(2)}, size=${size.width.toFixed(1)}x${size.height.toFixed(1)}`);
     });
   }
   hitNotes.value.clear();
