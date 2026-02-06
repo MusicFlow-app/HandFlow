@@ -76,8 +76,8 @@
    The Handpan Instrument
    ======================================== */
 .handpan-instrument {
-  width: 340px;
-  height: 340px;
+  width: 420px;
+  height: 420px;
   position: relative;
   display: flex;
   justify-content: center;
@@ -87,8 +87,8 @@
 
 /* Common shell styles */
 .handpan-shell {
-  width: 320px;
-  height: 320px;
+  width: 400px;
+  height: 400px;
   border-radius: 50%;
   position: relative;
   display: flex;
@@ -209,8 +209,8 @@
    Central Ding Note
    ======================================== */
 .ding-note {
-  width: 90px;
-  height: 75px;
+  width: 110px;
+  height: 90px;
   border-radius: 50%;
   position: absolute;
   top: 50%;
@@ -244,8 +244,8 @@
 .ding-note::before {
   content: "";
   position: absolute;
-  width: 36px;
-  height: 28px;
+  width: 44px;
+  height: 34px;
   border-radius: 50%;
   top: 50%;
   left: 50%;
@@ -267,12 +267,14 @@
 
 .ding-note .note-name {
   color: #fff;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 600;
   z-index: 10;
   position: relative;
-  -webkit-text-stroke: 1.5px rgba(0, 0, 0, 0.6);
-  paint-order: stroke fill;
+  background: rgba(30, 30, 30, 0.75);
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  padding: 4px 10px;
+  border-radius: 5px;
 }
 
 .ding-note:hover {
@@ -305,8 +307,8 @@
 }
 
 .tone-field {
-  width: 52px;
-  height: 42px;
+  width: 65px;
+  height: 52px;
   border-radius: 50%;
 
   /* Concave dimple effect */
@@ -326,8 +328,8 @@
 .tone-field::before {
   content: "";
   position: absolute;
-  width: 20px;
-  height: 15px;
+  width: 26px;
+  height: 20px;
   border-radius: 50%;
   top: 50%;
   left: 50%;
@@ -349,24 +351,24 @@
 
 /* Inner notes (smaller) */
 .tone-field.inner {
-  width: 52px;
-  height: 40px;
+  width: 55px;
+  height: 44px;
 }
 
 .tone-field.inner::before {
-  width: 20px;
-  height: 15px;
+  width: 22px;
+  height: 17px;
 }
 
 /* Bottom notes */
 .tone-field.bottom {
-  width: 58px;
-  height: 45px;
+  width: 62px;
+  height: 50px;
 }
 
 .tone-field.bottom::before {
-  width: 22px;
-  height: 17px;
+  width: 24px;
+  height: 18px;
 }
 
 /* Note content styling */
@@ -379,12 +381,15 @@
 }
 
 .note-name {
-  font-weight: 700;
-  font-size: 11px;
+  font-weight: 600;
+  font-size: 12px;
   color: #fff;
-  -webkit-text-stroke: 1px rgba(0, 0, 0, 0.7);
-  paint-order: stroke fill;
+  background: rgba(30, 30, 30, 0.75);
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  padding: 3px 6px;
+  border-radius: 4px;
   letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 /* Hover state */
@@ -423,8 +428,8 @@
    Gu Port (Bottom shell center)
    ======================================== */
 .gu-port {
-  width: 65px;
-  height: 65px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   position: absolute;
   top: 50%;
@@ -451,8 +456,8 @@
 }
 
 .gu-inner {
-  width: 42px;
-  height: 42px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
 
   background:
@@ -480,9 +485,153 @@
 /* ========================================
    Responsive Adjustments
    ======================================== */
-@media (max-width: 768px) {
+/* Tablet landscape */
+@media (max-width: 900px) {
   .handpan-visualization {
     gap: var(--spacing-lg);
+  }
+
+  .handpan-instrument {
+    width: 360px;
+    height: 360px;
+  }
+
+  .handpan-shell {
+    width: 340px;
+    height: 340px;
+  }
+
+  .ding-note {
+    width: 95px;
+    height: 78px;
+  }
+
+  .ding-note::before {
+    width: 38px;
+    height: 30px;
+  }
+
+  .tone-field {
+    width: 56px;
+    height: 45px;
+  }
+
+  .tone-field::before {
+    width: 22px;
+    height: 17px;
+  }
+
+  .tone-field.inner {
+    width: 48px;
+    height: 38px;
+  }
+
+  .tone-field.inner::before {
+    width: 18px;
+    height: 14px;
+  }
+
+  .gu-port {
+    width: 68px;
+    height: 68px;
+  }
+
+  .gu-inner {
+    width: 44px;
+    height: 44px;
+  }
+
+  .note-name {
+    font-size: 11px;
+    padding: 2px 5px;
+  }
+
+  .ding-note .note-name {
+    font-size: 14px;
+    padding: 3px 8px;
+  }
+}
+
+/* Tablet portrait */
+@media (max-width: 768px) {
+  .handpan-visualization {
+    flex-direction: column;
+    gap: var(--spacing-xl);
+  }
+
+  .handpan-container {
+    max-width: 100%;
+  }
+
+  .handpan-instrument {
+    width: 320px;
+    height: 320px;
+  }
+
+  .handpan-shell {
+    width: 300px;
+    height: 300px;
+  }
+
+  .ding-note {
+    width: 85px;
+    height: 70px;
+  }
+
+  .ding-note::before {
+    width: 34px;
+    height: 26px;
+  }
+
+  .tone-field {
+    width: 50px;
+    height: 40px;
+  }
+
+  .tone-field::before {
+    width: 20px;
+    height: 15px;
+  }
+
+  .tone-field.inner {
+    width: 44px;
+    height: 35px;
+  }
+
+  .tone-field.inner::before {
+    width: 16px;
+    height: 12px;
+  }
+
+  .gu-port {
+    width: 60px;
+    height: 60px;
+  }
+
+  .gu-inner {
+    width: 40px;
+    height: 40px;
+  }
+
+  .note-name {
+    font-size: 10px;
+    padding: 2px 4px;
+  }
+
+  .ding-note .note-name {
+    font-size: 13px;
+    padding: 3px 7px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .handpan-visualization {
+    gap: var(--spacing-lg);
+  }
+
+  .handpan-container {
+    max-width: 100%;
   }
 
   .handpan-instrument {
@@ -496,23 +645,23 @@
   }
 
   .ding-note {
-    width: 70px;
-    height: 58px;
+    width: 75px;
+    height: 62px;
   }
 
   .ding-note::before {
-    width: 28px;
-    height: 22px;
+    width: 30px;
+    height: 23px;
   }
 
   .tone-field {
     width: 44px;
-    height: 36px;
+    height: 35px;
   }
 
   .tone-field::before {
-    width: 16px;
-    height: 12px;
+    width: 17px;
+    height: 13px;
   }
 
   .tone-field.inner {
@@ -522,111 +671,45 @@
 
   .tone-field.inner::before {
     width: 14px;
-    height: 10px;
-  }
-
-  .gu-port {
-    width: 50px;
-    height: 50px;
-  }
-
-  .gu-inner {
-    width: 32px;
-    height: 32px;
-  }
-
-  .note-name {
-    font-size: 10px;
-  }
-
-  .ding-note .note-name {
-    font-size: 12px;
-  }
-}
-
-@media (max-width: 480px) {
-  .handpan-visualization {
-    gap: var(--spacing-md);
-  }
-
-  .handpan-container {
-    max-width: 240px;
-  }
-
-  .handpan-instrument {
-    width: 220px;
-    height: 220px;
-  }
-
-  .handpan-shell {
-    width: 200px;
-    height: 200px;
-  }
-
-  .ding-note {
-    width: 55px;
-    height: 46px;
-  }
-
-  .ding-note::before {
-    width: 22px;
-    height: 17px;
-  }
-
-  .tone-field {
-    width: 36px;
-    height: 28px;
-  }
-
-  .tone-field::before {
-    width: 14px;
-    height: 10px;
-  }
-
-  .tone-field.inner {
-    width: 32px;
-    height: 25px;
-  }
-
-  .tone-field.inner::before {
-    width: 12px;
-    height: 9px;
+    height: 11px;
   }
 
   .tone-field.bottom {
-    width: 34px;
-    height: 26px;
+    width: 42px;
+    height: 33px;
   }
 
   .gu-port {
-    width: 42px;
-    height: 42px;
+    width: 52px;
+    height: 52px;
   }
 
   .gu-inner {
-    width: 28px;
-    height: 28px;
+    width: 34px;
+    height: 34px;
   }
 
   .note-name {
     font-size: 9px;
+    padding: 2px 4px;
   }
 
   .ding-note .note-name {
-    font-size: 10px;
+    font-size: 11px;
+    padding: 2px 6px;
   }
 
   .reflection-1 {
-    width: 60px;
-    height: 35px;
-    top: 15px;
-    left: 25px;
+    width: 70px;
+    height: 40px;
+    top: 18px;
+    left: 30px;
   }
 
   .reflection-2 {
-    width: 25px;
-    height: 15px;
-    bottom: 40px;
-    right: 30px;
+    width: 30px;
+    height: 18px;
+    bottom: 45px;
+    right: 35px;
   }
 }

@@ -555,8 +555,8 @@ export default function useHandpanDisplay(options) {
     const angleInRadians = angleInDegrees * (Math.PI / 180);
     
     // Radius for standard 8-note configuration - adjusted to fit within the shell
-    // Keep notes well inside the 160px shell radius
-    const radius = 105;
+    // Keep notes well inside the 200px shell radius
+    const radius = 135;
     
     // Calculate x and y coordinates
     // We use sin for x and -cos for y because:
@@ -608,7 +608,7 @@ export default function useHandpanDisplay(options) {
     const angleInRadians = angleInDegrees * (Math.PI / 180);
     
     // Radius for inner circle (smaller than the top notes)
-    const radius = 55;
+    const radius = 70;
     
     // Calculate x and y coordinates
     const x = Math.sin(angleInRadians) * radius;
@@ -698,7 +698,7 @@ export default function useHandpanDisplay(options) {
     
     // Use the same radius as top notes for visual consistency
     // Keep notes well inside the shell
-    const radius = 100;
+    const radius = 130;
     
     // Calculate x and y coordinates
     const x = Math.sin(angleInRadians) * radius;
