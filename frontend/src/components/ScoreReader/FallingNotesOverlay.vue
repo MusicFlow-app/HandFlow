@@ -138,9 +138,9 @@ const getScaleForNoteIndex = (handpanNoteIndex) => {
 // Bar width based on scale from handpan
 const getBarWidth = (handpanNoteIndex) => {
   const notePos = props.notePositions[handpanNoteIndex];
-  // Ding uses a different bar width (it's circular on handpan)
+  // Ding uses a wider bar to match its 110px width
   if (notePos?.isDing) {
-    return 24; // Slightly wider bar for ding
+    return 30; // Wider bar for ding (proportional to 110px width)
   }
   const scale = getScaleForNoteIndex(handpanNoteIndex);
   const baseWidth = 20;
@@ -150,9 +150,9 @@ const getBarWidth = (handpanNoteIndex) => {
 // Tone field dimensions - match handpan exactly
 const getToneFieldSize = (handpanNoteIndex) => {
   const notePos = props.notePositions[handpanNoteIndex];
-  // Ding is circular (70x70 on handpan)
+  // Ding is elliptical (110x90 on handpan, matching handpan3d.css .ding-note)
   if (notePos?.isDing) {
-    return { width: 70, height: 70 };
+    return { width: 110, height: 90 };
   }
   // Tone fields are 65x52 base, scaled by the handpan's scale factor
   const scale = getScaleForNoteIndex(handpanNoteIndex);
@@ -646,34 +646,34 @@ watch(() => props.events, () => {
       var(--handpan-steel-mid, #5a6268) 100%);
 }
 
-/* Ding tone field - circular, golden center like handpan */
+/* Ding tone field - elliptical, matches handpan3d.css .ding-note exactly */
 .note-bar__tone-field--ding {
-  /* Ding is circular with a golden/brass center look */
+  /* Raised dome effect matching handpan ding */
   background:
-    radial-gradient(circle at 45% 40%,
-      var(--handpan-highlight, #c8ccd0) 0%,
-      var(--handpan-steel-light, #9aa2a8) 40%,
-      var(--handpan-steel-mid, #6a7278) 70%,
-      var(--handpan-steel-dark, #4a5258) 100%);
+    radial-gradient(ellipse 80% 70% at 40% 35%,
+      var(--handpan-highlight, #b8c0c8) 0%,
+      var(--handpan-steel-light, #8a9299) 30%,
+      var(--handpan-steel-mid, #5a6268) 60%,
+      var(--handpan-steel-dark, #3a4044) 100%);
   box-shadow:
-    inset 3px 3px 8px rgba(255, 255, 255, 0.3),
-    inset -2px -2px 6px rgba(0, 0, 0, 0.2),
-    0 3px 10px rgba(0, 0, 0, 0.25);
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    inset 0 2px 8px rgba(255, 255, 255, 0.15),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.2);
 }
 
 .note-bar__tone-field--ding .note-bar__nipple {
-  /* Ding nipple is larger and more prominent */
-  width: 50%;
-  height: 50%;
+  /* Ding nipple dome matching handpan - 44x34 relative to 110x90 = ~40% x 38% */
+  width: 40%;
+  height: 38%;
   background:
-    radial-gradient(circle at 40% 35%,
-      var(--handpan-highlight, #d8dce0) 0%,
-      var(--handpan-steel-light, #a8b0b8) 50%,
-      var(--handpan-steel-mid, #7a8288) 100%);
+    radial-gradient(ellipse 90% 80% at 35% 30%,
+      var(--handpan-highlight, #b8c0c8) 0%,
+      var(--handpan-steel-light, #8a9299) 40%,
+      var(--handpan-steel-mid, #5a6268) 100%);
   box-shadow:
-    inset 2px 2px 4px rgba(255, 255, 255, 0.4),
-    inset -1px -1px 3px rgba(0, 0, 0, 0.15),
-    0 2px 4px rgba(0, 0, 0, 0.2);
+    inset 1px 1px 4px rgba(255, 255, 255, 0.3),
+    inset -1px -1px 4px rgba(0, 0, 0, 0.15),
+    0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 /* Flash effect when hit */
@@ -834,6 +834,11 @@ watch(() => props.events, () => {
   .note-bar__tone-field {
     transform: translateX(-50%) rotate(var(--rotation, 0deg)) scale(0.77);
   }
+
+  /* Ding doesn't rotate but still scales */
+  .note-bar__tone-field--ding {
+    transform: translateX(-50%) scale(0.77);
+  }
 }
 
 @media (max-width: 480px) {
@@ -848,6 +853,11 @@ watch(() => props.events, () => {
   /* Scale down tone fields on mobile */
   .note-bar__tone-field {
     transform: translateX(-50%) rotate(var(--rotation, 0deg)) scale(0.68);
+  }
+
+  /* Ding doesn't rotate but still scales */
+  .note-bar__tone-field--ding {
+    transform: translateX(-50%) scale(0.68);
   }
 }
 </style>
