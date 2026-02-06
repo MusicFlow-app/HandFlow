@@ -344,14 +344,51 @@ const calculateInnerNotePosition = (index, total) => {
   return { x, y, rotation: rotationDegrees };
 };
 
-// Note positioning (for handpan display)
+// Calculate pitch range from all displayed notes
+const pitchRange = computed(() => {
+  const allNotes = displayedNotes.value;
+  if (!allNotes || allNotes.length === 0) return { min: 48, max: 72, range: 24 };
+
+  const pitches = allNotes
+    .map(n => n.calculated_pitch)
+    .filter(p => p !== undefined && p > 0);
+
+  if (pitches.length === 0) return { min: 48, max: 72, range: 24 };
+
+  const min = Math.min(...pitches);
+  const max = Math.max(...pitches);
+  return { min, max, range: max - min || 1 };
+});
+
+// Calculate scale factor based on pitch (lower = larger, higher = smaller)
+const calculateScaleFactor = (note) => {
+  if (!note || !note.calculated_pitch) return 1;
+
+  const pitch = note.calculated_pitch;
+  const { min, max, range } = pitchRange.value;
+
+  if (range === 0) return 1;
+
+  // Normalize to 0-1 (0 = lowest, 1 = highest)
+  const normalized = (pitch - min) / range;
+
+  // Scale range: 1.1 (lowest) to 0.8 (highest)
+  const maxScale = 1.1;
+  const minScale = 0.8;
+
+  return maxScale - (normalized * (maxScale - minScale));
+};
+
+// Note positioning (for handpan display) with pitch-based scaling
 const getNoteWrapperStyle = (index, total, position, note) => {
   const pos = calculateTopNotePosition(index, total);
+  const scale = calculateScaleFactor(note);
 
   return {
     '--tx': `${pos.x}px`,
     '--ty': `${pos.y}px`,
-    transform: `translate(var(--tx), var(--ty))`,
+    '--scale': scale,
+    transform: `translate(var(--tx), var(--ty)) scale(var(--scale))`,
     position: 'absolute',
     zIndex: '5'
   };
@@ -366,14 +403,16 @@ const getNoteInnerStyle = (index, total, position, note) => {
   };
 };
 
-// Inner note positioning
+// Inner note positioning with pitch-based scaling
 const getInnerNoteWrapperStyle = (index, total, note) => {
   const pos = calculateInnerNotePosition(index, total);
+  const scale = calculateScaleFactor(note);
 
   return {
     '--tx': `${pos.x}px`,
     '--ty': `${pos.y}px`,
-    transform: `translate(var(--tx), var(--ty))`,
+    '--scale': scale,
+    transform: `translate(var(--tx), var(--ty)) scale(var(--scale))`,
     position: 'absolute',
     zIndex: '5'
   };

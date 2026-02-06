@@ -243,13 +243,16 @@ const getNoteBarStyle = (event) => {
   };
 };
 
-// Style for the tone field at bottom of bar
+// Style for the tone field at bottom of bar (with pitch-based size)
 const getToneFieldStyle = (event) => {
   const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
   const targetPos = getNotePosition(noteIndex);
+  const size = getToneFieldSize(event.pitch);
 
   return {
     '--rotation': `${targetPos.rotation || 0}deg`,
+    width: `${size.width}px`,
+    height: `${size.height}px`,
     transform: `translateX(-50%) rotate(var(--rotation))`
   };
 };
@@ -518,12 +521,12 @@ watch(() => props.events, () => {
 }
 
 /* Realistic tone field at bottom of bar - matches handpan3d.css */
+/* Width and height set via inline style based on pitch */
 .note-bar__tone-field {
   position: absolute;
   bottom: 0;
   left: 50%;
-  width: var(--tone-field-width, 65px);
-  height: var(--tone-field-height, 52px);
+  /* Size set via inline style for pitch-based scaling */
   transform-origin: center bottom;
   border-radius: 50%;
 
@@ -776,10 +779,9 @@ watch(() => props.events, () => {
     font-size: 10px;
   }
 
-  /* Smaller tone fields on tablet - matches handpan display */
+  /* Scale down tone fields on tablet */
   .note-bar__tone-field {
-    width: calc(var(--tone-field-width, 65px) * 0.77);
-    height: calc(var(--tone-field-height, 52px) * 0.77);
+    transform: translateX(-50%) rotate(var(--rotation, 0deg)) scale(0.77);
   }
 }
 
@@ -792,10 +794,9 @@ watch(() => props.events, () => {
     display: none;
   }
 
-  /* Even smaller on mobile - matches handpan display */
+  /* Scale down tone fields on mobile */
   .note-bar__tone-field {
-    width: calc(var(--tone-field-width, 65px) * 0.68);
-    height: calc(var(--tone-field-height, 52px) * 0.68);
+    transform: translateX(-50%) rotate(var(--rotation, 0deg)) scale(0.68);
   }
 }
 </style>
