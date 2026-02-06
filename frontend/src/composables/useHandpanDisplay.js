@@ -453,9 +453,9 @@ export default function useHandpanDisplay(options) {
     // Safety check - default to middle if somehow still not found
     if (pitchRank === -1) pitchRank = Math.floor(sortedNotes.length / 2);
     
-    // Define scale range
-    const maxScale = 1.3;  // For lowest pitch
-    const minScale = 0.4;  // For highest pitch
+    // Define scale range - keep it subtle to avoid overflow
+    const maxScale = 1.1;  // For lowest pitch
+    const minScale = 0.8;  // For highest pitch
     
     // Calculate step size between each note
     const noteCount = sortedNotes.length;
@@ -554,9 +554,9 @@ export default function useHandpanDisplay(options) {
     // Convert to radians for calculations
     const angleInRadians = angleInDegrees * (Math.PI / 180);
     
-    // Radius for standard 8-note configuration - adjusted to fit better within the shell
-    // Reduced radius for a more compact, realistic arrangement
-    const radius = 135;
+    // Radius for standard 8-note configuration - adjusted to fit within the shell
+    // Keep notes well inside the 160px shell radius
+    const radius = 105;
     
     // Calculate x and y coordinates
     // We use sin for x and -cos for y because:
@@ -608,8 +608,7 @@ export default function useHandpanDisplay(options) {
     const angleInRadians = angleInDegrees * (Math.PI / 180);
     
     // Radius for inner circle (smaller than the top notes)
-    // Reduced radius for a more compact, realistic arrangement
-    const radius = 75;
+    const radius = 55;
     
     // Calculate x and y coordinates
     const x = Math.sin(angleInRadians) * radius;
@@ -697,9 +696,9 @@ export default function useHandpanDisplay(options) {
     // Convert to radians for calculations
     const angleInRadians = angleInDegrees * (Math.PI / 180);
     
-    // Use the same radius as top notes for visual consistency, but adjusted for shell size
-    // Reduced radius for a more compact, realistic arrangement
-    const radius = 130;
+    // Use the same radius as top notes for visual consistency
+    // Keep notes well inside the shell
+    const radius = 100;
     
     // Calculate x and y coordinates
     const x = Math.sin(angleInRadians) * radius;

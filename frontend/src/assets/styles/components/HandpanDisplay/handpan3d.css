@@ -304,8 +304,8 @@
 }
 
 .tone-field {
-  width: 62px;
-  height: 48px;
+  width: 52px;
+  height: 42px;
   border-radius: 50%;
 
   /* Concave dimple effect */
@@ -325,8 +325,8 @@
 .tone-field::before {
   content: "";
   position: absolute;
-  width: 24px;
-  height: 18px;
+  width: 20px;
+  height: 15px;
   border-radius: 50%;
   top: 50%;
   left: 50%;
@@ -379,12 +379,13 @@
 
 .note-name {
   font-weight: 700;
-  font-size: var(--font-size-sm);
-  color: #e8eaec;
+  font-size: 11px;
+  color: #ffffff;
   text-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.5),
-    0 0 8px rgba(0, 0, 0, 0.3);
-  letter-spacing: 0.02em;
+    0 1px 3px rgba(0, 0, 0, 0.8),
+    0 0 6px rgba(0, 0, 0, 0.6),
+    1px 1px 2px rgba(0, 0, 0, 0.9);
+  letter-spacing: 0.03em;
 }
 
 /* Hover state */
@@ -496,86 +497,18 @@
   }
 
   .ding-note {
-    width: 75px;
-    height: 62px;
+    width: 70px;
+    height: 58px;
   }
 
   .ding-note::before {
-    width: 30px;
-    height: 24px;
+    width: 28px;
+    height: 22px;
   }
 
   .tone-field {
-    width: 52px;
-    height: 40px;
-  }
-
-  .tone-field::before {
-    width: 20px;
-    height: 15px;
-  }
-
-  .tone-field.inner {
     width: 44px;
-    height: 34px;
-  }
-
-  .tone-field.inner::before {
-    width: 16px;
-    height: 12px;
-  }
-
-  .gu-port {
-    width: 55px;
-    height: 55px;
-  }
-
-  .gu-inner {
-    width: 36px;
     height: 36px;
-  }
-
-  .note-name {
-    font-size: var(--font-size-xs);
-  }
-
-  .ding-note .note-name {
-    font-size: var(--font-size-md);
-  }
-}
-
-@media (max-width: 480px) {
-  .handpan-visualization {
-    gap: var(--spacing-md);
-  }
-
-  .handpan-container {
-    max-width: 260px;
-  }
-
-  .handpan-instrument {
-    width: 240px;
-    height: 240px;
-  }
-
-  .handpan-shell {
-    width: 220px;
-    height: 220px;
-  }
-
-  .ding-note {
-    width: 65px;
-    height: 54px;
-  }
-
-  .ding-note::before {
-    width: 26px;
-    height: 20px;
-  }
-
-  .tone-field {
-    width: 44px;
-    height: 34px;
   }
 
   .tone-field::before {
@@ -585,7 +518,7 @@
 
   .tone-field.inner {
     width: 38px;
-    height: 29px;
+    height: 30px;
   }
 
   .tone-field.inner::before {
@@ -593,14 +526,9 @@
     height: 10px;
   }
 
-  .tone-field.bottom {
-    width: 42px;
-    height: 32px;
-  }
-
   .gu-port {
-    width: 48px;
-    height: 48px;
+    width: 50px;
+    height: 50px;
   }
 
   .gu-inner {
@@ -608,17 +536,98 @@
     height: 32px;
   }
 
+  .note-name {
+    font-size: 10px;
+  }
+
+  .ding-note .note-name {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .handpan-visualization {
+    gap: var(--spacing-md);
+  }
+
+  .handpan-container {
+    max-width: 240px;
+  }
+
+  .handpan-instrument {
+    width: 220px;
+    height: 220px;
+  }
+
+  .handpan-shell {
+    width: 200px;
+    height: 200px;
+  }
+
+  .ding-note {
+    width: 55px;
+    height: 46px;
+  }
+
+  .ding-note::before {
+    width: 22px;
+    height: 17px;
+  }
+
+  .tone-field {
+    width: 36px;
+    height: 28px;
+  }
+
+  .tone-field::before {
+    width: 14px;
+    height: 10px;
+  }
+
+  .tone-field.inner {
+    width: 32px;
+    height: 25px;
+  }
+
+  .tone-field.inner::before {
+    width: 12px;
+    height: 9px;
+  }
+
+  .tone-field.bottom {
+    width: 34px;
+    height: 26px;
+  }
+
+  .gu-port {
+    width: 42px;
+    height: 42px;
+  }
+
+  .gu-inner {
+    width: 28px;
+    height: 28px;
+  }
+
+  .note-name {
+    font-size: 9px;
+  }
+
+  .ding-note .note-name {
+    font-size: 12px;
+  }
+
   .reflection-1 {
-    width: 70px;
-    height: 40px;
-    top: 20px;
-    left: 30px;
+    width: 60px;
+    height: 35px;
+    top: 15px;
+    left: 25px;
   }
 
   .reflection-2 {
-    width: 30px;
-    height: 18px;
-    bottom: 45px;
-    right: 35px;
+    width: 25px;
+    height: 15px;
+    bottom: 40px;
+    right: 30px;
   }
 }
