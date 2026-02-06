@@ -46,6 +46,7 @@
         :lead-time="LEAD_TIME"
         :trail-time="TRAIL_TIME"
         :note-positions="notePositions"
+        :handpan-notes="allHandpanNotes"
         :handpan-center="handpanCenter"
         :fall-height="fallHeight"
         @note-hit="handleNoteHit"

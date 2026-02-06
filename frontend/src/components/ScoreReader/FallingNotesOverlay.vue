@@ -1,24 +1,37 @@
 <template>
   <div class="falling-notes-overlay" ref="overlayRef">
-    <!-- Falling notes that look like tone fields -->
+    <!-- Falling notes with duration boxes -->
     <div
       v-for="event in visibleEvents"
       :key="event.id"
-      class="falling-tone-field"
+      class="falling-note-container"
       :class="[
-        `falling-tone-field--${event.hand}`,
-        `falling-tone-field--${event.noteType}`,
-        { 'falling-tone-field--hit': event.isHit }
+        `falling-note-container--${event.hand}`,
+        { 'falling-note-container--hit': event.isHit }
       ]"
-      :style="getFallingNoteStyle(event)"
+      :style="getContainerStyle(event)"
     >
-      <div class="falling-tone-field__inner" :style="getNoteInnerStyle(event)"></div>
+      <!-- Duration box (transparent background showing timing) -->
+      <div class="falling-note-duration-box" :style="getDurationBoxStyle(event)"></div>
+
+      <!-- The actual tone field note -->
+      <div
+        class="falling-tone-field"
+        :class="[
+          `falling-tone-field--${event.hand}`,
+          `falling-tone-field--${event.noteType}`,
+          { 'falling-tone-field--hit': event.isHit }
+        ]"
+        :style="getToneFieldStyle(event)"
+      >
+        <div class="falling-tone-field__inner" :style="getNoteInnerStyle(event)"></div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch } from 'vue';
 
 const props = defineProps({
   // Array of timed note events from useNoteScheduler
@@ -46,6 +59,11 @@ const props = defineProps({
     type: Array,
     default: () => []
   },
+  // Handpan notes data (for pitch-based scaling)
+  handpanNotes: {
+    type: Array,
+    default: () => []
+  },
   // Handpan center position relative to overlay
   handpanCenter: {
     type: Object,
@@ -63,6 +81,44 @@ const emit = defineEmits(['note-hit']);
 // Refs
 const overlayRef = ref(null);
 const hitNotes = ref(new Set());
+
+// Constants for duration box sizing
+const MIN_BOX_HEIGHT = 8; // Minimum height in pixels (64th note)
+const PIXELS_PER_BEAT = 80; // How many pixels per beat at 1x speed
+
+// Calculate pitch range for scaling
+const pitchRange = computed(() => {
+  const pitches = props.events.map(e => e.pitch).filter(p => p > 0);
+  if (pitches.length === 0) return { min: 48, max: 72, range: 24 };
+
+  const min = Math.min(...pitches);
+  const max = Math.max(...pitches);
+  return { min, max, range: max - min || 1 };
+});
+
+// Calculate scale factor based on pitch (lower = larger, higher = smaller)
+const getPitchScale = (pitch) => {
+  if (!pitch || pitchRange.value.range === 0) return 1;
+
+  // Normalize pitch to 0-1 range (0 = lowest, 1 = highest)
+  const normalized = (pitch - pitchRange.value.min) / pitchRange.value.range;
+
+  // Scale range: 1.1 (lowest pitch) to 0.8 (highest pitch)
+  const maxScale = 1.1;
+  const minScale = 0.8;
+
+  return maxScale - (normalized * (maxScale - minScale));
+};
+
+// Convert duration in ms to pixels based on fall speed
+const durationToPixels = (durationMs) => {
+  // Calculate pixels per ms based on fall height and lead time
+  const pixelsPerMs = props.fallHeight / props.leadTime;
+  const pixels = durationMs * pixelsPerMs;
+
+  // Ensure minimum height
+  return Math.max(MIN_BOX_HEIGHT, pixels);
+};
 
 // Filter events to only show those in the visible window
 const visibleEvents = computed(() => {
@@ -87,21 +143,17 @@ const getNotePosition = (noteIndex) => {
   return props.notePositions[noteIndex] || { x: 0, y: 0, rotation: 0 };
 };
 
-// Calculate the style for a falling note
-const getFallingNoteStyle = (event) => {
+// Container style (position and opacity)
+const getContainerStyle = (event) => {
   const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
   const targetPos = getNotePosition(noteIndex);
 
   // Calculate progress: 0 = just appeared (top), 1 = at target (hit)
   const timeOffset = event.absoluteTime - props.currentTime;
   const progress = 1 - (timeOffset / props.leadTime);
-
-  // Clamp progress between 0 and 1 for notes approaching
-  // Allow > 1 for notes that have passed (trail)
   const clampedProgress = Math.max(0, progress);
 
-  // Calculate Y position: start at -fallHeight, end at target Y
-  // We use the handpan center as reference point
+  // Calculate Y position
   const startY = -props.fallHeight;
   const endY = targetPos.y;
   const currentY = startY + (endY - startY) * clampedProgress;
@@ -109,30 +161,57 @@ const getFallingNoteStyle = (event) => {
   // X position stays constant (directly above target)
   const currentX = targetPos.x;
 
-  // Scale note as it approaches (optional: smaller when far, full size when near)
-  const scale = 0.6 + (clampedProgress * 0.4);
-
   // Opacity: fade in as it appears, fade out after hit
   let opacity = 1;
   if (clampedProgress < 0.1) {
     opacity = clampedProgress / 0.1;
   } else if (progress > 1) {
-    // Fade out after passing
     opacity = Math.max(0, 1 - (progress - 1) * 5);
   }
 
   return {
     '--tx': `${currentX}px`,
     '--ty': `${currentY}px`,
-    '--scale': scale,
     '--opacity': opacity,
-    transform: `translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(var(--scale))`,
+    transform: `translate(calc(-50% + var(--tx)), calc(-50% + var(--ty)))`,
     opacity: `var(--opacity)`,
     zIndex: Math.floor(progress * 100)
   };
 };
 
-// Get the style for the inner note element (rotation via CSS variable for animation)
+// Duration box style (height based on note duration)
+const getDurationBoxStyle = (event) => {
+  const boxHeight = durationToPixels(event.duration || 500);
+
+  return {
+    height: `${boxHeight}px`
+  };
+};
+
+// Tone field style (size based on pitch)
+const getToneFieldStyle = (event) => {
+  const pitchScale = getPitchScale(event.pitch);
+
+  // Approach scale: smaller when far, full size when near
+  const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
+  const targetPos = getNotePosition(noteIndex);
+  const timeOffset = event.absoluteTime - props.currentTime;
+  const progress = 1 - (timeOffset / props.leadTime);
+  const clampedProgress = Math.max(0, Math.min(1, progress));
+  const approachScale = 0.6 + (clampedProgress * 0.4);
+
+  // Combined scale
+  const totalScale = pitchScale * approachScale;
+
+  return {
+    '--pitch-scale': pitchScale,
+    '--approach-scale': approachScale,
+    '--total-scale': totalScale,
+    transform: `scale(var(--total-scale))`
+  };
+};
+
+// Get the style for the inner note element (rotation)
 const getNoteInnerStyle = (event) => {
   const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
   const targetPos = getNotePosition(noteIndex);
@@ -145,19 +224,16 @@ const getNoteInnerStyle = (event) => {
 
 // Check for notes that should trigger hits
 const checkForHits = () => {
-  // Hit tolerance: when note is within this range of its target time
   const hitTolerance = 50; // ms
 
   props.events.forEach(event => {
     const timeOffset = event.absoluteTime - props.currentTime;
 
-    // Check if note is at hit time (within tolerance of reaching target)
     if (Math.abs(timeOffset) <= hitTolerance) {
       if (!hitNotes.value.has(event.id)) {
         hitNotes.value.add(event.id);
         emit('note-hit', event);
 
-        // Remove hit status after animation
         setTimeout(() => {
           hitNotes.value.delete(event.id);
         }, 400);
@@ -189,30 +265,58 @@ watch(() => props.events, () => {
   z-index: 15;
 }
 
-/* Falling note styled like a tone field */
-.falling-tone-field {
+/* Container for note + duration box */
+.falling-note-container {
   position: absolute;
   top: 50%;
   left: 50%;
   width: 80px;
-  height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   pointer-events: none;
   will-change: transform, opacity;
+}
+
+/* Duration box - transparent timing indicator */
+.falling-note-duration-box {
+  width: 4px;
+  min-height: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+  margin-bottom: -4px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Left hand duration box */
+.falling-note-container--left .falling-note-duration-box {
+  background: rgba(90, 138, 176, 0.3);
+  box-shadow: 0 0 6px rgba(90, 138, 176, 0.2);
+}
+
+/* Right hand duration box */
+.falling-note-container--right .falling-note-duration-box {
+  background: rgba(176, 106, 90, 0.3);
+  box-shadow: 0 0 6px rgba(176, 106, 90, 0.2);
+}
+
+/* Falling tone field note */
+.falling-tone-field {
+  width: 80px;
+  height: 80px;
+  position: relative;
+  flex-shrink: 0;
 }
 
 .falling-tone-field__inner {
   width: 65px;
   height: 52px;
-  margin: auto;
   position: absolute;
   top: 50%;
   left: 50%;
-  /* transform set via inline style to include rotation */
-
-  /* Elliptical shape like tone field */
   border-radius: 50%;
 
-  /* Steel-like appearance */
   background: radial-gradient(ellipse 70% 60% at 40% 35%,
     var(--handpan-highlight, #a8a8a8) 0%,
     var(--handpan-steel-light, #888) 30%,
@@ -270,7 +374,7 @@ watch(() => props.events, () => {
   height: 38px;
 }
 
-/* Hit animation - preserves rotation via CSS variable */
+/* Hit animation - preserves rotation */
 .falling-tone-field--hit .falling-tone-field__inner {
   animation: falling-note-hit 0.3s ease-out forwards;
 }
@@ -294,8 +398,22 @@ watch(() => props.events, () => {
   }
 }
 
+/* Hit animation for container (fade the box too) */
+.falling-note-container--hit .falling-note-duration-box {
+  animation: duration-box-hit 0.3s ease-out forwards;
+}
+
+@keyframes duration-box-hit {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
+  .falling-note-container {
+    width: 60px;
+  }
+
   .falling-tone-field {
     width: 60px;
     height: 60px;
@@ -306,13 +424,16 @@ watch(() => props.events, () => {
     height: 40px;
   }
 
-  .falling-tone-field--grace .falling-tone-field__inner {
-    width: 38px;
-    height: 30px;
+  .falling-note-duration-box {
+    width: 3px;
   }
 }
 
 @media (max-width: 480px) {
+  .falling-note-container {
+    width: 50px;
+  }
+
   .falling-tone-field {
     width: 50px;
     height: 50px;
@@ -321,6 +442,10 @@ watch(() => props.events, () => {
   .falling-tone-field__inner {
     width: 42px;
     height: 34px;
+  }
+
+  .falling-note-duration-box {
+    width: 2px;
   }
 }
 </style>
