@@ -545,10 +545,11 @@ watch(() => props.events, () => {
 /* Width and height set via inline style based on pitch */
 .note-bar__tone-field {
   position: absolute;
-  bottom: 0;
+  /* Position center at bar's bottom edge, so rotation is centered */
+  bottom: calc(-0.5 * var(--tone-field-height));
   left: 50%;
   /* Size set via inline style for pitch-based scaling */
-  transform-origin: center bottom;
+  transform-origin: center center;
   border-radius: 50%;
 
   /* Concave dimple effect - same as handpan display */
@@ -699,6 +700,7 @@ watch(() => props.events, () => {
 @keyframes tone-field-flash {
   0% {
     transform: translateX(-50%) rotate(var(--rotation, 0deg)) scale(1.2);
+    /* Animation still uses center-based rotation */
   }
   100% {
     transform: translateX(-50%) rotate(var(--rotation, 0deg)) scale(1);
@@ -830,14 +832,16 @@ watch(() => props.events, () => {
     font-size: 10px;
   }
 
-  /* Scale down tone fields on tablet */
+  /* Scale down tone fields on tablet - maintain center rotation */
   .note-bar__tone-field {
     transform: translateX(-50%) rotate(var(--rotation, 0deg)) scale(0.77);
+    bottom: calc(-0.5 * var(--tone-field-height) * 0.77);
   }
 
   /* Ding doesn't rotate but still scales */
   .note-bar__tone-field--ding {
     transform: translateX(-50%) scale(0.77);
+    bottom: calc(-0.5 * var(--tone-field-height) * 0.77);
   }
 }
 
@@ -850,14 +854,16 @@ watch(() => props.events, () => {
     display: none;
   }
 
-  /* Scale down tone fields on mobile */
+  /* Scale down tone fields on mobile - maintain center rotation */
   .note-bar__tone-field {
     transform: translateX(-50%) rotate(var(--rotation, 0deg)) scale(0.68);
+    bottom: calc(-0.5 * var(--tone-field-height) * 0.68);
   }
 
   /* Ding doesn't rotate but still scales */
   .note-bar__tone-field--ding {
     transform: translateX(-50%) scale(0.68);
+    bottom: calc(-0.5 * var(--tone-field-height) * 0.68);
   }
 }
 </style>
