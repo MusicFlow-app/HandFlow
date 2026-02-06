@@ -577,11 +577,19 @@ export default function useHandpanDisplay(options) {
     // - Subtract 90 degrees if angle <= 180 (top half of circle)
     // This creates a more natural orientation based on position
     const rotationDegrees = angleInDegrees > 180 ? angleInDegrees + 90 : angleInDegrees - 90;
-    
+
+    // Calculate label offset based on rotation - oval is 65x52px
+    // When horizontal (0°, 180°): use 52/2 + margin = 36px
+    // When vertical (90°, 270°): use 65/2 + margin = 42px
+    // Interpolate based on sin of rotation angle
+    const rotationRadians = Math.abs(rotationDegrees) * (Math.PI / 180);
+    const labelOffset = 36 + 6 * Math.abs(Math.sin(rotationRadians));
+
     return {
       // Apply dynamic scaling based on total notes
       transform: `translate(${x}px, ${y}px) rotate(${rotationDegrees}deg) scale(${scaleFactor})`,
       '--label-rotation': `${-rotationDegrees}deg`,
+      '--label-offset': `${labelOffset}px`,
       boxShadow: `inset 2px 2px 5px rgba(255, 255, 255, 0.4),
                   inset -2px -2px 5px rgba(0, 0, 0, 0.2),
                   0 2px 5px rgba(0, 0, 0, 0.2)`,
@@ -626,11 +634,18 @@ export default function useHandpanDisplay(options) {
     // - Subtract 90 degrees if angle <= 180 (top half of circle)
     // This creates a more natural orientation based on position
     const rotationDegrees = angleInDegrees > 180 ? angleInDegrees + 90 : angleInDegrees - 90;
-    
+
+    // Calculate label offset based on rotation - inner oval is 55x44px
+    // When horizontal: use 44/2 + margin = 32px
+    // When vertical: use 55/2 + margin = 37px
+    const rotationRadians = Math.abs(rotationDegrees) * (Math.PI / 180);
+    const labelOffset = 32 + 5 * Math.abs(Math.sin(rotationRadians));
+
     return {
       // Apply dynamic scaling based on total notes
       transform: `translate(${x}px, ${y}px) rotate(${rotationDegrees}deg) scale(${scaleFactor})`,
       '--label-rotation': `${-rotationDegrees}deg`,
+      '--label-offset': `${labelOffset}px`,
       boxShadow: `inset 2px 2px 5px rgba(255, 255, 255, 0.4),
                   inset -2px -2px 5px rgba(0, 0, 0, 0.2),
                   0 2px 5px rgba(0, 0, 0, 0.2)`,
@@ -717,10 +732,17 @@ export default function useHandpanDisplay(options) {
     // - Subtract 90 degrees if angle <= 180 (top half of circle)
     // This creates a more natural orientation based on position
     const rotationDegrees = angleInDegrees > 180 ? angleInDegrees + 90 : angleInDegrees - 90;
-    
+
+    // Calculate label offset based on rotation - bottom oval is 62x50px
+    // When horizontal: use 50/2 + margin = 35px
+    // When vertical: use 62/2 + margin = 41px
+    const rotationRadians = Math.abs(rotationDegrees) * (Math.PI / 180);
+    const labelOffset = 35 + 6 * Math.abs(Math.sin(rotationRadians));
+
     return {
       transform: `translate(${x}px, ${y}px) rotate(${rotationDegrees}deg) scale(${scaleFactor})`,
       '--label-rotation': `${-rotationDegrees}deg`,
+      '--label-offset': `${labelOffset}px`,
       boxShadow: `inset 2px 2px 5px rgba(255, 255, 255, 0.4),
                   inset -2px -2px 5px rgba(0, 0, 0, 0.2),
                   0 2px 5px rgba(0, 0, 0, 0.2)`,
