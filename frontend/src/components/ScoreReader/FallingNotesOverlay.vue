@@ -14,7 +14,31 @@
       <span v-if="beat.type === 'measure'" class="beat-line__label">{{ beat.measureNumber }}</span>
     </div>
 
-    <!-- Synthesia-style falling note bars -->
+    <!-- Connecting lines from notes to targets -->
+    <svg class="connection-lines" v-if="approachingEvents.length > 0">
+      <line
+        v-for="event in approachingEvents"
+        :key="`line-${event.id}`"
+        class="connection-line"
+        :class="`connection-line--${event.hand}`"
+        :x1="getLineCoords(event).x1"
+        :y1="getLineCoords(event).y1"
+        :x2="getLineCoords(event).x2"
+        :y2="getLineCoords(event).y2"
+        :style="{ opacity: getLineOpacity(event) }"
+      />
+    </svg>
+
+    <!-- Target glow indicators on handpan positions -->
+    <div
+      v-for="event in approachingEvents"
+      :key="`glow-${event.id}`"
+      class="target-glow"
+      :class="`target-glow--${event.hand}`"
+      :style="getTargetGlowStyle(event)"
+    ></div>
+
+    <!-- Synthesia-style falling note bars with tone field bottom -->
     <div
       v-for="event in visibleEvents"
       :key="event.id"
@@ -26,11 +50,17 @@
       ]"
       :style="getNoteBarStyle(event)"
     >
-      <!-- Hit indicator at the bottom of the bar -->
+      <!-- Tone field shape at the bottom (hit zone) -->
       <div
-        class="note-bar__hit-zone"
-        :class="{ 'note-bar__hit-zone--flash': event.isHit }"
-      ></div>
+        class="note-bar__tone-field"
+        :class="[
+          `note-bar__tone-field--${event.hand}`,
+          { 'note-bar__tone-field--flash': event.isHit }
+        ]"
+        :style="getToneFieldStyle(event)"
+      >
+        <div class="note-bar__tone-field-inner"></div>
+      </div>
     </div>
   </div>
 </template>
@@ -85,7 +115,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['note-hit']);
+const emit = defineEmits(['note-hit', 'note-approaching']);
 
 const overlayRef = ref(null);
 const hitNotes = ref(new Set());
@@ -93,7 +123,7 @@ const hitNotes = ref(new Set());
 // Pixels per millisecond (fall speed)
 const pixelsPerMs = computed(() => props.fallHeight / props.leadTime);
 
-// Calculate pitch range for width scaling
+// Calculate pitch range for sizing
 const pitchRange = computed(() => {
   const pitches = props.events.map(e => e.pitch).filter(p => p > 0);
   if (pitches.length === 0) return { min: 48, max: 72, range: 24 };
@@ -102,21 +132,36 @@ const pitchRange = computed(() => {
   return { min, max, range: max - min || 1 };
 });
 
-// Width based on pitch: lower pitch = wider bar
-const getPitchWidth = (pitch) => {
-  if (!pitch || pitchRange.value.range === 0) return 24;
-
+// Size based on pitch: lower pitch = larger (like handpan stage 6)
+const getPitchScale = (pitch) => {
+  if (!pitch || pitchRange.value.range === 0) return 1;
   const normalized = (pitch - pitchRange.value.min) / pitchRange.value.range;
-  // Width range: 36px (lowest) to 16px (highest)
-  const maxWidth = 36;
-  const minWidth = 16;
+  // Scale range: 1.15 (lowest) to 0.75 (highest)
+  const maxScale = 1.15;
+  const minScale = 0.75;
+  return maxScale - (normalized * (maxScale - minScale));
+};
 
-  return maxWidth - (normalized * (maxWidth - minWidth));
+// Bar width based on pitch scale
+const getBarWidth = (pitch) => {
+  const scale = getPitchScale(pitch);
+  const baseWidth = 20;
+  return baseWidth * scale;
+};
+
+// Tone field dimensions based on pitch
+const getToneFieldSize = (pitch) => {
+  const scale = getPitchScale(pitch);
+  // Base size matches handpan tone fields
+  return {
+    width: 65 * scale,
+    height: 52 * scale
+  };
 };
 
 // Convert duration in ms to pixels
 const durationToPixels = (durationMs) => {
-  return Math.max(12, durationMs * pixelsPerMs.value);
+  return Math.max(20, durationMs * pixelsPerMs.value);
 };
 
 // Get position for a handpan note index
@@ -134,46 +179,50 @@ const visibleEvents = computed(() => {
 
   return props.events
     .filter(event => {
-      // Note is visible if any part of it is in the window
       const noteEnd = event.absoluteTime + event.duration;
       return noteEnd >= windowStart && event.absoluteTime <= windowEnd;
     })
     .map(event => {
       const isHit = hitNotes.value.has(event.id);
-      // Note is active when current time is within its duration
       const isActive = props.currentTime >= event.absoluteTime &&
                        props.currentTime <= event.absoluteTime + event.duration;
-      // Note is past when current time is after its end
       const isPast = props.currentTime > event.absoluteTime + event.duration;
-
       return { ...event, isHit, isActive, isPast };
     });
 });
 
-// Style for Synthesia-style note bars
-// The bar's BOTTOM edge represents the hit time
+// Events that are approaching (within 800ms of hitting)
+const approachingEvents = computed(() => {
+  return props.events
+    .filter(event => {
+      const timeOffset = event.absoluteTime - props.currentTime;
+      return timeOffset > 0 && timeOffset < 800;
+    })
+    .map(event => {
+      const timeOffset = event.absoluteTime - props.currentTime;
+      const proximity = 1 - (timeOffset / 800); // 0 = far, 1 = very close
+      return { ...event, proximity };
+    });
+});
+
+// Style for note bars
 const getNoteBarStyle = (event) => {
   const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
   const targetPos = getNotePosition(noteIndex);
 
-  // Bar dimensions
+  const toneFieldSize = getToneFieldSize(event.pitch);
+  const barWidth = getBarWidth(event.pitch);
   const barHeight = durationToPixels(event.duration || 500);
-  const barWidth = getPitchWidth(event.pitch);
 
-  // Calculate Y position for the BOTTOM of the bar
-  // When timeOffset = 0, bottom of bar should be at targetPos.y
+  // Y position: bottom of bar = hit time
   const timeOffset = event.absoluteTime - props.currentTime;
   const bottomY = targetPos.y - (timeOffset * pixelsPerMs.value);
-
-  // The bar extends upward from bottomY
   const topY = bottomY - barHeight;
 
-  // X position (centered on target)
   const currentX = targetPos.x;
 
-  // Opacity: fade in as it appears
   let opacity = 1;
-  const distanceFromTop = topY + props.fallHeight; // How far the top is from spawn point
+  const distanceFromTop = topY + props.fallHeight;
   if (distanceFromTop < 50) {
     opacity = Math.max(0, distanceFromTop / 50);
   }
@@ -181,6 +230,8 @@ const getNoteBarStyle = (event) => {
   return {
     '--bar-width': `${barWidth}px`,
     '--bar-height': `${barHeight}px`,
+    '--tone-field-width': `${toneFieldSize.width}px`,
+    '--tone-field-height': `${toneFieldSize.height}px`,
     '--tx': `${currentX}px`,
     '--ty': `${topY}px`,
     width: `var(--bar-width)`,
@@ -188,6 +239,58 @@ const getNoteBarStyle = (event) => {
     transform: `translate(calc(-50% + var(--tx)), var(--ty))`,
     opacity,
     zIndex: event.isActive ? 100 : 50
+  };
+};
+
+// Style for the tone field at bottom of bar
+const getToneFieldStyle = (event) => {
+  const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
+  const targetPos = getNotePosition(noteIndex);
+
+  return {
+    '--rotation': `${targetPos.rotation || 0}deg`,
+    transform: `translateX(-50%) rotate(var(--rotation))`
+  };
+};
+
+// Get connecting line coordinates
+const getLineCoords = (event) => {
+  const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
+  const targetPos = getNotePosition(noteIndex);
+
+  const timeOffset = event.absoluteTime - props.currentTime;
+  const bottomY = targetPos.y - (timeOffset * pixelsPerMs.value);
+
+  // SVG is centered at 50%, 50% of overlay
+  // Convert to SVG coordinates (center = 50%, 50%)
+  return {
+    x1: `calc(50% + ${targetPos.x}px)`,
+    y1: `calc(50% + ${bottomY}px)`,
+    x2: `calc(50% + ${targetPos.x}px)`,
+    y2: `calc(50% + ${targetPos.y}px)`
+  };
+};
+
+// Line opacity based on proximity
+const getLineOpacity = (event) => {
+  return 0.15 + (event.proximity * 0.35);
+};
+
+// Target glow style
+const getTargetGlowStyle = (event) => {
+  const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
+  const targetPos = getNotePosition(noteIndex);
+  const size = getToneFieldSize(event.pitch);
+
+  return {
+    '--tx': `${targetPos.x}px`,
+    '--ty': `${targetPos.y}px`,
+    '--glow-size': `${Math.max(size.width, size.height) * 1.5}px`,
+    '--glow-opacity': event.proximity * 0.6,
+    transform: `translate(calc(-50% + var(--tx)), calc(-50% + var(--ty)))`,
+    width: `var(--glow-size)`,
+    height: `var(--glow-size)`,
+    opacity: `var(--glow-opacity)`
   };
 };
 
@@ -268,20 +371,18 @@ const visibleBeatMarkers = computed(() => {
     });
 });
 
-// Check for note hits - triggers when note time is reached
+// Check for note hits
 const checkForHits = () => {
-  const hitTolerance = 30; // ms - tighter tolerance for accuracy
+  const hitTolerance = 30;
 
   props.events.forEach(event => {
     const timeOffset = event.absoluteTime - props.currentTime;
 
-    // Trigger hit exactly when the bottom of the bar reaches the target
     if (timeOffset <= 0 && timeOffset > -hitTolerance) {
       if (!hitNotes.value.has(event.id)) {
         hitNotes.value.add(event.id);
         emit('note-hit', event);
 
-        // Keep hit visual for the duration of the note
         setTimeout(() => {
           hitNotes.value.delete(event.id);
         }, Math.min(event.duration || 300, 500));
@@ -311,107 +412,179 @@ watch(() => props.events, () => {
   z-index: 15;
 }
 
-/* Synthesia-style note bar */
+/* SVG for connection lines */
+.connection-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.connection-line {
+  stroke-width: 2;
+  stroke-dasharray: 4 4;
+  fill: none;
+}
+
+.connection-line--left {
+  stroke: rgba(90, 138, 176, 0.5);
+}
+
+.connection-line--right {
+  stroke: rgba(176, 106, 90, 0.5);
+}
+
+/* Target glow on handpan */
+.target-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 8;
+}
+
+.target-glow--left {
+  background: radial-gradient(circle, rgba(90, 138, 176, 0.4) 0%, transparent 70%);
+  box-shadow: 0 0 30px rgba(90, 138, 176, 0.5);
+}
+
+.target-glow--right {
+  background: radial-gradient(circle, rgba(176, 106, 90, 0.4) 0%, transparent 70%);
+  box-shadow: 0 0 30px rgba(176, 106, 90, 0.5);
+}
+
+/* Note bar */
 .note-bar {
   position: absolute;
   top: 50%;
   left: 50%;
-  border-radius: 4px;
+  border-radius: 3px 3px 0 0;
   pointer-events: none;
   will-change: transform, opacity;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
 
-  /* Default ghost appearance */
+  /* Ghost appearance */
   background: linear-gradient(180deg,
-    rgba(255, 255, 255, 0.05) 0%,
-    rgba(255, 255, 255, 0.15) 90%,
-    rgba(255, 255, 255, 0.3) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.1) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-bottom: none;
 }
 
-/* Left hand - blue */
 .note-bar--left {
   background: linear-gradient(180deg,
-    rgba(90, 138, 176, 0.1) 0%,
-    rgba(90, 138, 176, 0.25) 85%,
-    rgba(90, 138, 176, 0.6) 100%);
-  border-color: rgba(90, 138, 176, 0.4);
-  box-shadow: 0 0 8px rgba(90, 138, 176, 0.2);
+    rgba(90, 138, 176, 0.08) 0%,
+    rgba(90, 138, 176, 0.2) 100%);
+  border-color: rgba(90, 138, 176, 0.3);
 }
 
-/* Right hand - red/warm */
 .note-bar--right {
   background: linear-gradient(180deg,
-    rgba(176, 106, 90, 0.1) 0%,
-    rgba(176, 106, 90, 0.25) 85%,
-    rgba(176, 106, 90, 0.6) 100%);
-  border-color: rgba(176, 106, 90, 0.4);
-  box-shadow: 0 0 8px rgba(176, 106, 90, 0.2);
+    rgba(176, 106, 90, 0.08) 0%,
+    rgba(176, 106, 90, 0.2) 100%);
+  border-color: rgba(176, 106, 90, 0.3);
 }
 
-/* Active state - currently playing */
 .note-bar--active {
   border-width: 2px;
 }
 
 .note-bar--active.note-bar--left {
   background: linear-gradient(180deg,
-    rgba(90, 138, 176, 0.3) 0%,
-    rgba(90, 138, 176, 0.5) 85%,
-    rgba(90, 138, 176, 0.9) 100%);
-  border-color: rgba(90, 138, 176, 0.8);
-  box-shadow: 0 0 20px rgba(90, 138, 176, 0.5);
+    rgba(90, 138, 176, 0.2) 0%,
+    rgba(90, 138, 176, 0.4) 100%);
+  border-color: rgba(90, 138, 176, 0.6);
+  box-shadow: 0 0 15px rgba(90, 138, 176, 0.4);
 }
 
 .note-bar--active.note-bar--right {
   background: linear-gradient(180deg,
-    rgba(176, 106, 90, 0.3) 0%,
-    rgba(176, 106, 90, 0.5) 85%,
-    rgba(176, 106, 90, 0.9) 100%);
-  border-color: rgba(176, 106, 90, 0.8);
-  box-shadow: 0 0 20px rgba(176, 106, 90, 0.5);
+    rgba(176, 106, 90, 0.2) 0%,
+    rgba(176, 106, 90, 0.4) 100%);
+  border-color: rgba(176, 106, 90, 0.6);
+  box-shadow: 0 0 15px rgba(176, 106, 90, 0.4);
 }
 
-/* Past state - already played */
 .note-bar--past {
-  opacity: 0.3 !important;
+  opacity: 0.2 !important;
 }
 
-/* Hit zone at bottom of bar */
-.note-bar__hit-zone {
+/* Tone field at bottom of bar */
+.note-bar__tone-field {
   position: absolute;
   bottom: 0;
-  left: 0;
-  right: 0;
-  height: 8px;
-  border-radius: 0 0 3px 3px;
-  background: rgba(255, 255, 255, 0.3);
-  transition: all 0.1s ease;
+  left: 50%;
+  width: var(--tone-field-width, 65px);
+  height: var(--tone-field-height, 52px);
+  transform-origin: center bottom;
 }
 
-.note-bar--left .note-bar__hit-zone {
-  background: rgba(90, 138, 176, 0.5);
+.note-bar__tone-field-inner {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+
+  background: radial-gradient(ellipse 70% 60% at 40% 35%,
+    rgba(168, 168, 168, 0.3) 0%,
+    rgba(136, 136, 136, 0.4) 30%,
+    rgba(102, 102, 102, 0.5) 70%,
+    rgba(68, 68, 68, 0.6) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.note-bar--right .note-bar__hit-zone {
-  background: rgba(176, 106, 90, 0.5);
+/* Left hand tone field */
+.note-bar__tone-field--left .note-bar__tone-field-inner {
+  background: radial-gradient(ellipse 70% 60% at 40% 35%,
+    rgba(158, 197, 232, 0.5) 0%,
+    rgba(106, 159, 196, 0.6) 30%,
+    rgba(74, 127, 160, 0.7) 70%,
+    rgba(58, 95, 128, 0.8) 100%);
+  border-color: rgba(90, 138, 176, 0.5);
+  box-shadow:
+    inset 1px 1px 4px rgba(180, 220, 255, 0.3),
+    0 2px 8px rgba(58, 95, 128, 0.4);
+}
+
+/* Right hand tone field */
+.note-bar__tone-field--right .note-bar__tone-field-inner {
+  background: radial-gradient(ellipse 70% 60% at 40% 35%,
+    rgba(232, 176, 158, 0.5) 0%,
+    rgba(196, 122, 106, 0.6) 30%,
+    rgba(160, 90, 74, 0.7) 70%,
+    rgba(128, 58, 42, 0.8) 100%);
+  border-color: rgba(176, 106, 90, 0.5);
+  box-shadow:
+    inset 1px 1px 4px rgba(255, 200, 180, 0.3),
+    0 2px 8px rgba(128, 58, 42, 0.4);
 }
 
 /* Flash effect when hit */
-.note-bar__hit-zone--flash {
-  height: 12px;
-  background: rgba(255, 255, 255, 0.9) !important;
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
-  animation: hit-flash 0.15s ease-out;
+.note-bar__tone-field--flash .note-bar__tone-field-inner {
+  background: radial-gradient(ellipse 70% 60% at 40% 35%,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0.7) 50%,
+    rgba(255, 255, 255, 0.5) 100%) !important;
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.8) !important;
+  animation: tone-field-flash 0.2s ease-out;
 }
 
-@keyframes hit-flash {
+@keyframes tone-field-flash {
   0% {
-    transform: scaleX(1.5);
-    box-shadow: 0 0 30px rgba(255, 255, 255, 1);
+    transform: translateX(-50%) scale(1.3);
   }
   100% {
-    transform: scaleX(1);
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+    transform: translateX(-50%) scale(1);
   }
 }
 
@@ -467,28 +640,41 @@ watch(() => props.events, () => {
 /* Light theme */
 :root[data-theme="light"] .note-bar {
   background: linear-gradient(180deg,
-    rgba(0, 0, 0, 0.03) 0%,
-    rgba(0, 0, 0, 0.1) 90%,
-    rgba(0, 0, 0, 0.2) 100%);
-  border-color: rgba(0, 0, 0, 0.15);
+    rgba(0, 0, 0, 0.02) 0%,
+    rgba(0, 0, 0, 0.08) 100%);
+  border-color: rgba(0, 0, 0, 0.1);
 }
 
 :root[data-theme="light"] .note-bar--left {
   background: linear-gradient(180deg,
-    rgba(70, 118, 156, 0.1) 0%,
-    rgba(70, 118, 156, 0.25) 85%,
-    rgba(70, 118, 156, 0.6) 100%);
-  border-color: rgba(70, 118, 156, 0.4);
-  box-shadow: 0 0 8px rgba(70, 118, 156, 0.2);
+    rgba(70, 118, 156, 0.05) 0%,
+    rgba(70, 118, 156, 0.15) 100%);
+  border-color: rgba(70, 118, 156, 0.25);
 }
 
 :root[data-theme="light"] .note-bar--right {
   background: linear-gradient(180deg,
-    rgba(156, 86, 70, 0.1) 0%,
-    rgba(156, 86, 70, 0.25) 85%,
-    rgba(156, 86, 70, 0.6) 100%);
-  border-color: rgba(156, 86, 70, 0.4);
-  box-shadow: 0 0 8px rgba(156, 86, 70, 0.2);
+    rgba(156, 86, 70, 0.05) 0%,
+    rgba(156, 86, 70, 0.15) 100%);
+  border-color: rgba(156, 86, 70, 0.25);
+}
+
+:root[data-theme="light"] .connection-line--left {
+  stroke: rgba(70, 118, 156, 0.4);
+}
+
+:root[data-theme="light"] .connection-line--right {
+  stroke: rgba(156, 86, 70, 0.4);
+}
+
+:root[data-theme="light"] .target-glow--left {
+  background: radial-gradient(circle, rgba(70, 118, 156, 0.3) 0%, transparent 70%);
+  box-shadow: 0 0 25px rgba(70, 118, 156, 0.4);
+}
+
+:root[data-theme="light"] .target-glow--right {
+  background: radial-gradient(circle, rgba(156, 86, 70, 0.3) 0%, transparent 70%);
+  box-shadow: 0 0 25px rgba(156, 86, 70, 0.4);
 }
 
 :root[data-theme="light"] .beat-line--measure {
@@ -526,11 +712,25 @@ watch(() => props.events, () => {
     left: -20px;
     font-size: 10px;
   }
+
+  .note-bar__tone-field {
+    --tone-field-width: calc(var(--tone-field-width, 65px) * 0.8);
+    --tone-field-height: calc(var(--tone-field-height, 52px) * 0.8);
+  }
 }
 
 @media (max-width: 480px) {
   .beat-line__label {
     display: none;
+  }
+
+  .connection-lines {
+    display: none;
+  }
+
+  .note-bar__tone-field {
+    --tone-field-width: calc(var(--tone-field-width, 65px) * 0.65);
+    --tone-field-height: calc(var(--tone-field-height, 52px) * 0.65);
   }
 }
 </style>
