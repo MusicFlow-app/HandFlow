@@ -50,7 +50,7 @@
       ]"
       :style="getNoteBarStyle(event)"
     >
-      <!-- Tone field shape at the bottom (hit zone) -->
+      <!-- Realistic tone field shape at the bottom (hit zone) -->
       <div
         class="note-bar__tone-field"
         :class="[
@@ -59,7 +59,8 @@
         ]"
         :style="getToneFieldStyle(event)"
       >
-        <div class="note-bar__tone-field-inner"></div>
+        <!-- Nipple in center like real handpan -->
+        <div class="note-bar__nipple"></div>
       </div>
     </div>
   </div>
@@ -516,7 +517,7 @@ watch(() => props.events, () => {
   opacity: 0.2 !important;
 }
 
-/* Tone field at bottom of bar */
+/* Realistic tone field at bottom of bar - matches handpan3d.css */
 .note-bar__tone-field {
   position: absolute;
   bottom: 0;
@@ -524,67 +525,129 @@ watch(() => props.events, () => {
   width: var(--tone-field-width, 65px);
   height: var(--tone-field-height, 52px);
   transform-origin: center bottom;
-}
-
-.note-bar__tone-field-inner {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  height: 100%;
   border-radius: 50%;
 
-  background: radial-gradient(ellipse 70% 60% at 40% 35%,
-    rgba(168, 168, 168, 0.3) 0%,
-    rgba(136, 136, 136, 0.4) 30%,
-    rgba(102, 102, 102, 0.5) 70%,
-    rgba(68, 68, 68, 0.6) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  /* Concave dimple effect - same as handpan display */
+  background:
+    radial-gradient(ellipse 90% 80% at 45% 40%,
+      var(--handpan-tone-highlight, #6a7278) 0%,
+      var(--handpan-tone-base, #4a5258) 50%,
+      var(--handpan-steel-dark, #3a4044) 100%);
+
+  box-shadow:
+    inset 2px 2px 6px rgba(0, 0, 0, 0.25),
+    inset -1px -1px 4px rgba(255, 255, 255, 0.08),
+    0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
-/* Left hand tone field */
-.note-bar__tone-field--left .note-bar__tone-field-inner {
-  background: radial-gradient(ellipse 70% 60% at 40% 35%,
-    rgba(158, 197, 232, 0.5) 0%,
-    rgba(106, 159, 196, 0.6) 30%,
-    rgba(74, 127, 160, 0.7) 70%,
-    rgba(58, 95, 128, 0.8) 100%);
-  border-color: rgba(90, 138, 176, 0.5);
+/* Nipple in center of tone field - like real handpan */
+.note-bar__nipple {
+  position: absolute;
+  width: 40%;
+  height: 38%;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  background:
+    radial-gradient(ellipse 85% 75% at 35% 30%,
+      var(--handpan-highlight, #b8c0c8) 0%,
+      var(--handpan-steel-light, #8a9299) 50%,
+      var(--handpan-steel-mid, #5a6268) 100%);
+
   box-shadow:
-    inset 1px 1px 4px rgba(180, 220, 255, 0.3),
-    0 2px 8px rgba(58, 95, 128, 0.4);
+    inset 1px 1px 3px rgba(255, 255, 255, 0.25),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.1),
+    0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
-/* Right hand tone field */
-.note-bar__tone-field--right .note-bar__tone-field-inner {
-  background: radial-gradient(ellipse 70% 60% at 40% 35%,
-    rgba(232, 176, 158, 0.5) 0%,
-    rgba(196, 122, 106, 0.6) 30%,
-    rgba(160, 90, 74, 0.7) 70%,
-    rgba(128, 58, 42, 0.8) 100%);
-  border-color: rgba(176, 106, 90, 0.5);
+/* Left hand tone field - blue tint overlay */
+.note-bar__tone-field--left {
+  background:
+    radial-gradient(ellipse 90% 80% at 45% 40%,
+      rgba(106, 159, 196, 0.7) 0%,
+      rgba(74, 127, 160, 0.6) 50%,
+      rgba(58, 95, 128, 0.5) 100%),
+    radial-gradient(ellipse 90% 80% at 45% 40%,
+      var(--handpan-tone-highlight, #6a7278) 0%,
+      var(--handpan-tone-base, #4a5258) 50%,
+      var(--handpan-steel-dark, #3a4044) 100%);
   box-shadow:
-    inset 1px 1px 4px rgba(255, 200, 180, 0.3),
-    0 2px 8px rgba(128, 58, 42, 0.4);
+    inset 2px 2px 6px rgba(0, 0, 0, 0.2),
+    inset -1px -1px 4px rgba(180, 220, 255, 0.15),
+    0 2px 8px rgba(58, 95, 128, 0.4),
+    0 0 15px rgba(90, 138, 176, 0.3);
+}
+
+.note-bar__tone-field--left .note-bar__nipple {
+  background:
+    radial-gradient(ellipse 85% 75% at 35% 30%,
+      rgba(158, 197, 232, 0.8) 0%,
+      rgba(106, 159, 196, 0.7) 50%,
+      rgba(74, 127, 160, 0.6) 100%),
+    radial-gradient(ellipse 85% 75% at 35% 30%,
+      var(--handpan-highlight, #b8c0c8) 0%,
+      var(--handpan-steel-light, #8a9299) 50%,
+      var(--handpan-steel-mid, #5a6268) 100%);
+}
+
+/* Right hand tone field - warm/red tint overlay */
+.note-bar__tone-field--right {
+  background:
+    radial-gradient(ellipse 90% 80% at 45% 40%,
+      rgba(196, 122, 106, 0.7) 0%,
+      rgba(160, 90, 74, 0.6) 50%,
+      rgba(128, 58, 42, 0.5) 100%),
+    radial-gradient(ellipse 90% 80% at 45% 40%,
+      var(--handpan-tone-highlight, #6a7278) 0%,
+      var(--handpan-tone-base, #4a5258) 50%,
+      var(--handpan-steel-dark, #3a4044) 100%);
+  box-shadow:
+    inset 2px 2px 6px rgba(0, 0, 0, 0.2),
+    inset -1px -1px 4px rgba(255, 200, 180, 0.15),
+    0 2px 8px rgba(128, 58, 42, 0.4),
+    0 0 15px rgba(176, 106, 90, 0.3);
+}
+
+.note-bar__tone-field--right .note-bar__nipple {
+  background:
+    radial-gradient(ellipse 85% 75% at 35% 30%,
+      rgba(232, 176, 158, 0.8) 0%,
+      rgba(196, 122, 106, 0.7) 50%,
+      rgba(160, 90, 74, 0.6) 100%),
+    radial-gradient(ellipse 85% 75% at 35% 30%,
+      var(--handpan-highlight, #b8c0c8) 0%,
+      var(--handpan-steel-light, #8a9299) 50%,
+      var(--handpan-steel-mid, #5a6268) 100%);
 }
 
 /* Flash effect when hit */
-.note-bar__tone-field--flash .note-bar__tone-field-inner {
-  background: radial-gradient(ellipse 70% 60% at 40% 35%,
-    rgba(255, 255, 255, 0.9) 0%,
-    rgba(255, 255, 255, 0.7) 50%,
-    rgba(255, 255, 255, 0.5) 100%) !important;
-  box-shadow: 0 0 30px rgba(255, 255, 255, 0.8) !important;
+.note-bar__tone-field--flash {
+  background:
+    radial-gradient(ellipse 90% 80% at 50% 45%,
+      rgba(255, 255, 255, 0.9) 0%,
+      rgba(255, 255, 255, 0.7) 50%,
+      rgba(255, 255, 255, 0.5) 100%) !important;
+  box-shadow:
+    0 0 30px rgba(255, 255, 255, 0.8),
+    0 0 60px rgba(255, 255, 255, 0.4) !important;
   animation: tone-field-flash 0.2s ease-out;
+}
+
+.note-bar__tone-field--flash .note-bar__nipple {
+  background: radial-gradient(ellipse 85% 75% at 35% 30%,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 255, 255, 0.9) 50%,
+    rgba(255, 255, 255, 0.8) 100%) !important;
 }
 
 @keyframes tone-field-flash {
   0% {
-    transform: translateX(-50%) scale(1.3);
+    transform: translateX(-50%) rotate(var(--rotation, 0deg)) scale(1.2);
   }
   100% {
-    transform: translateX(-50%) scale(1);
+    transform: translateX(-50%) rotate(var(--rotation, 0deg)) scale(1);
   }
 }
 
@@ -713,9 +776,10 @@ watch(() => props.events, () => {
     font-size: 10px;
   }
 
+  /* Smaller tone fields on tablet - matches handpan display */
   .note-bar__tone-field {
-    --tone-field-width: calc(var(--tone-field-width, 65px) * 0.8);
-    --tone-field-height: calc(var(--tone-field-height, 52px) * 0.8);
+    width: calc(var(--tone-field-width, 65px) * 0.77);
+    height: calc(var(--tone-field-height, 52px) * 0.77);
   }
 }
 
@@ -728,9 +792,10 @@ watch(() => props.events, () => {
     display: none;
   }
 
+  /* Even smaller on mobile - matches handpan display */
   .note-bar__tone-field {
-    --tone-field-width: calc(var(--tone-field-width, 65px) * 0.65);
-    --tone-field-height: calc(var(--tone-field-height, 52px) * 0.65);
+    width: calc(var(--tone-field-width, 65px) * 0.68);
+    height: calc(var(--tone-field-height, 52px) * 0.68);
   }
 }
 </style>
