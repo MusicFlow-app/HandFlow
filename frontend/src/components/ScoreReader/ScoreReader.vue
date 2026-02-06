@@ -37,28 +37,22 @@
       />
     </div>
 
-    <!-- Falling notes canvas -->
-    <div class="score-reader__canvas">
-      <FallingNotesCanvas
+    <!-- Handpan display with falling notes overlay -->
+    <div class="score-reader__stage" ref="stageRef">
+      <!-- Falling notes overlay (positioned above handpan) -->
+      <FallingNotesOverlay
         :events="scheduler.scheduledEvents.value"
         :current-time="playback.currentTime.value"
         :lead-time="LEAD_TIME"
         :trail-time="TRAIL_TIME"
-        :handpan-notes="allHandpanNotes"
-        :lane-width="laneWidth"
-        :show-labels="showNoteLabels"
-        :tempo="scheduler.tempo.value"
-        :time-signature="scheduler.timeSignature.value"
+        :note-positions="notePositions"
+        :handpan-center="handpanCenter"
+        :fall-height="fallHeight"
         @note-hit="handleNoteHit"
       />
-    </div>
-
-    <!-- Handpan display -->
-    <div class="score-reader__handpan">
-      <div class="score-reader__hit-line"></div>
 
       <!-- Embedded handpan visualization -->
-      <div class="handpan-container top-view">
+      <div class="handpan-container top-view" ref="handpanRef">
         <div class="handpan-instrument">
           <div class="handpan-shell handpan-top-shell">
             <div class="metal-texture"></div>
@@ -126,13 +120,13 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { PhMetronome, PhMusicNotes, PhArrowLeft } from '@phosphor-icons/vue';
 import { apiUrl } from '@/services/api';
 
 import PlaybackControls from './PlaybackControls.vue';
-import FallingNotesCanvas from './FallingNotesCanvas.vue';
+import FallingNotesOverlay from './FallingNotesOverlay.vue';
 import useNoteScheduler from '@/composables/useNoteScheduler';
 import useScorePlayback from '@/composables/useScorePlayback';
 import useHandpanSelection from '@/composables/useHandpanSelection';
@@ -158,12 +152,16 @@ const props = defineProps({
 const emit = defineEmits(['close']);
 
 // Constants
-const LEAD_TIME = 2000; // 2 seconds ahead
-const TRAIL_TIME = 200; // 0.2 seconds behind
+const LEAD_TIME = 2500; // 2.5 seconds ahead (longer for more visual anticipation)
+const TRAIL_TIME = 300; // 0.3 seconds behind
 
 // Router
 const route = useRoute();
 const router = useRouter();
+
+// Refs for DOM elements
+const stageRef = ref(null);
+const handpanRef = ref(null);
 
 // Get handpan selection state (singleton - shared across app)
 const {
@@ -180,8 +178,11 @@ const scoreMetadata = ref(null);
 const scoreLoaded = ref(false);
 const activeNoteIndex = ref(null);
 const lastHitHand = ref('right');
-const showNoteLabels = ref(true);
 const audioCache = ref({});
+
+// Computed position data for the falling notes overlay
+const handpanCenter = ref({ x: 0, y: 0 });
+const fallHeight = ref(400);
 
 // Composables
 const scheduler = useNoteScheduler();
@@ -235,11 +236,6 @@ const innerNotes = computed(() => {
   return displayedNotes.value.filter(note => note.position === 'Inner');
 });
 
-// Bottom notes
-const bottomNotes = computed(() => {
-  return displayedNotes.value.filter(note => note.position === 'Bottom');
-});
-
 // All handpan notes for lane mapping (ding first, then others)
 const allHandpanNotes = computed(() => {
   const allNotes = [];
@@ -264,17 +260,30 @@ const allHandpanNotes = computed(() => {
   return allNotes;
 });
 
-// Responsive lane width
-const laneWidth = computed(() => {
-  if (typeof window !== 'undefined') {
-    if (window.innerWidth < 480) return 32;
-    if (window.innerWidth < 768) return 40;
-  }
-  return 50;
+// Calculate positions for all notes (for falling notes overlay)
+const notePositions = computed(() => {
+  const positions = [];
+
+  // Ding position (center)
+  positions.push({ x: 0, y: 0, rotation: 0, noteIndex: 0 });
+
+  // Top notes positions
+  topNotes.value.forEach((note, index) => {
+    const pos = calculateTopNotePosition(index + 1, topNotes.value.length);
+    positions.push({ ...pos, noteIndex: index + 1 });
+  });
+
+  // Inner notes positions
+  innerNotes.value.forEach((note, index) => {
+    const pos = calculateInnerNotePosition(index + 1, innerNotes.value.length);
+    positions.push({ ...pos, noteIndex: topNotes.value.length + index + 1 });
+  });
+
+  return positions;
 });
 
-// Note positioning (adapted from useHandpanDisplay)
-const getNoteWrapperStyle = (index, total, position, note) => {
+// Calculate top note position (extracted from getNoteWrapperStyle)
+const calculateTopNotePosition = (index, total) => {
   const pairs = Math.floor(total / 2);
   const isOdd = (total % 2) !== 0;
 
@@ -310,55 +319,14 @@ const getNoteWrapperStyle = (index, total, position, note) => {
   const x = Math.sin(angleInRadians) * radius;
   const y = -Math.cos(angleInRadians) * radius;
 
-  return {
-    '--tx': `${x}px`,
-    '--ty': `${y}px`,
-    transform: `translate(var(--tx), var(--ty))`,
-    position: 'absolute',
-    zIndex: '5'
-  };
-};
-
-const getNoteInnerStyle = (index, total, position, note) => {
-  const pairs = Math.floor(total / 2);
-  const isOdd = (total % 2) !== 0;
-
-  let angleInDegrees;
-
-  if (index === total) {
-    angleInDegrees = 0;
-  } else {
-    let pairNumber;
-    let angleStep;
-
-    if (isOdd) {
-      pairNumber = Math.ceil(index / 2);
-      angleStep = 180 / (pairs + 1);
-      const side = (index % 2) === 0 ? 0 : 1;
-      angleInDegrees = side === 0 ? 180 + (pairNumber * angleStep) : 180 - (pairNumber * angleStep);
-    } else {
-      angleStep = 180 / pairs;
-      pairNumber = Math.ceil((index - 1) / 2);
-      if (index !== 1) {
-        const side = (index % 2) === 0 ? 0 : 1;
-        angleInDegrees = side === 0 ? 180 + (pairNumber * angleStep) : 180 - (pairNumber * angleStep);
-      } else {
-        angleInDegrees = 180;
-      }
-    }
-  }
-
-  angleInDegrees = angleInDegrees % 360;
+  // Calculate rotation for the note
   const rotationDegrees = angleInDegrees > 180 ? angleInDegrees + 90 : angleInDegrees - 90;
 
-  return {
-    transform: `rotate(${rotationDegrees}deg)`,
-    transformOrigin: 'center center'
-  };
+  return { x, y, rotation: rotationDegrees };
 };
 
-// Inner note positioning
-const getInnerNoteWrapperStyle = (index, total, note) => {
+// Calculate inner note position
+const calculateInnerNotePosition = (index, total) => {
   const baseAngle = 360 / total;
   const angleInDegrees = (index - 1) * baseAngle;
   const angleInRadians = angleInDegrees * (Math.PI / 180);
@@ -367,9 +335,40 @@ const getInnerNoteWrapperStyle = (index, total, note) => {
   const x = Math.sin(angleInRadians) * radius;
   const y = -Math.cos(angleInRadians) * radius;
 
+  const rotationDegrees = angleInDegrees > 180 ? angleInDegrees + 90 : angleInDegrees - 90;
+
+  return { x, y, rotation: rotationDegrees };
+};
+
+// Note positioning (for handpan display)
+const getNoteWrapperStyle = (index, total, position, note) => {
+  const pos = calculateTopNotePosition(index, total);
+
   return {
-    '--tx': `${x}px`,
-    '--ty': `${y}px`,
+    '--tx': `${pos.x}px`,
+    '--ty': `${pos.y}px`,
+    transform: `translate(var(--tx), var(--ty))`,
+    position: 'absolute',
+    zIndex: '5'
+  };
+};
+
+const getNoteInnerStyle = (index, total, position, note) => {
+  const pos = calculateTopNotePosition(index, total);
+
+  return {
+    transform: `rotate(${pos.rotation}deg)`,
+    transformOrigin: 'center center'
+  };
+};
+
+// Inner note positioning
+const getInnerNoteWrapperStyle = (index, total, note) => {
+  const pos = calculateInnerNotePosition(index, total);
+
+  return {
+    '--tx': `${pos.x}px`,
+    '--ty': `${pos.y}px`,
     transform: `translate(var(--tx), var(--ty))`,
     position: 'absolute',
     zIndex: '5'
@@ -377,12 +376,10 @@ const getInnerNoteWrapperStyle = (index, total, note) => {
 };
 
 const getInnerNoteInnerStyle = (index, total, note) => {
-  const baseAngle = 360 / total;
-  const angleInDegrees = (index - 1) * baseAngle;
-  const rotationDegrees = angleInDegrees > 180 ? angleInDegrees + 90 : angleInDegrees - 90;
+  const pos = calculateInnerNotePosition(index, total);
 
   return {
-    transform: `rotate(${rotationDegrees}deg)`,
+    transform: `rotate(${pos.rotation}deg)`,
     transformOrigin: 'center center'
   };
 };
@@ -514,6 +511,14 @@ const preloadAudio = () => {
   });
 };
 
+// Update layout measurements
+const updateLayoutMeasurements = () => {
+  if (stageRef.value) {
+    // Calculate fall height based on stage size
+    fallHeight.value = stageRef.value.clientHeight * 0.6;
+  }
+};
+
 // Watch for handpan changes to reload audio
 watch(allHandpanNotes, () => {
   preloadAudio();
@@ -525,6 +530,11 @@ onMounted(() => {
 
   if (isHandpanReady.value) {
     preloadAudio();
+
+    // Wait for DOM to be ready then measure
+    nextTick(() => {
+      updateLayoutMeasurements();
+    });
 
     if (props.scoreData) {
       // Use provided score data
@@ -539,12 +549,16 @@ onMounted(() => {
       loadScore(scoreId);
     }
   }
+
+  // Listen for resize
+  window.addEventListener('resize', updateLayoutMeasurements);
 });
 
 // Cleanup
 onUnmounted(() => {
   playback.cleanup();
   scheduler.clearSchedule();
+  window.removeEventListener('resize', updateLayoutMeasurements);
 
   Object.values(audioCache.value).forEach(audio => {
     try {
@@ -561,6 +575,36 @@ onUnmounted(() => {
 @import '@/assets/styles/components/ScoreReader/base.css';
 @import '@/assets/styles/components/ScoreReader/falling-notes.css';
 @import '@/assets/styles/components/HandpanDisplay/handpan3d.css';
+
+/* Override base layout for overlay approach */
+.score-reader {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  background: var(--surface-primary);
+  overflow: hidden;
+}
+
+/* Stage takes most of the space */
+.score-reader__stage {
+  flex: 1;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  background: linear-gradient(180deg,
+    var(--surface-secondary) 0%,
+    var(--surface-primary) 30%,
+    var(--surface-primary) 100%);
+}
+
+/* Handpan centered in stage */
+.score-reader__stage .handpan-container {
+  position: relative;
+  z-index: 10;
+}
 
 /* Empty state */
 .score-reader--empty {
