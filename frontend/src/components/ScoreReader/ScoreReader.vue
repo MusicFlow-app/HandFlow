@@ -49,6 +49,9 @@
         :handpan-notes="allHandpanNotes"
         :handpan-center="handpanCenter"
         :fall-height="fallHeight"
+        :tempo="scheduler.tempo.value"
+        :time-signature="scheduler.timeSignature.value"
+        :score-duration="scheduler.scoreDuration.value"
         @note-hit="handleNoteHit"
       />
 

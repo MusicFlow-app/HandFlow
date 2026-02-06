@@ -1,5 +1,19 @@
 <template>
   <div class="falling-notes-overlay" ref="overlayRef">
+    <!-- Beat grid lines (measures and quarter beats) -->
+    <div
+      v-for="beat in visibleBeatMarkers"
+      :key="beat.id"
+      class="beat-line"
+      :class="[
+        `beat-line--${beat.type}`,
+        { 'beat-line--hit': beat.progress >= 1 }
+      ]"
+      :style="getBeatLineStyle(beat)"
+    >
+      <span v-if="beat.type === 'measure'" class="beat-line__label">{{ beat.measureNumber }}</span>
+    </div>
+
     <!-- Falling notes with duration boxes -->
     <div
       v-for="event in visibleEvents"
@@ -73,6 +87,21 @@ const props = defineProps({
   fallHeight: {
     type: Number,
     default: 400
+  },
+  // Tempo in BPM for beat grid
+  tempo: {
+    type: Number,
+    default: 120
+  },
+  // Time signature (beats per measure)
+  timeSignature: {
+    type: Object,
+    default: () => ({ beats: 4, beatType: 4 })
+  },
+  // Total score duration in ms
+  scoreDuration: {
+    type: Number,
+    default: 0
   }
 });
 
@@ -134,6 +163,91 @@ const visibleEvents = computed(() => {
       isHit: hitNotes.value.has(event.id)
     }));
 });
+
+// Generate all beat markers for the score
+const allBeatMarkers = computed(() => {
+  if (props.scoreDuration <= 0 || props.tempo <= 0) return [];
+
+  const markers = [];
+  const msPerBeat = 60000 / props.tempo;
+  const beatsPerMeasure = props.timeSignature.beats || 4;
+  const msPerMeasure = msPerBeat * beatsPerMeasure;
+
+  // Generate measure and beat markers
+  let measureNumber = 1;
+  let time = 0;
+
+  while (time <= props.scoreDuration + msPerMeasure) {
+    // Add measure line
+    markers.push({
+      id: `measure-${measureNumber}`,
+      type: 'measure',
+      absoluteTime: time,
+      measureNumber
+    });
+
+    // Add quarter beat lines within the measure
+    for (let beat = 1; beat < beatsPerMeasure; beat++) {
+      const beatTime = time + (beat * msPerBeat);
+      if (beatTime <= props.scoreDuration + msPerMeasure) {
+        markers.push({
+          id: `beat-${measureNumber}-${beat}`,
+          type: 'beat',
+          absoluteTime: beatTime,
+          measureNumber,
+          beatInMeasure: beat
+        });
+      }
+    }
+
+    measureNumber++;
+    time += msPerMeasure;
+  }
+
+  return markers;
+});
+
+// Filter beat markers to visible window
+const visibleBeatMarkers = computed(() => {
+  const windowStart = props.currentTime - props.trailTime;
+  const windowEnd = props.currentTime + props.leadTime;
+
+  return allBeatMarkers.value
+    .filter(marker => {
+      return marker.absoluteTime >= windowStart && marker.absoluteTime <= windowEnd;
+    })
+    .map(marker => {
+      const timeOffset = marker.absoluteTime - props.currentTime;
+      const progress = 1 - (timeOffset / props.leadTime);
+      return { ...marker, progress };
+    });
+});
+
+// Style for beat grid lines
+const getBeatLineStyle = (beat) => {
+  const timeOffset = beat.absoluteTime - props.currentTime;
+  const progress = 1 - (timeOffset / props.leadTime);
+  const clampedProgress = Math.max(0, progress);
+
+  // Calculate Y position (same as notes)
+  const startY = -props.fallHeight;
+  const endY = 0; // Center
+  const currentY = startY + (endY - startY) * clampedProgress;
+
+  // Opacity: fade in as it appears, fade out after passing
+  let opacity = 1;
+  if (clampedProgress < 0.1) {
+    opacity = clampedProgress / 0.1;
+  } else if (progress > 1) {
+    opacity = Math.max(0, 1 - (progress - 1) * 3);
+  }
+
+  return {
+    '--ty': `${currentY}px`,
+    transform: `translateY(calc(-50% + var(--ty)))`,
+    opacity
+  };
+};
 
 // Get the position data for a specific handpan note index
 const getNotePosition = (noteIndex) => {
@@ -446,6 +560,103 @@ watch(() => props.events, () => {
 
   .falling-note-duration-box {
     width: 2px;
+  }
+}
+
+/* Beat grid lines */
+.beat-line {
+  position: absolute;
+  top: 50%;
+  left: 5%;
+  right: 5%;
+  height: 1px;
+  pointer-events: none;
+  will-change: transform, opacity;
+  z-index: 5;
+}
+
+/* Measure lines - more prominent */
+.beat-line--measure {
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 15%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0.4) 85%,
+    transparent 100%);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+}
+
+/* Quarter beat lines - subtle */
+.beat-line--beat {
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.15) 20%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.15) 80%,
+    transparent 100%);
+}
+
+/* Fade out after passing */
+.beat-line--hit {
+  opacity: 0.3;
+}
+
+/* Measure number label */
+.beat-line__label {
+  position: absolute;
+  left: -30px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: var(--font-mono, monospace);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Dark theme adjustments */
+:root[data-theme="light"] .beat-line--measure {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.2) 15%,
+    rgba(0, 0, 0, 0.3) 50%,
+    rgba(0, 0, 0, 0.2) 85%,
+    transparent 100%);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+}
+
+:root[data-theme="light"] .beat-line--beat {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.1) 20%,
+    rgba(0, 0, 0, 0.15) 50%,
+    rgba(0, 0, 0, 0.1) 80%,
+    transparent 100%);
+}
+
+:root[data-theme="light"] .beat-line__label {
+  color: rgba(0, 0, 0, 0.4);
+  text-shadow: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .beat-line {
+    left: 2%;
+    right: 2%;
+  }
+
+  .beat-line__label {
+    left: -20px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .beat-line__label {
+    display: none;
   }
 }
 </style>
