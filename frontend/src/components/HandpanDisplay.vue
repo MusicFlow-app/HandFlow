@@ -71,31 +71,35 @@
               </div>
               
               <!-- Top notes in alternating pattern -->
-              <div 
-                v-for="(note, index) in topNotes" 
+              <div
+                v-for="(note, index) in topNotes"
                 :key="`top-${index}`"
-                class="note tone-field"
-                :class="{ 'active': activeNote === index }"
-                :style="getNoteStyle(index + 1, topNotes.length, 1, 'top', note)"
-                @click.stop="playNote(note, index)"
+                class="note-wrapper"
+                :style="getNoteStyle(index + 1, topNotes.length, 1, 'top', note).wrapper"
               >
-                <div class="note-content">
-                  <span class="note-name">{{ note.note || note.calculated_note || '' }}</span>
-                </div>
+                <div
+                  class="note tone-field"
+                  :class="{ 'active': activeNote === index }"
+                  :style="getNoteStyle(index + 1, topNotes.length, 1, 'top', note).note"
+                  @click.stop="playNote(note, index)"
+                ></div>
+                <span class="note-name">{{ note.note || note.calculated_note || '' }}</span>
               </div>
-              
+
               <!-- Inner notes -->
-              <div 
-                v-for="(note, index) in innerNotes" 
+              <div
+                v-for="(note, index) in innerNotes"
                 :key="`inner-${index}`"
-                class="note tone-field inner"
-                :class="{ 'active': activeNote === index + topNotes.length }"
-                :style="getNoteStyle(index + 1, innerNotes.length, 0.7, 'inner', note)"
-                @click.stop="playNote(note, index + topNotes.length)"
+                class="note-wrapper"
+                :style="getNoteStyle(index + 1, innerNotes.length, 0.7, 'inner', note).wrapper"
               >
-                <div class="note-content">
-                  <span class="note-name">{{ note.note || note.calculated_note || '' }}</span>
-                </div>
+                <div
+                  class="note tone-field inner"
+                  :class="{ 'active': activeNote === index + topNotes.length }"
+                  :style="getNoteStyle(index + 1, innerNotes.length, 0.7, 'inner', note).note"
+                  @click.stop="playNote(note, index + topNotes.length)"
+                ></div>
+                <span class="note-name">{{ note.note || note.calculated_note || '' }}</span>
               </div>
               
               <!-- Light reflections -->
@@ -119,17 +123,19 @@
               </div>
               
               <!-- Bottom notes -->
-              <div 
-                v-for="(note, index) in bottomNotes" 
+              <div
+                v-for="(note, index) in bottomNotes"
                 :key="`bottom-${index}`"
-                class="note tone-field bottom"
-                :class="{ 'active': activeNote === index + topNotes.length + innerNotes.length }"
-                :style="getNoteStyle(index + 1, bottomNotes.length, 1, 'bottom', note)"
-                @click.stop="playNote(note, index + topNotes.length + innerNotes.length)"
+                class="note-wrapper"
+                :style="getNoteStyle(index + 1, bottomNotes.length, 1, 'bottom', note).wrapper"
               >
-                <div class="note-content">
-                  <span class="note-name">{{ note.note || note.calculated_note || '' }}</span>
-                </div>
+                <div
+                  class="note tone-field bottom"
+                  :class="{ 'active': activeNote === index + topNotes.length + innerNotes.length }"
+                  :style="getNoteStyle(index + 1, bottomNotes.length, 1, 'bottom', note).note"
+                  @click.stop="playNote(note, index + topNotes.length + innerNotes.length)"
+                ></div>
+                <span class="note-name">{{ note.note || note.calculated_note || '' }}</span>
               </div>
               
               <!-- Light reflections -->

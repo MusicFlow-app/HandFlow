@@ -299,10 +299,22 @@
 }
 
 /* ========================================
+   Note Wrapper (positioned, not rotated)
+   ======================================== */
+.note-wrapper {
+  /* Fixed size box to contain the rotated note */
+  width: 80px;
+  height: 80px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* Note: position and transform set via inline style */
+}
+
+/* ========================================
    Tone Fields (Notes around the ding)
    ======================================== */
 .note {
-  position: absolute;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -385,12 +397,12 @@
   z-index: 10;
 }
 
-.note-name {
+/* Label positioned at bottom center of wrapper, outside the note */
+.note-wrapper > .note-name {
   position: absolute;
-  top: 50%;
+  bottom: -8px;
   left: 50%;
-  /* Order: 1) counter-rotate to horizontal, 2) move down in screen space, 3) center horizontally */
-  transform: translateX(-50%) translateY(var(--label-offset, 42px)) rotate(var(--label-rotation, 0deg));
+  transform: translateX(-50%);
   font-weight: 600;
   font-size: 11px;
   color: var(--text-primary);
@@ -406,7 +418,8 @@
 }
 
 /* Hide labels when toggle is off */
-.handpan-display.labels-hidden .note-name {
+.handpan-display.labels-hidden .note-name,
+.handpan-display.labels-hidden .note-wrapper > .note-name {
   opacity: 0;
   pointer-events: none;
 }
@@ -560,9 +573,14 @@
     height: 44px;
   }
 
-  .note-name {
+  .note-wrapper {
+    width: 70px;
+    height: 70px;
+  }
+
+  .note-wrapper > .note-name {
     font-size: 10px;
-    transform: translateX(-50%) translateY(var(--label-offset, 36px)) rotate(var(--label-rotation, 0deg));
+    bottom: -6px;
   }
 
   .ding-note .note-name {
@@ -632,9 +650,14 @@
     height: 40px;
   }
 
-  .note-name {
+  .note-wrapper {
+    width: 60px;
+    height: 60px;
+  }
+
+  .note-wrapper > .note-name {
     font-size: 10px;
-    transform: translateX(-50%) translateY(var(--label-offset, 34px)) rotate(var(--label-rotation, 0deg));
+    bottom: -5px;
   }
 
   .ding-note .note-name {
@@ -708,9 +731,14 @@
     height: 34px;
   }
 
-  .note-name {
+  .note-wrapper {
+    width: 52px;
+    height: 52px;
+  }
+
+  .note-wrapper > .note-name {
     font-size: 9px;
-    transform: translateX(-50%) translateY(var(--label-offset, 28px)) rotate(var(--label-rotation, 0deg));
+    bottom: -4px;
   }
 
   .ding-note .note-name {
