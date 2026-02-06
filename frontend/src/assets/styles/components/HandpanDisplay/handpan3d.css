@@ -267,14 +267,16 @@
 
 .ding-note .note-name {
   color: #fff;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 700;
   z-index: 10;
   position: relative;
-  background: rgba(30, 30, 30, 0.75);
-  border: 1px solid rgba(0, 0, 0, 0.4);
-  padding: 4px 10px;
-  border-radius: 5px;
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000,
+    0 0 6px rgba(0, 0, 0, 0.5);
 }
 
 .ding-note:hover {
@@ -381,15 +383,16 @@
 }
 
 .note-name {
-  font-weight: 600;
-  font-size: 12px;
+  font-weight: 700;
+  font-size: 13px;
   color: #fff;
-  background: rgba(30, 30, 30, 0.75);
-  border: 1px solid rgba(0, 0, 0, 0.4);
-  padding: 3px 6px;
-  border-radius: 4px;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000,
+    0 0 4px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.03em;
 }
 
 /* Hover state */
@@ -542,13 +545,11 @@
   }
 
   .note-name {
-    font-size: 11px;
-    padding: 2px 5px;
+    font-size: 12px;
   }
 
   .ding-note .note-name {
-    font-size: 14px;
-    padding: 3px 8px;
+    font-size: 16px;
   }
 }
 
@@ -614,13 +615,11 @@
   }
 
   .note-name {
-    font-size: 10px;
-    padding: 2px 4px;
+    font-size: 11px;
   }
 
   .ding-note .note-name {
-    font-size: 13px;
-    padding: 3px 7px;
+    font-size: 14px;
   }
 }
 
@@ -690,13 +689,11 @@
   }
 
   .note-name {
-    font-size: 9px;
-    padding: 2px 4px;
+    font-size: 10px;
   }
 
   .ding-note .note-name {
-    font-size: 11px;
-    padding: 2px 6px;
+    font-size: 12px;
   }
 
   .reflection-1 {
