@@ -46,7 +46,8 @@
       :class="[
         `note-bar--${event.hand}`,
         { 'note-bar--active': event.isActive },
-        { 'note-bar--past': event.isPast }
+        { 'note-bar--past': event.isPast },
+        { 'note-bar--ding': event.handpanNoteIndex === 0 }
       ]"
       :style="getNoteBarStyle(event)"
     >
@@ -55,7 +56,8 @@
         class="note-bar__tone-field"
         :class="[
           `note-bar__tone-field--${event.hand}`,
-          { 'note-bar__tone-field--flash': event.isHit }
+          { 'note-bar__tone-field--flash': event.isHit },
+          { 'note-bar__tone-field--ding': event.handpanNoteIndex === 0 }
         ]"
         :style="getToneFieldStyle(event)"
       >
@@ -124,86 +126,36 @@ const hitNotes = ref(new Set());
 // Pixels per millisecond (fall speed)
 const pixelsPerMs = computed(() => props.fallHeight / props.leadTime);
 
-// Sort handpan notes by pitch for rank-based scaling (same as useHandpanDisplay.js)
-const sortedHandpanNotes = computed(() => {
-  if (!props.handpanNotes || props.handpanNotes.length === 0) return [];
-
-  // Map notes with their pitches and original indices
-  const notesWithPitches = props.handpanNotes.map((note, index) => {
-    let pitch = note.calculated_pitch;
-    if (!pitch && note.note) {
-      // Fallback: calculate from note name
-      pitch = noteToPitchValue(note.note || note.calculated_note || '');
-    }
-    return {
-      originalIndex: index,
-      pitch: pitch || 0,
-      note: note
-    };
-  });
-
-  // Sort by pitch (lowest to highest)
-  notesWithPitches.sort((a, b) => a.pitch - b.pitch);
-  return notesWithPitches;
-});
-
-// Convert note name to pitch value (same logic as useHandpanDisplay.js)
-const noteToPitchValue = (noteStr) => {
-  if (!noteStr) return 0;
-  const match = noteStr.match(/([A-G][#b]?)([0-9])/);
-  if (!match) return 0;
-
-  const [, note, octave] = match;
-  const noteValues = {
-    'C': 0, 'C#': 1, 'Db': 1,
-    'D': 2, 'D#': 3, 'Eb': 3,
-    'E': 4, 'F': 5, 'F#': 6, 'Gb': 6,
-    'G': 7, 'G#': 8, 'Ab': 8,
-    'A': 9, 'A#': 10, 'Bb': 10,
-    'B': 11
-  };
-
-  return parseInt(octave) * 12 + noteValues[note];
-};
-
-// Get rank-based scale factor for a handpan note index (same logic as useHandpanDisplay.js)
-const getScaleFactorForNoteIndex = (handpanNoteIndex) => {
-  // Ding (index 0) gets a special larger size to match the handpan display
-  // On the handpan, ding is 70x70px while tone fields are 65x52px
-  // So ding should be ~1.15x the scale of a regular note
-  if (handpanNoteIndex === 0) {
-    return 1.15;
+// Get scale factor from notePositions (passed from ScoreReader, matches handpan exactly)
+const getScaleForNoteIndex = (handpanNoteIndex) => {
+  const notePos = props.notePositions[handpanNoteIndex];
+  if (notePos && notePos.scale !== undefined) {
+    return notePos.scale;
   }
-
-  // For other notes, exclude ding from rank calculation (same as useHandpanDisplay.js)
-  const sorted = sortedHandpanNotes.value.filter(n => n.originalIndex !== 0);
-  if (sorted.length <= 1) return 1.0;
-
-  // Find the rank of this note in the sorted list (excluding ding)
-  const rank = sorted.findIndex(n => n.originalIndex === handpanNoteIndex);
-  if (rank === -1) return 1.0;
-
-  // Scale range: 1.1 (lowest pitch = rank 0) to 0.8 (highest pitch = rank N-1)
-  const maxScale = 1.1;
-  const minScale = 0.8;
-  const noteCount = sorted.length;
-  const step = (maxScale - minScale) / (noteCount - 1);
-
-  const scale = maxScale - (rank * step);
-  return scale;
+  return 1.0;
 };
 
-// Bar width based on rank scale
+// Bar width based on scale from handpan
 const getBarWidth = (handpanNoteIndex) => {
-  const scale = getScaleFactorForNoteIndex(handpanNoteIndex);
+  const notePos = props.notePositions[handpanNoteIndex];
+  // Ding uses a different bar width (it's circular on handpan)
+  if (notePos?.isDing) {
+    return 24; // Slightly wider bar for ding
+  }
+  const scale = getScaleForNoteIndex(handpanNoteIndex);
   const baseWidth = 20;
   return baseWidth * scale;
 };
 
-// Tone field dimensions based on rank scale
+// Tone field dimensions - match handpan exactly
 const getToneFieldSize = (handpanNoteIndex) => {
-  const scale = getScaleFactorForNoteIndex(handpanNoteIndex);
-  // Base size matches handpan tone fields (65x52px)
+  const notePos = props.notePositions[handpanNoteIndex];
+  // Ding is circular (70x70 on handpan)
+  if (notePos?.isDing) {
+    return { width: 70, height: 70 };
+  }
+  // Tone fields are 65x52 base, scaled by the handpan's scale factor
+  const scale = getScaleForNoteIndex(handpanNoteIndex);
   return {
     width: 65 * scale,
     height: 52 * scale
@@ -294,13 +246,24 @@ const getNoteBarStyle = (event) => {
   };
 };
 
-// Style for the tone field at bottom of bar (rank-based size like handpan display)
+// Style for the tone field at bottom of bar - matches handpan note exactly
 const getToneFieldStyle = (event) => {
   const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
   const targetPos = getNotePosition(noteIndex);
-  // Use handpanNoteIndex for rank-based sizing (same as handpan display)
   const size = getToneFieldSize(noteIndex);
 
+  // Ding is circular, no rotation needed
+  if (targetPos.isDing) {
+    return {
+      '--rotation': '0deg',
+      width: `${size.width}px`,
+      height: `${size.height}px`,
+      borderRadius: '50%',
+      transform: `translateX(-50%)`
+    };
+  }
+
+  // Tone fields are elliptical with rotation matching handpan
   return {
     '--rotation': `${targetPos.rotation || 0}deg`,
     width: `${size.width}px`,
@@ -573,6 +536,11 @@ watch(() => props.events, () => {
   opacity: 0.2 !important;
 }
 
+/* Ding notes have a wider bar */
+.note-bar--ding {
+  border-radius: 6px 6px 0 0;
+}
+
 /* Realistic tone field at bottom of bar - matches handpan3d.css */
 /* Width and height set via inline style based on pitch */
 .note-bar__tone-field {
@@ -676,6 +644,36 @@ watch(() => props.events, () => {
       var(--handpan-highlight, #b8c0c8) 0%,
       var(--handpan-steel-light, #8a9299) 50%,
       var(--handpan-steel-mid, #5a6268) 100%);
+}
+
+/* Ding tone field - circular, golden center like handpan */
+.note-bar__tone-field--ding {
+  /* Ding is circular with a golden/brass center look */
+  background:
+    radial-gradient(circle at 45% 40%,
+      var(--handpan-highlight, #c8ccd0) 0%,
+      var(--handpan-steel-light, #9aa2a8) 40%,
+      var(--handpan-steel-mid, #6a7278) 70%,
+      var(--handpan-steel-dark, #4a5258) 100%);
+  box-shadow:
+    inset 3px 3px 8px rgba(255, 255, 255, 0.3),
+    inset -2px -2px 6px rgba(0, 0, 0, 0.2),
+    0 3px 10px rgba(0, 0, 0, 0.25);
+}
+
+.note-bar__tone-field--ding .note-bar__nipple {
+  /* Ding nipple is larger and more prominent */
+  width: 50%;
+  height: 50%;
+  background:
+    radial-gradient(circle at 40% 35%,
+      var(--handpan-highlight, #d8dce0) 0%,
+      var(--handpan-steel-light, #a8b0b8) 50%,
+      var(--handpan-steel-mid, #7a8288) 100%);
+  box-shadow:
+    inset 2px 2px 4px rgba(255, 255, 255, 0.4),
+    inset -1px -1px 3px rgba(0, 0, 0, 0.15),
+    0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* Flash effect when hit */

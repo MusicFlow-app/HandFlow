@@ -250,22 +250,30 @@ const allHandpanNotes = computed(() => {
 });
 
 // Calculate positions for all notes (for falling notes overlay)
+// Include scale from getNoteStyle so falling notes match handpan exactly
 const notePositions = computed(() => {
   const positions = [];
 
-  // Ding position (center)
-  positions.push({ x: 0, y: 0, rotation: 0, noteIndex: 0 });
+  // Ding position (center) - ding has no rotation, scale ~1.0 (it's a circle)
+  positions.push({ x: 0, y: 0, rotation: 0, scale: 1.0, noteIndex: 0, isDing: true });
 
-  // Top notes positions
+  // Top notes positions - get scale from getNoteStyle
   topNotes.value.forEach((note, index) => {
     const pos = calculateTopNotePosition(index + 1, topNotes.value.length);
-    positions.push({ ...pos, noteIndex: index + 1 });
+    const noteStyle = getNoteStyle(index + 1, topNotes.value.length, 1, 'top', note);
+    // Extract scale from transform string "rotate(Xdeg) scale(Y)"
+    const scaleMatch = noteStyle.note?.transform?.match(/scale\(([\d.]+)\)/);
+    const scale = scaleMatch ? parseFloat(scaleMatch[1]) : 1.0;
+    positions.push({ ...pos, scale, noteIndex: index + 1 });
   });
 
-  // Inner notes positions
+  // Inner notes positions - get scale from getNoteStyle
   innerNotes.value.forEach((note, index) => {
     const pos = calculateInnerNotePosition(index + 1, innerNotes.value.length);
-    positions.push({ ...pos, noteIndex: topNotes.value.length + index + 1 });
+    const noteStyle = getNoteStyle(index + 1, innerNotes.value.length, 0.7, 'inner', note);
+    const scaleMatch = noteStyle.note?.transform?.match(/scale\(([\d.]+)\)/);
+    const scale = scaleMatch ? parseFloat(scaleMatch[1]) : 1.0;
+    positions.push({ ...pos, scale, noteIndex: topNotes.value.length + index + 1 });
   });
 
   return positions;
