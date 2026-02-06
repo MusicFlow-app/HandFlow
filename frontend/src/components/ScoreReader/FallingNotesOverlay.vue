@@ -12,7 +12,7 @@
       ]"
       :style="getFallingNoteStyle(event)"
     >
-      <div class="falling-tone-field__inner" :style="getNoteRotationStyle(event)"></div>
+      <div class="falling-tone-field__inner" :style="getNoteInnerStyle(event)"></div>
     </div>
   </div>
 </template>
@@ -132,13 +132,14 @@ const getFallingNoteStyle = (event) => {
   };
 };
 
-// Get the rotation style for the inner note element (matches handpan note rotation)
-const getNoteRotationStyle = (event) => {
+// Get the style for the inner note element (rotation via CSS variable for animation)
+const getNoteInnerStyle = (event) => {
   const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
   const targetPos = getNotePosition(noteIndex);
 
   return {
-    transform: `rotate(${targetPos.rotation || 0}deg)`
+    '--rotation': `${targetPos.rotation || 0}deg`,
+    transform: `translate(-50%, -50%) rotate(var(--rotation))`
   };
 };
 
@@ -206,7 +207,7 @@ watch(() => props.events, () => {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  /* transform set via inline style to include rotation */
 
   /* Elliptical shape like tone field */
   border-radius: 50%;
@@ -269,7 +270,7 @@ watch(() => props.events, () => {
   height: 38px;
 }
 
-/* Hit animation */
+/* Hit animation - preserves rotation via CSS variable */
 .falling-tone-field--hit .falling-tone-field__inner {
   animation: falling-note-hit 0.3s ease-out forwards;
 }
@@ -277,11 +278,11 @@ watch(() => props.events, () => {
 @keyframes falling-note-hit {
   0% {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+    transform: translate(-50%, -50%) rotate(var(--rotation, 0deg)) scale(1);
   }
   50% {
     opacity: 0.8;
-    transform: translate(-50%, -50%) scale(1.4);
+    transform: translate(-50%, -50%) rotate(var(--rotation, 0deg)) scale(1.4);
     box-shadow:
       inset 2px 2px 6px rgba(255, 255, 255, 0.5),
       inset -2px -2px 4px rgba(0, 0, 0, 0.3),
@@ -289,7 +290,7 @@ watch(() => props.events, () => {
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.8);
+    transform: translate(-50%, -50%) rotate(var(--rotation, 0deg)) scale(0.8);
   }
 }
 

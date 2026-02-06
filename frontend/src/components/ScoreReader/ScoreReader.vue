@@ -39,7 +39,7 @@
 
     <!-- Handpan display with falling notes overlay -->
     <div class="score-reader__stage" ref="stageRef">
-      <!-- Falling notes overlay (positioned above handpan) -->
+      <!-- Falling notes overlay (covers stage, notes fall toward center) -->
       <FallingNotesOverlay
         :events="scheduler.scheduledEvents.value"
         :current-time="playback.currentTime.value"
