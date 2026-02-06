@@ -5,11 +5,12 @@ import TabsLibrary from '../components/TabsLibrary.vue'
 import FeaturesApp from '../components/FeaturesApp.vue'
 import HandpanScaleSelection from '../components/HandpanScaleSelection.vue'
 import HandpanDisplay from '../components/HandpanDisplay.vue'
-import useHandpanSelection, { 
-  currentStage, 
-  selectScale, 
-  selectDing, 
-  selectNoteCount, 
+import ScoreReader from '../components/ScoreReader/ScoreReader.vue'
+import useHandpanSelection, {
+  currentStage,
+  selectScale,
+  selectDing,
+  selectNoteCount,
   fetchNotes,
   goToStage,
   selectedScale,
@@ -25,6 +26,10 @@ useHandpanSelection()
 
 // State to manage visibility of the upload modal
 const showUploadModal = ref(false)
+
+// State for score reader
+const selectedScore = ref(null)
+const showScoreReader = ref(false)
 
 // Key to force re-render of HandpanScaleSelection
 const scaleSelectionKey = ref(0)
@@ -133,6 +138,19 @@ const onGenerateTab = (handpanConfig) => {
   // Here you would implement the logic to generate the tablature
   // or navigate to another view
 }
+
+// Handle score selection from TabsLibrary
+const onScoreSelected = (file) => {
+  console.log('Score selected:', file)
+  selectedScore.value = file
+  showScoreReader.value = true
+}
+
+// Close score reader and go back to handpan display
+const closeScoreReader = () => {
+  showScoreReader.value = false
+  selectedScore.value = null
+}
 </script>
 
 <template>
@@ -145,9 +163,17 @@ const onGenerateTab = (handpanConfig) => {
       />
     </section>
     
-    <!-- Show HandpanDisplay when stage is 6 -->
-    <HandpanDisplay 
-      v-if="currentStage >= 6" 
+    <!-- Show ScoreReader when a score is selected -->
+    <ScoreReader
+      v-if="currentStage >= 6 && showScoreReader && selectedScore"
+      :score-id="selectedScore.id"
+      :score-file="selectedScore"
+      @close="closeScoreReader"
+    />
+
+    <!-- Show HandpanDisplay when stage is 6 and no score reader -->
+    <HandpanDisplay
+      v-if="currentStage >= 6 && !showScoreReader"
       :scaleCategory="selectedScale?.category"
       :isFavorite="selectedScale?.isFavorite || false"
       :notes="notes"
@@ -157,8 +183,12 @@ const onGenerateTab = (handpanConfig) => {
       @back-to-scales="onBackToScales"
       @generate-tab="onGenerateTab"
     />
-    
-    <TabsLibrary v-if="currentStage >= 6" @open-import-modal="openUploadModal" />
+
+    <TabsLibrary
+      v-if="currentStage >= 6 && !showScoreReader"
+      @open-import-modal="openUploadModal"
+      @reuse="onScoreSelected"
+    />
     <UploadZone :is-open="showUploadModal" @close="closeUploadModal" />
     <FeaturesApp />
   </div>

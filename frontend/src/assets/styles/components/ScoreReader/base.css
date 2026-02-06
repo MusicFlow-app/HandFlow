@@ -1,0 +1,353 @@
+/* Score Reader - Base Layout Styles */
+
+/* ========================================
+   Main Container
+   ======================================== */
+.score-reader {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  background: var(--surface-primary);
+  overflow: hidden;
+}
+
+/* ========================================
+   Controls Section (Top)
+   ======================================== */
+.score-reader__controls {
+  flex-shrink: 0;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--surface-secondary);
+  border-bottom: 1px solid var(--border-color);
+  z-index: 20;
+}
+
+/* ========================================
+   Canvas Section (Middle - 60%)
+   ======================================== */
+.score-reader__canvas {
+  flex: 3;
+  position: relative;
+  overflow: hidden;
+  min-height: 200px;
+}
+
+/* ========================================
+   Handpan Section (Bottom - 40%)
+   ======================================== */
+.score-reader__handpan {
+  flex: 2;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--surface-primary);
+  border-top: 2px solid var(--handpan-steel-shadow);
+  padding: var(--spacing-md);
+  overflow: hidden;
+}
+
+/* Hit line indicator */
+.score-reader__hit-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--handpan-highlight) 30%,
+    var(--handpan-highlight-warm) 70%,
+    transparent 100%);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+  z-index: 10;
+}
+
+/* ========================================
+   Playback Controls Bar
+   ======================================== */
+.playback-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.playback-controls__main {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.playback-controls__progress {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.playback-controls__options {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+/* ========================================
+   Control Buttons
+   ======================================== */
+.control-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: var(--handpan-steel-mid);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.control-button:hover {
+  background: var(--handpan-steel-light);
+  transform: scale(1.05);
+}
+
+.control-button:active {
+  transform: scale(0.95);
+}
+
+.control-button--primary {
+  width: 48px;
+  height: 48px;
+  background: var(--primary-color);
+}
+
+.control-button--primary:hover {
+  background: var(--primary-color-hover);
+}
+
+.control-button--active {
+  background: var(--primary-color);
+  box-shadow: 0 0 8px var(--primary-color);
+}
+
+/* ========================================
+   Progress Bar
+   ======================================== */
+.progress-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--handpan-steel-dark);
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar__fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg,
+    var(--primary-color) 0%,
+    var(--handpan-highlight-warm) 100%);
+  border-radius: 4px;
+  transition: width 0.05s linear;
+}
+
+.progress-bar__handle {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  background: var(--handpan-highlight);
+  border: 2px solid var(--primary-color);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  transition: transform 0.1s ease;
+}
+
+.progress-bar__handle:hover {
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+.progress-bar__handle:active {
+  cursor: grabbing;
+}
+
+/* Loop region overlay */
+.progress-bar__loop-region {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: rgba(var(--primary-color-rgb), 0.3);
+  border-left: 2px solid var(--primary-color);
+  border-right: 2px solid var(--primary-color);
+  pointer-events: none;
+}
+
+/* ========================================
+   Time Display
+   ======================================== */
+.time-display {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  min-width: 80px;
+}
+
+/* ========================================
+   Speed Selector
+   ======================================== */
+.speed-selector {
+  position: relative;
+}
+
+.speed-selector__button {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.speed-selector__button:hover {
+  background: var(--handpan-steel-mid);
+  border-color: var(--primary-color);
+}
+
+.speed-selector__dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: var(--spacing-xs);
+  min-width: 80px;
+  background: var(--surface-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.speed-selector__option {
+  display: block;
+  width: 100%;
+  padding: var(--spacing-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.speed-selector__option:hover {
+  background: var(--handpan-steel-mid);
+}
+
+.speed-selector__option--active {
+  background: var(--primary-color);
+  color: white;
+}
+
+/* ========================================
+   Score Info Header
+   ======================================== */
+.score-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: var(--spacing-sm);
+}
+
+.score-info__title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.score-info__meta {
+  display: flex;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.score-info__tempo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+/* ========================================
+   Responsive Adjustments
+   ======================================== */
+@media (max-width: 768px) {
+  .score-reader__controls {
+    padding: var(--spacing-sm);
+  }
+
+  .playback-controls {
+    gap: var(--spacing-sm);
+  }
+
+  .playback-controls__progress {
+    min-width: 120px;
+    order: 2;
+    flex-basis: 100%;
+  }
+
+  .control-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .control-button--primary {
+    width: 44px;
+    height: 44px;
+  }
+
+  .score-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+}
+
+@media (max-width: 480px) {
+  .score-reader__canvas {
+    flex: 2;
+  }
+
+  .score-reader__handpan {
+    flex: 3;
+  }
+
+  .playback-controls__options {
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+  }
+
+  .time-display {
+    font-size: var(--font-size-xs);
+    min-width: 60px;
+  }
+}

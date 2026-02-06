@@ -8,6 +8,12 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: Home
+    },
+    {
+      path: '/reader/:scoreId?',
+      name: 'score-reader',
+      component: () => import('../components/ScoreReader/ScoreReader.vue'),
+      props: true
     }
   ]
 })
