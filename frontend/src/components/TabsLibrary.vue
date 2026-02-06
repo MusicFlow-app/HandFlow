@@ -4,7 +4,7 @@ import { useTheme } from '@/composables/useTheme'
 import { useTabsLibrary } from '@/composables/useTabsLibrary'
 import { useFavorites } from '@/composables/useFavorites'
 import { apiUrl } from '@/services/api'
-import { PhInfinity, PhMusicNotes, PhMusicNotesPlus, PhBarbell, PhShootingStar, PhStar, PhStarHalf, PhArrowRight, PhCaretLeft, PhCaretRight, PhSortAscending, PhSortDescending, PhAperture, PhArrowsDownUp, PhMagnifyingGlass, PhPenNib, PhUserSound } from '@phosphor-icons/vue'
+import { PhInfinity, PhMusicNotes, PhBarbell, PhShootingStar, PhStar, PhStarHalf, PhArrowRight, PhCaretLeft, PhCaretRight, PhSortAscending, PhSortDescending, PhAperture, PhArrowsDownUp, PhMagnifyingGlass, PhPenNib, PhUserSound } from '@phosphor-icons/vue'
 import '@/assets/styles/components/TabsLibrary/index.css'
 
 const { isDark, toggleTheme } = useTheme()
@@ -268,13 +268,6 @@ watch([showOnlyFavorites, favoriteFiles], async () => {
           />
         </div>
         <div class="button-group">
-              <button 
-                class="import-btn"
-                @click="$emit('open-import-modal')"
-              >
-                <PhMusicNotesPlus :size="18" weight="bold" />
-                <span>Import</span>
-              </button>
               <button 
                 class="fav-filter-btn" 
                 :class="{ active: showOnlyFavorites }"

@@ -144,8 +144,6 @@ const sortedHandpanNotes = computed(() => {
 
   // Sort by pitch (lowest to highest)
   notesWithPitches.sort((a, b) => a.pitch - b.pitch);
-
-  console.log('Sorted handpan notes by pitch:', notesWithPitches.map(n => `${n.note?.note || n.note?.calculated_note}(${n.pitch})`));
   return notesWithPitches;
 });
 
@@ -170,10 +168,18 @@ const noteToPitchValue = (noteStr) => {
 
 // Get rank-based scale factor for a handpan note index (same logic as useHandpanDisplay.js)
 const getScaleFactorForNoteIndex = (handpanNoteIndex) => {
-  const sorted = sortedHandpanNotes.value;
+  // Ding (index 0) gets a special larger size to match the handpan display
+  // On the handpan, ding is 70x70px while tone fields are 65x52px
+  // So ding should be ~1.15x the scale of a regular note
+  if (handpanNoteIndex === 0) {
+    return 1.15;
+  }
+
+  // For other notes, exclude ding from rank calculation (same as useHandpanDisplay.js)
+  const sorted = sortedHandpanNotes.value.filter(n => n.originalIndex !== 0);
   if (sorted.length <= 1) return 1.0;
 
-  // Find the rank of this note in the sorted list
+  // Find the rank of this note in the sorted list (excluding ding)
   const rank = sorted.findIndex(n => n.originalIndex === handpanNoteIndex);
   if (rank === -1) return 1.0;
 
@@ -184,7 +190,6 @@ const getScaleFactorForNoteIndex = (handpanNoteIndex) => {
   const step = (maxScale - minScale) / (noteCount - 1);
 
   const scale = maxScale - (rank * step);
-  console.log(`getScaleFactorForNoteIndex: index=${handpanNoteIndex}, rank=${rank}/${noteCount-1}, scale=${scale.toFixed(2)}`);
   return scale;
 };
 
@@ -447,25 +452,7 @@ watch(() => props.currentTime, () => {
   checkForHits();
 });
 
-watch(() => props.events, (newEvents) => {
-  console.log('=== FallingNotesOverlay: Events received ===');
-  console.log('Event count:', newEvents?.length || 0);
-  console.log('Handpan notes count:', props.handpanNotes?.length || 0);
-
-  if (newEvents && newEvents.length > 0) {
-    // Log handpan notes sorted by pitch
-    console.log('Sorted handpan notes:', sortedHandpanNotes.value.map(n =>
-      `idx${n.originalIndex}:${n.note?.note || n.note?.calculated_note}(pitch=${n.pitch})`
-    ));
-
-    // Log first few events with their calculated sizes using rank-based scaling
-    newEvents.slice(0, 5).forEach((event, i) => {
-      const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
-      const scale = getScaleFactorForNoteIndex(noteIndex);
-      const size = getToneFieldSize(noteIndex);
-      console.log(`Event ${i}: noteIndex=${noteIndex}, scale=${scale.toFixed(2)}, size=${size.width.toFixed(1)}x${size.height.toFixed(1)}`);
-    });
-  }
+watch(() => props.events, () => {
   hitNotes.value.clear();
 }, { immediate: true });
 </script>

@@ -174,7 +174,7 @@ export default function useNoteScheduler() {
    * Transforms score structure into flat array of timed events
    * @param {Object} scoreData - Score data from backend (score_data field)
    * @param {Array} handpanNotes - Handpan notes for index mapping
-   * @param {Object} options - Optional settings { bpm, partIndex }
+   * @param {Object} options - Optional settings { bpm, partIndex, leadInMeasures }
    * @returns {Array} Array of TimedNoteEvent objects
    */
   const scheduleScore = (scoreData, handpanNotes, options = {}) => {
@@ -189,6 +189,9 @@ export default function useNoteScheduler() {
     const bpm = options.bpm || tempo.value;
     tempo.value = bpm;
 
+    // Lead-in measures (empty measures before music starts to let reader prepare)
+    const leadInMeasures = options.leadInMeasures !== undefined ? options.leadInMeasures : 4;
+
     // Select which part to use (default to first)
     const partIndex = options.partIndex || 0;
     const part = scoreData.parts[partIndex];
@@ -202,6 +205,10 @@ export default function useNoteScheduler() {
 
     const events = [];
     let currentTimeSig = { beats: 4, beatType: 4 };
+
+    // Calculate lead-in time offset (4 empty measures by default)
+    const msPerBeat = 60000 / bpm;
+    const leadInOffset = leadInMeasures * currentTimeSig.beats * msPerBeat;
     let maxTime = 0;
 
     // Process each measure
@@ -244,12 +251,13 @@ export default function useNoteScheduler() {
           const noteTypeName = getNoteTypeName(note.note_type);
           if (noteTypeName === 'rest') return;
 
+          // Add lead-in offset to all note times
           const absoluteTime = calculateAbsoluteTime(
             measure.id,
             currentBeatPosition,
             bpm,
             currentTimeSig
-          );
+          ) + leadInOffset;
 
           const duration = durationToMs(note.duration, bpm);
           const pitch = note.pitch;
@@ -283,9 +291,10 @@ export default function useNoteScheduler() {
     events.sort((a, b) => a.absoluteTime - b.absoluteTime);
 
     scheduledEvents.value = events;
-    scoreDuration.value = maxTime;
+    // Include lead-in time in total duration
+    scoreDuration.value = maxTime + leadInOffset;
 
-    console.log(`Scheduled ${events.length} note events, duration: ${maxTime}ms`);
+    console.log(`Scheduled ${events.length} note events, duration: ${maxTime + leadInOffset}ms (includes ${leadInMeasures} lead-in measures)`);
 
     return events;
   };
