@@ -245,41 +245,12 @@ const getColorSafely = (category) => {
   }
   try {
     return getCategoryColor(category);
-  } catch (error) {
-    console.error('Error getting category color:', error);
+  } catch {
     return '#607D8B'; // Default gray
   }
 };
 
-// Debug logging for initial data
-console.log('HandpanDisplay - Component initialized with stage:', currentStage.value);
-console.log('HandpanDisplay - scaleCategory prop:', props.scaleCategory);
-console.log('HandpanDisplay - selectedScale:', selectedScale.value);
-console.log('HandpanDisplay - props.notes:', props.notes);
-console.log('HandpanDisplay - notes.value:', notes.value);
-console.log('HandpanDisplay - selectedNotes:', selectedNotes);
-console.log('HandpanDisplay - selectedNoteCount:', selectedNoteCount.value);
-console.log('HandpanDisplay - topNotes:', topNotes);
-console.log('HandpanDisplay - bottomNotes:', bottomNotes);
 
-// Force load mock notes when component is mounted
-onMounted(() => {
-  console.log('HandpanDisplay mounted - checking notes');
-  if (!notes.value || !Array.isArray(notes.value) || notes.value.length === 0) {
-    console.log('No notes found - this should not happen');
-    console.error('Notes should be provided by the API');
-  } else {
-    console.log('Notes already loaded:', notes.value);
-  }
-  
-  // Force a check of the topNotes and bottomNotes after a short delay
-  setTimeout(() => {
-    console.log('DELAYED CHECK - topNotes:', topNotes.value);
-    console.log('DELAYED CHECK - bottomNotes:', bottomNotes.value);
-    console.log('DELAYED CHECK - notes.value:', notes.value);
-    console.log('DELAYED CHECK - selectedNotes.value:', selectedNotes.value);
-  }, 1000);
-});
 
 // Function to copy notation to clipboard
 const copyNotation = () => {
@@ -306,47 +277,30 @@ const copyNotation = () => {
 const dingNoteValue = computed(() => {
   // First try to get it from props
   if (props.dingNote && typeof props.dingNote === 'string') {
-    console.log('Using dingNote from props:', props.dingNote);
     return props.dingNote;
   }
-  
+
   // Then try to get it from selectedDing
   if (selectedDing && typeof selectedDing === 'string') {
-    console.log('Using selectedDing directly:', selectedDing);
     return selectedDing;
   }
-  
+
   if (selectedDing && typeof selectedDing === 'object') {
-    console.log('selectedDing is an object:', selectedDing);
     if (selectedDing.note) return selectedDing.note;
     if (selectedDing.value) return selectedDing.value;
   }
-  
+
   // Fallback to a default value
-  console.log('Using default ding note value');
   return 'D';
 });
 
 // Computed property for formatted notes string
 const formattedNotes = computed(() => {
-  console.log('Computing formattedNotes with:', { 
-    selectedNotes, 
-    selectedNotesLength: selectedNotes.length, 
-    dingNoteValue: dingNoteValue.value,
-    notes: notes.value,
-    topNotes: topNotes.value,
-    innerNotes: innerNotes.value,
-    bottomNotes: bottomNotes.value,
-    selectedNoteCount: selectedNoteCount.value
-  });
-  
   if (!dingNoteValue.value) {
-    console.log('No ding note value');
     return 'No notes';
   }
-  
+
   // Format as "ding/ 1st_note 2nd_note etc..." with position formatting
-  console.log('Using ding note value:', dingNoteValue.value);
   const dingNote = `${dingNoteValue.value}`;
   
   // Create a prioritized list of notes based on position
@@ -373,10 +327,8 @@ const formattedNotes = computed(() => {
   
   // Join all formatted notes with spaces
   const otherNotes = allFormattedNotes.join(' ');
-  
-  const formatted = `${dingNote}/ ${otherNotes}`;
-  console.log('Formatted notes with ding:', formatted);
-  return formatted;
+
+  return `${dingNote}/ ${otherNotes}`;
 });
 
 // Methods
@@ -385,38 +337,24 @@ const generateTab = () => {
 }
 
 const resetAndGoBack = () => {
-  console.log('HandpanDisplay - resetAndGoBack called, current stage:', currentStage.value);
-  
   // Don't reset everything, just go back to scale selection (stage 3)
   // Keep the selected category but clear scale, ding and note count
   selectedScale.value = null;
   selectedDing.value = null;
   selectedNoteCount.value = null;
-  
-  console.log('HandpanDisplay - Cleared selections, about to go to stage 3');
-  
+
   // Go to stage 3 (scale selection)
   goToStage(3);
-  
-  console.log('HandpanDisplay - After goToStage(3), current stage:', currentStage.value);
-  
+
   // Emit event to notify parent component
   emit('back-to-scales');
-  
-  console.log('HandpanDisplay - Emitted back-to-scales event');
 }
 
 // Debug functions removed - we rely on the API for notes
 
 // Initialize when stage changes to 5+
 watch(() => currentStage.value, (newStage, oldStage) => {
-  console.log('HandpanDisplay - Stage changed from', oldStage, 'to', newStage);
-  
-  if (newStage >= 5 && oldStage < 5) {
-    console.log('HandpanDisplay - Entering display stage');
-    // Re-initialize will happen automatically with the composable
-  } else if (newStage < 5 && oldStage >= 5) {
-    console.log('HandpanDisplay - Exiting display stage, cleaning up');
+  if (newStage < 5 && oldStage >= 5) {
     // Use the cleanup function from the composable if we were past stage 5
     if (typeof cleanup === 'function') {
       cleanup();
@@ -424,39 +362,11 @@ watch(() => currentStage.value, (newStage, oldStage) => {
   }
 });
 
-// Watch for stage changes to handle visibility
-watch(() => currentStage.value, (newStage, oldStage) => {
-  if (newStage >= 6 && oldStage < 6) {
-    console.log('HandpanDisplay - Stage changed to display stage:', newStage);
-    
-    // Get the shared state from the already imported composable
-    const { 
-      selectedScale: sharedScale, 
-      selectedDing: sharedDing,
-      selectedNoteCount: sharedNoteCount,
-      fetchNotes: sharedFetchNotes
-    } = useHandpanSelection();
-    
-    // Log the current shared state
-    console.log('HandpanDisplay - Current shared state:', {
-      stage: newStage,
-      scale: sharedScale.value?.name,
-      ding: sharedDing.value,
-      noteCount: sharedNoteCount.value
-    });
-    
-    // This is called when the component becomes visible
-    console.log('HandpanDisplay - Now visible with stage:', newStage, 'isReadyToDisplay:', isReadyToDisplay.value);
-  }
-});
 
 // Clean up on unmount
 onMounted(() => {
-  console.log('HandpanDisplay - MOUNTED with stage:', currentStage.value);
-  
   // Return cleanup function
   return () => {
-    console.log('HandpanDisplay - UNMOUNTING');
     if (typeof cleanup === 'function') {
       cleanup();
     }

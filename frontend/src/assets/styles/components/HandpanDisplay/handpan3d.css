@@ -1,6 +1,48 @@
-/* 3D Handpan Visualization - Enhanced version */
+/* 3D Handpan Visualization - Authentic Steel Design */
 
-/* Main visualization container */
+/* ========================================
+   Color Palette - Nitrided Steel
+   ======================================== */
+:root {
+  /* Steel base colors */
+  --handpan-steel-light: #8a9299;
+  --handpan-steel-mid: #5a6268;
+  --handpan-steel-dark: #3a4044;
+  --handpan-steel-shadow: #2a2e31;
+
+  /* Warm highlights (from lighting) */
+  --handpan-highlight: #b8c0c8;
+  --handpan-highlight-warm: #c4b8a8;
+
+  /* Tone field accent (slightly warmer for played notes) */
+  --handpan-tone-base: #4a5258;
+  --handpan-tone-highlight: #6a7278;
+
+  /* Gu port (deep shadow) */
+  --handpan-gu-outer: #2a2e31;
+  --handpan-gu-inner: #1a1c1e;
+}
+
+/* Dark theme - blued steel variant */
+[data-theme="dark"] {
+  --handpan-steel-light: #6a7a8a;
+  --handpan-steel-mid: #4a5a6a;
+  --handpan-steel-dark: #2a3a4a;
+  --handpan-steel-shadow: #1a2a3a;
+
+  --handpan-highlight: #8a9aaa;
+  --handpan-highlight-warm: #9a8a7a;
+
+  --handpan-tone-base: #3a4a5a;
+  --handpan-tone-highlight: #5a6a7a;
+
+  --handpan-gu-outer: #1a2a3a;
+  --handpan-gu-inner: #0a1a2a;
+}
+
+/* ========================================
+   Main Visualization Container
+   ======================================== */
 .handpan-visualization {
   display: flex;
   flex-direction: row;
@@ -16,22 +58,26 @@
   flex-direction: column;
   align-items: center;
   position: relative;
-  max-width: 350px;
+  max-width: 380px;
   width: 100%;
 }
 
 /* View labels */
 .view-label {
   margin-bottom: var(--spacing-md);
-  color: var(--text-primary);
-  font-size: var(--font-size-lg);
-  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
-/* The handpan instrument element */
+/* ========================================
+   The Handpan Instrument
+   ======================================== */
 .handpan-instrument {
-  width: 400px;
-  height: 400px;
+  width: 340px;
+  height: 340px;
   position: relative;
   display: flex;
   justify-content: center;
@@ -39,10 +85,10 @@
   cursor: pointer;
 }
 
-/* Common styles for both shells */
+/* Common shell styles */
 .handpan-shell {
-  width: 350px;
-  height: 350px;
+  width: 320px;
+  height: 320px;
   border-radius: 50%;
   position: relative;
   display: flex;
@@ -52,40 +98,50 @@
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Top shell styling with 3D effect */
+/* Top shell - main playing surface */
 .handpan-top-shell {
-  background: radial-gradient(circle at 30% 30%, 
-      color-mix(in srgb, var(--primary-color), white 60%), 
-      color-mix(in srgb, var(--primary-color), black 20%));
-  box-shadow: 
-      0 10px 25px rgba(0, 0, 0, 0.2),
-      inset 0 -5px 10px rgba(0, 0, 0, 0.2),
-      inset 0 5px 10px rgba(255, 255, 255, 0.4);
-  z-index: 1;
+  background:
+    radial-gradient(ellipse 120% 120% at 35% 25%,
+      var(--handpan-highlight) 0%,
+      var(--handpan-steel-light) 15%,
+      var(--handpan-steel-mid) 40%,
+      var(--handpan-steel-dark) 70%,
+      var(--handpan-steel-shadow) 100%);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 -8px 24px rgba(0, 0, 0, 0.25),
+    inset 0 4px 12px rgba(255, 255, 255, 0.1);
 }
 
-/* Bottom shell styling with 3D effect */
+/* Bottom shell - gu side */
 .handpan-bottom-shell {
-  background: radial-gradient(circle at 30% 30%, 
-      color-mix(in srgb, var(--primary-color), white 50%), 
-      color-mix(in srgb, var(--primary-color), black 30%));
-  box-shadow: 
-      0 10px 25px rgba(0, 0, 0, 0.2),
-      inset 0 -5px 10px rgba(0, 0, 0, 0.3),
-      inset 0 5px 10px rgba(255, 255, 255, 0.3);
-  z-index: 1;
+  background:
+    radial-gradient(ellipse 120% 120% at 35% 25%,
+      var(--handpan-steel-light) 0%,
+      var(--handpan-steel-mid) 25%,
+      var(--handpan-steel-dark) 60%,
+      var(--handpan-steel-shadow) 100%);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 -8px 24px rgba(0, 0, 0, 0.3),
+    inset 0 4px 12px rgba(255, 255, 255, 0.08);
 }
 
-/* Hover effect for shells */
+/* Subtle hover lift */
 .handpan-shell:hover {
-  transform: translateY(-5px);
-  box-shadow: 
-      0 15px 30px rgba(0, 0, 0, 0.2),
-      inset 0 -5px 10px rgba(0, 0, 0, 0.2),
-      inset 0 5px 10px rgba(255, 255, 255, 0.4);
+  transform: translateY(-3px);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.35),
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    inset 0 -8px 24px rgba(0, 0, 0, 0.25),
+    inset 0 4px 12px rgba(255, 255, 255, 0.12);
 }
 
-/* Metallic texture overlay */
+/* ========================================
+   Metal Texture Overlay
+   ======================================== */
 .metal-texture {
   position: absolute;
   top: 0;
@@ -94,215 +150,222 @@
   bottom: 0;
   border-radius: 50%;
   pointer-events: none;
-  background: 
-      radial-gradient(circle at 50% 50%, transparent 80%, rgba(0, 0, 0, 0.1) 100%),
-      linear-gradient(45deg, transparent 48%, rgba(255, 255, 255, 0.05) 50%, transparent 52%),
-      linear-gradient(-45deg, transparent 48%, rgba(255, 255, 255, 0.05) 50%, transparent 52%);
-  background-size: 100% 100%, 10px 10px, 10px 10px;
-  opacity: 0.4;
   z-index: 2;
+  opacity: 0.5;
+  background:
+    /* Subtle circular brushed pattern */
+    repeating-conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      rgba(255, 255, 255, 0.02) 0.5deg,
+      transparent 1deg
+    ),
+    /* Edge darkening */
+    radial-gradient(circle at 50% 50%,
+      transparent 60%,
+      rgba(0, 0, 0, 0.15) 100%);
 }
 
-/* Light reflections */
+/* ========================================
+   Light Reflections
+   ======================================== */
 .light-reflection {
   position: absolute;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
   pointer-events: none;
   z-index: 3;
 }
 
 .reflection-1 {
-  width: 120px;
-  height: 80px;
-  top: 35px;
-  left: 35px;
-  transform: rotate(25deg);
-  opacity: 0.4;
+  width: 100px;
+  height: 60px;
+  top: 30px;
+  left: 40px;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%
+  );
+  transform: rotate(20deg);
+  filter: blur(2px);
 }
 
 .reflection-2 {
-  width: 60px;
-  height: 40px;
-  bottom: 70px;
-  right: 40px;
-  transform: rotate(-15deg);
-  opacity: 0.3;
+  width: 40px;
+  height: 25px;
+  bottom: 60px;
+  right: 50px;
+  background: linear-gradient(
+    -30deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    transparent 100%
+  );
+  transform: rotate(-10deg);
+  filter: blur(1px);
 }
 
-/* Central Ding note */
+/* ========================================
+   Central Ding Note
+   ======================================== */
 .ding-note {
-  width: 100px;
-  height: 80px;
+  width: 90px;
+  height: 75px;
   border-radius: 50%;
-  background: radial-gradient(ellipse at center, 
-      color-mix(in srgb, var(--primary-color), black 15%), 
-      color-mix(in srgb, var(--primary-color), white 5%));
-  color: var(--text-light);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: var(--font-size-xl);
-  font-weight: bold;
-  position: relative;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   z-index: 5;
   cursor: pointer;
 
-  transition: box-shadow 0.2s ease, opacity 0.2s ease;
+  /* Raised dome effect */
+  background:
+    radial-gradient(ellipse 80% 70% at 40% 35%,
+      var(--handpan-highlight) 0%,
+      var(--handpan-steel-light) 30%,
+      var(--handpan-steel-mid) 60%,
+      var(--handpan-steel-dark) 100%);
+
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    inset 0 2px 8px rgba(255, 255, 255, 0.15),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.2);
+
+  /* Center the note name */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
 
-/* Add the nipple dome in the center of the ding */
+/* Nipple dome on ding */
 .ding-note::before {
   content: "";
   position: absolute;
-  width: 50px;
-  height: 35px;
+  width: 36px;
+  height: 28px;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, 
-      color-mix(in srgb, var(--primary-color), white 60%), 
-      color-mix(in srgb, var(--primary-color), white 20%));
-  box-shadow: 
-      inset 1px 1px 3px rgba(255, 255, 255, 0.5),
-      inset -1px -1px 3px rgba(0, 0, 0, 0.2),
-      0 1px 2px rgba(0, 0, 0, 0.1);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  background:
+    radial-gradient(ellipse 90% 80% at 35% 30%,
+      var(--handpan-highlight) 0%,
+      var(--handpan-steel-light) 40%,
+      var(--handpan-steel-mid) 100%);
+
+  box-shadow:
+    inset 1px 1px 4px rgba(255, 255, 255, 0.3),
+    inset -1px -1px 4px rgba(0, 0, 0, 0.15),
+    0 1px 3px rgba(0, 0, 0, 0.2);
+
   z-index: 6;
 }
 
 .ding-note .note-name {
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-/* Responsive adjustments for the ding note */
-@media (max-width: 768px) {
-  .ding-note {
-    width: 80px;
-    height: 65px;
-    font-size: var(--font-size-lg);
-  }
-  
-  .ding-note::before {
-    width: 30px;
-    height: 30px;
-  }
-}
-
-@media (max-width: 480px) {
-  .ding-note {
-    width: 70px;
-    height: 55px;
-    font-size: var(--font-size-md);
-  }
-  
-  .ding-note::before {
-    width: 25px;
-    height: 25px;
-  }
-}
-
-/* Gu port for bottom shell */
-.gu-port {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  background: radial-gradient(circle at center, 
-      color-mix(in srgb, var(--primary-color), black 50%), 
-      color-mix(in srgb, var(--primary-color), black 70%));
+  color: #1a1c1e;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.3);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  z-index: 10;
   position: relative;
-  z-index: 5;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 
-      inset 0 2px 5px rgba(0, 0, 0, 0.5),
-      0 0 10px rgba(0, 0, 0, 0.3);
 }
 
-.gu-inner {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: radial-gradient(circle at center, 
-      rgba(0, 0, 0, 0.7), 
-      rgba(0, 0, 0, 0.9));
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+.ding-note:hover {
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.35),
+    inset 0 2px 8px rgba(255, 255, 255, 0.18),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.2);
 }
 
-.gu-port:hover {
-  transform: scale(1.05);
+.ding-note:active,
+.ding-note.active {
+  transform: translate(-50%, -50%) scale(0.95);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 3px 10px rgba(0, 0, 0, 0.25),
+    inset 0 -2px 6px rgba(255, 255, 255, 0.1);
 }
 
-.gu-port:active {
-  transform: scale(0.95);
-}
-
-/* Individual notes (tone fields) */
+/* ========================================
+   Tone Fields (Notes around the ding)
+   ======================================== */
 .note {
   position: absolute;
   display: flex;
   justify-content: center;
   align-items: center;
-  transition: all 0.2s ease;
   cursor: pointer;
   z-index: 5;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .tone-field {
-  width: 70px;
-  height: 55px;
-  background: radial-gradient(ellipse at center, 
-      color-mix(in srgb, var(--primary-color), black 15%), 
-      color-mix(in srgb, var(--primary-color), white 5%));
-  color: var(--text-light);
+  width: 62px;
+  height: 48px;
   border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transition: box-shadow 0.2s ease, opacity 0.2s ease;
-  position: relative;
 
+  /* Concave dimple effect */
+  background:
+    radial-gradient(ellipse 90% 80% at 45% 40%,
+      var(--handpan-tone-highlight) 0%,
+      var(--handpan-tone-base) 50%,
+      var(--handpan-steel-dark) 100%);
+
+  box-shadow:
+    inset 2px 2px 6px rgba(0, 0, 0, 0.25),
+    inset -1px -1px 4px rgba(255, 255, 255, 0.08),
+    0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
-/* Add the concave nipple in the center of the tone field */
+/* Nipple in center of tone field */
 .tone-field::before {
   content: "";
   position: absolute;
-  width: 32px;
-  height: 25px;
+  width: 24px;
+  height: 18px;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, 
-      color-mix(in srgb, var(--primary-color), black 20%), 
-      color-mix(in srgb, var(--primary-color), black 40%));
-  box-shadow: 
-      inset -1px -1px 3px rgba(255, 255, 255, 0.2),
-      inset 2px 2px 5px rgba(0, 0, 0, 0.3);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  background:
+    radial-gradient(ellipse 85% 75% at 35% 30%,
+      var(--handpan-highlight) 0%,
+      var(--handpan-steel-light) 50%,
+      var(--handpan-steel-mid) 100%);
+
+  box-shadow:
+    inset 1px 1px 3px rgba(255, 255, 255, 0.25),
+    inset -1px -1px 2px rgba(0, 0, 0, 0.1),
+    0 1px 2px rgba(0, 0, 0, 0.15);
+
   z-index: 6;
 }
 
-/* Active state for notes when being played */
-.note.active {
-  transform: scale(0.9) !important;
-  box-shadow: 
-      inset 0 0 10px rgba(255, 255, 255, 0.5),
-      inset 0 0 10px rgba(0, 0, 0, 0.3),
-      0 0 15px rgba(255, 255, 255, 0.5) !important;
-  opacity: 0.9;
+/* Inner notes (smaller) */
+.tone-field.inner {
+  width: 52px;
+  height: 40px;
 }
 
-/* Hover effect for notes */
-.note:hover {
-  transform: scale(1.1);
-  z-index: 10;
+.tone-field.inner::before {
+  width: 20px;
+  height: 15px;
 }
 
-/* Override the hover transform for the ding note */
-.ding-note:hover {
-  transform: none;
-  box-shadow: 
-      inset 2px 2px 5px rgba(255, 255, 255, 0.4),
-      inset -2px -2px 5px rgba(0, 0, 0, 0.3),
-      0 3px 7px rgba(0, 0, 0, 0.3);
+/* Bottom notes */
+.tone-field.bottom {
+  width: 58px;
+  height: 45px;
+}
+
+.tone-field.bottom::before {
+  width: 22px;
+  height: 17px;
 }
 
 /* Note content styling */
@@ -310,55 +373,174 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: var(--text-light);
-}
-
-.note-name {
-  font-weight: bold;
-  font-size: var(--font-size-md);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
   position: relative;
   z-index: 10;
 }
 
-/* Responsive adjustments */
+.note-name {
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+  color: #e8eaec;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    0 0 8px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.02em;
+}
+
+/* Hover state */
+.note:hover {
+  transform: scale(1.08);
+  z-index: 10;
+}
+
+.tone-field:hover {
+  box-shadow:
+    inset 2px 2px 6px rgba(0, 0, 0, 0.2),
+    inset -1px -1px 4px rgba(255, 255, 255, 0.12),
+    0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Active/playing state */
+.note.active {
+  transform: scale(0.92) !important;
+}
+
+.tone-field.active,
+.note.active .tone-field {
+  box-shadow:
+    inset 3px 3px 10px rgba(0, 0, 0, 0.35),
+    inset -1px -1px 4px rgba(255, 255, 255, 0.05),
+    0 0 12px rgba(255, 255, 255, 0.15);
+
+  background:
+    radial-gradient(ellipse 90% 80% at 50% 45%,
+      var(--handpan-steel-dark) 0%,
+      var(--handpan-tone-base) 60%,
+      var(--handpan-steel-shadow) 100%);
+}
+
+/* ========================================
+   Gu Port (Bottom shell center)
+   ======================================== */
+.gu-port {
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  cursor: pointer;
+
+  background:
+    radial-gradient(circle at 50% 45%,
+      var(--handpan-gu-outer) 40%,
+      var(--handpan-steel-shadow) 100%);
+
+  box-shadow:
+    inset 0 4px 12px rgba(0, 0, 0, 0.5),
+    inset 0 -2px 6px rgba(255, 255, 255, 0.05),
+    0 2px 6px rgba(0, 0, 0, 0.2);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.gu-inner {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+
+  background:
+    radial-gradient(circle at 50% 40%,
+      var(--handpan-gu-inner) 60%,
+      #0a0c0e 100%);
+
+  box-shadow:
+    inset 0 3px 10px rgba(0, 0, 0, 0.8),
+    inset 0 -1px 3px rgba(255, 255, 255, 0.03);
+}
+
+.gu-port:hover {
+  transform: translate(-50%, -50%) scale(1.03);
+}
+
+.gu-port:active {
+  transform: translate(-50%, -50%) scale(0.97);
+  box-shadow:
+    inset 0 6px 16px rgba(0, 0, 0, 0.6),
+    inset 0 -1px 4px rgba(255, 255, 255, 0.03),
+    0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+/* ========================================
+   Responsive Adjustments
+   ======================================== */
 @media (max-width: 768px) {
   .handpan-visualization {
     gap: var(--spacing-lg);
   }
-  
+
   .handpan-instrument {
     width: 280px;
     height: 280px;
   }
-  
+
   .handpan-shell {
     width: 260px;
     height: 260px;
   }
-  
-  .gu-port {
-    width: 60px;
-    height: 60px;
+
+  .ding-note {
+    width: 75px;
+    height: 62px;
   }
-  
-  .gu-inner {
-    width: 40px;
+
+  .ding-note::before {
+    width: 30px;
+    height: 24px;
+  }
+
+  .tone-field {
+    width: 52px;
     height: 40px;
   }
-  
-  .tone-field {
-    width: 60px;
-    height: 45px;
-  }
-  
+
   .tone-field::before {
     width: 20px;
-    height: 20px;
+    height: 15px;
   }
-  
+
+  .tone-field.inner {
+    width: 44px;
+    height: 34px;
+  }
+
+  .tone-field.inner::before {
+    width: 16px;
+    height: 12px;
+  }
+
+  .gu-port {
+    width: 55px;
+    height: 55px;
+  }
+
+  .gu-inner {
+    width: 36px;
+    height: 36px;
+  }
+
   .note-name {
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-xs);
+  }
+
+  .ding-note .note-name {
+    font-size: var(--font-size-md);
   }
 }
 
@@ -366,59 +548,77 @@
   .handpan-visualization {
     gap: var(--spacing-md);
   }
-  
+
+  .handpan-container {
+    max-width: 260px;
+  }
+
   .handpan-instrument {
     width: 240px;
     height: 240px;
   }
-  
+
   .handpan-shell {
     width: 220px;
     height: 220px;
   }
-  
-  .gu-port {
-    width: 50px;
-    height: 50px;
+
+  .ding-note {
+    width: 65px;
+    height: 54px;
   }
-  
-  .gu-inner {
-    width: 35px;
-    height: 35px;
+
+  .ding-note::before {
+    width: 26px;
+    height: 20px;
   }
-  
+
   .tone-field {
-    width: 50px;
-    height: 35px;
+    width: 44px;
+    height: 34px;
   }
-  
+
   .tone-field::before {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 12px;
   }
-}
 
-/* Dark theme adjustments */
-[data-theme="dark"] .handpan-top-shell {
-  background: radial-gradient(circle at 30% 30%, 
-      color-mix(in srgb, var(--primary-color), #2a2a2a 40%), 
-      color-mix(in srgb, var(--primary-color), black 60%));
-}
+  .tone-field.inner {
+    width: 38px;
+    height: 29px;
+  }
 
-[data-theme="dark"] .handpan-bottom-shell {
-  background: radial-gradient(circle at 30% 30%, 
-      color-mix(in srgb, var(--primary-color), #2a2a2a 30%), 
-      color-mix(in srgb, var(--primary-color), black 70%));
-}
+  .tone-field.inner::before {
+    width: 14px;
+    height: 10px;
+  }
 
-[data-theme="dark"] .light-reflection {
-  opacity: 0.25;
-}
+  .tone-field.bottom {
+    width: 42px;
+    height: 32px;
+  }
 
-[data-theme="dark"] .metal-texture {
-  opacity: 0.3;
-  background: 
-      radial-gradient(circle at 50% 50%, transparent 80%, rgba(0, 0, 0, 0.3) 100%),
-      linear-gradient(45deg, transparent 48%, rgba(255, 255, 255, 0.03) 50%, transparent 52%),
-      linear-gradient(-45deg, transparent 48%, rgba(255, 255, 255, 0.03) 50%, transparent 52%);
+  .gu-port {
+    width: 48px;
+    height: 48px;
+  }
+
+  .gu-inner {
+    width: 32px;
+    height: 32px;
+  }
+
+  .reflection-1 {
+    width: 70px;
+    height: 40px;
+    top: 20px;
+    left: 30px;
+  }
+
+  .reflection-2 {
+    width: 30px;
+    height: 18px;
+    bottom: 45px;
+    right: 35px;
+  }
 }

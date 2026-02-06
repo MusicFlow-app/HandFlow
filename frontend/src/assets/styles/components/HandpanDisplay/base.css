@@ -1,3 +1,8 @@
+/* HandpanDisplay - Base Layout & UI Elements */
+
+/* ========================================
+   Main Container & Visibility
+   ======================================== */
 .handpan-display {
   opacity: 0;
   transform: translateY(20px);
@@ -24,6 +29,9 @@
   margin-bottom: 2rem;
 }
 
+/* ========================================
+   Content Card
+   ======================================== */
 .handpan-display-content {
   background-color: var(--surface-secondary);
   backdrop-filter: blur(10px);
@@ -32,12 +40,15 @@
   border: 1px solid var(--border-color);
   padding: var(--spacing-xl);
   width: 90%;
-  max-width: 800px;
+  max-width: 850px;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xl);
 }
 
+/* ========================================
+   Header Section
+   ======================================== */
 .handpan-header {
   text-align: center;
 }
@@ -46,8 +57,12 @@
   margin: 0 0 var(--spacing-md);
   font-size: var(--font-size-2xl);
   color: var(--primary-color);
+  font-weight: 600;
 }
 
+/* ========================================
+   Meta Badges
+   ======================================== */
 .handpan-meta {
   display: flex;
   justify-content: center;
@@ -56,104 +71,51 @@
   flex-wrap: wrap;
 }
 
-.category-badge, .ding-badge, .notes-badge {
+.category-badge,
+.ding-badge,
+.notes-badge {
   padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--border-radius-full);
-
+  font-size: var(--font-size-sm);
+  font-weight: 500;
 }
 
 .category-badge {
   color: var(--text-light);
 }
 
-.ding-badge, .notes-badge {
-  background-color: var(--surface-secondary);
-  color: var(--text-color);
+.ding-badge,
+.notes-badge {
+  background-color: var(--surface-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
 }
 
+/* ========================================
+   Favorite Button
+   ======================================== */
 .favorite-button {
   background: none;
   border: none;
   cursor: pointer;
   color: var(--text-tertiary);
-  transition: color var(--transition-default);
+  transition: color 0.2s ease, transform 0.2s ease;
   padding: var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+}
+
+.favorite-button:hover {
+  color: var(--warning-color);
+  transform: scale(1.1);
 }
 
 .favorite-button.active {
-  color: var(--helio-category-9);
+  color: var(--warning-color);
 }
 
-.handpan-visualization {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 350px;
-  position: relative;
-  margin: var(--spacing-md) 0;
-}
-
-.handpan-circle {
-  width: 300px;
-  height: 300px;
-  border-radius: 50%;
-  background-color: var(--surface-secondary);
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: var(--shadow-default);
-}
-
-.ding-note {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background-color: var(--primary-color);
-  color: var(--text-light);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: var(--font-size-xl);
-  font-weight: bold;
-  box-shadow: var(--shadow-default);
-}
-
-.note-item {
-  position: absolute;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: var(--shadow-default);
-  transition: transform var(--transition-default), box-shadow var(--transition-default);
-}
-
-.note-item:hover {
-  transform: scale(1.1) !important;
-  box-shadow: var(--shadow-hover);
-  z-index: 2;
-}
-
-.note-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: var(--text-light);
-}
-
-.note-name {
-  font-weight: bold;
-  font-size: var(--font-size-lg);
-}
-
-.note-position {
-  font-size: var(--font-size-xs);
-  opacity: 0.8;
-}
-
+/* ========================================
+   Action Buttons
+   ======================================== */
 .handpan-actions {
   display: flex;
   justify-content: center;
@@ -166,8 +128,9 @@
   border-radius: var(--border-radius-full);
   border: none;
   font-weight: 600;
+  font-size: var(--font-size-sm);
   cursor: pointer;
-  transition: all var(--transition-default);
+  transition: all 0.2s ease;
 }
 
 .action-button.primary {
@@ -175,79 +138,66 @@
   color: var(--text-light);
 }
 
+.action-button.primary:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
 .action-button.secondary {
   background-color: var(--surface-secondary);
-  color: var(--text-color);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
 }
 
-.action-button:hover {
+.action-button.secondary:hover {
+  background-color: var(--surface-hover);
+  border-color: var(--border-hover);
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px var(--shadow-color);
 }
 
+/* ========================================
+   Responsive Adjustments
+   ======================================== */
 @media (max-width: 768px) {
   .handpan-display-content {
     padding: var(--spacing-lg);
     gap: var(--spacing-lg);
+    max-width: 95%;
   }
-  
+
   .handpan-header h2 {
     font-size: var(--font-size-xl);
   }
-  
-  .handpan-circle {
-    width: 250px;
-    height: 250px;
+
+  .handpan-meta {
+    gap: var(--spacing-sm);
   }
-  
-  .ding-note {
-    width: 60px;
-    height: 60px;
-    font-size: 1.2rem;
-  }
-  
-  .note-item {
-    width: 50px;
-    height: 50px;
+
+  .category-badge,
+  .ding-badge,
+  .notes-badge {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-xs);
   }
 }
 
 @media (max-width: 480px) {
+  .handpan-display.visible {
+    min-height: 500px;
+  }
+
   .handpan-display-content {
     padding: var(--spacing-md);
     gap: var(--spacing-md);
   }
-  
-  .handpan-meta {
-    gap: var(--spacing-sm);
+
+  .handpan-header h2 {
+    font-size: var(--font-size-lg);
   }
-  
-  .category-badge, .ding-badge, .notes-badge {
-    padding: var(--spacing-xs) var(--spacing-sm);
-    font-size: var(--font-size-xs);
-  }
-  
-  .handpan-circle {
-    width: 200px;
-    height: 200px;
-  }
-  
-  .ding-note {
-    width: 50px;
-    height: 50px;
-    font-size: 1rem;
-  }
-  
-  .note-item {
-    width: 40px;
-    height: 40px;
-  }
-  
-  .note-name {
-    font-size: var(--font-size-md);
-  }
-  
-  .note-position {
+
+  .action-button {
+    padding: var(--spacing-xs) var(--spacing-md);
     font-size: var(--font-size-xs);
   }
 }
