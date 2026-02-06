@@ -1,6 +1,6 @@
 <template>
   <!-- Always render but show conditionally based on state -->
-  <div class="handpan-display" :class="{ 'visible': isReadyToDisplay && currentStage >= 6 && !errorDuringRender }">
+  <div class="handpan-display" :class="{ 'visible': isReadyToDisplay && currentStage >= 6 && !errorDuringRender, 'labels-hidden': !showLabels }">
     <!-- Notation Modal -->
     <div class="notation-modal" v-if="showNotationModal">
       <div class="modal-content">
@@ -17,6 +17,17 @@
     </div>
     
     <div class="handpan-display-content">
+      <!-- Labels toggle button -->
+      <button
+        class="labels-toggle"
+        :class="{ active: showLabels }"
+        @click="showLabels = !showLabels"
+        :title="showLabels ? 'Hide note labels' : 'Show note labels'"
+      >
+        <PhTag :size="16" :weight="showLabels ? 'fill' : 'regular'" />
+        <span>{{ showLabels ? 'Labels' : 'Labels' }}</span>
+      </button>
+
       <!-- Header with scale information -->
       <div class="handpan-header">
         <h2>{{ scale?.name || 'Handpan Scale' }}</h2>
@@ -149,7 +160,7 @@ import useHandpanDisplay from '../composables/useHandpanDisplay'
 import useNotification from '@/composables/useNotification'
 
 // Import Phosphor icons
-import { PhInfo, PhCopy, PhCheck } from '@phosphor-icons/vue'
+import { PhInfo, PhCopy, PhCheck, PhTag } from '@phosphor-icons/vue'
 
 // Constants for audio
 const SLACK_PITCH = 127;
@@ -202,6 +213,9 @@ const errorDuringRender = ref(false);
 // State for notation modal
 const showNotationModal = ref(false);
 const copied = ref(false);
+
+// State for labels visibility (default: visible)
+const showLabels = ref(true);
 
 // Only initialize the display logic when needed (stage 5+)
 const {

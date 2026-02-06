@@ -114,6 +114,42 @@
 }
 
 /* ========================================
+   Labels Toggle Button
+   ======================================== */
+.labels-toggle {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--surface-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.labels-toggle:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+.labels-toggle.active {
+  background: var(--primary-color);
+  color: var(--text-light);
+  border-color: var(--primary-color);
+}
+
+.labels-toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ========================================
    Action Buttons
    ======================================== */
 .handpan-actions {
