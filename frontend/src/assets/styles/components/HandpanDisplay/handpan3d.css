@@ -267,19 +267,19 @@
 
 .ding-note .note-name {
   position: absolute;
-  top: -32px;
+  top: -28px;
   left: 50%;
   transform: translateX(-50%);
   font-weight: 600;
   font-size: 13px;
   color: var(--text-primary);
-  background: var(--surface-secondary);
-  border: 1px solid var(--border-color);
-  padding: 3px 8px;
-  border-radius: 4px;
   white-space: nowrap;
   z-index: 20;
-  text-shadow: none;
+  text-shadow:
+    0 1px 3px var(--surface-primary),
+    0 -1px 3px var(--surface-primary),
+    1px 0 3px var(--surface-primary),
+    -1px 0 3px var(--surface-primary);
 }
 
 .ding-note:hover {
@@ -387,20 +387,21 @@
 
 .note-name {
   position: absolute;
-  top: -28px;
+  top: -24px;
   left: 50%;
   transform: translateX(-50%);
   font-weight: 600;
   font-size: 11px;
   color: var(--text-primary);
-  background: var(--surface-secondary);
-  border: 1px solid var(--border-color);
-  padding: 2px 6px;
-  border-radius: 4px;
   white-space: nowrap;
   opacity: 1;
   transition: opacity 0.2s ease;
   z-index: 20;
+  text-shadow:
+    0 1px 2px var(--surface-primary),
+    0 -1px 2px var(--surface-primary),
+    1px 0 2px var(--surface-primary),
+    -1px 0 2px var(--surface-primary);
 }
 
 /* Hide labels when toggle is off */
@@ -560,14 +561,12 @@
 
   .note-name {
     font-size: 10px;
-    padding: 2px 5px;
-    top: -24px;
+    top: -22px;
   }
 
   .ding-note .note-name {
     font-size: 12px;
-    padding: 2px 6px;
-    top: -28px;
+    top: -26px;
   }
 }
 
@@ -634,14 +633,12 @@
 
   .note-name {
     font-size: 10px;
-    padding: 2px 4px;
-    top: -22px;
+    top: -20px;
   }
 
   .ding-note .note-name {
     font-size: 11px;
-    padding: 2px 5px;
-    top: -26px;
+    top: -24px;
   }
 }
 
@@ -712,14 +709,12 @@
 
   .note-name {
     font-size: 9px;
-    padding: 1px 4px;
-    top: -20px;
+    top: -18px;
   }
 
   .ding-note .note-name {
     font-size: 10px;
-    padding: 2px 5px;
-    top: -24px;
+    top: -22px;
   }
 
   .reflection-1 {
