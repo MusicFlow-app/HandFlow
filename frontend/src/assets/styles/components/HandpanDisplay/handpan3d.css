@@ -267,7 +267,7 @@
 
 .ding-note .note-name {
   position: absolute;
-  top: -28px;
+  bottom: -26px;
   left: 50%;
   transform: translateX(-50%);
   font-weight: 600;
@@ -387,9 +387,9 @@
 
 .note-name {
   position: absolute;
-  top: -24px;
+  bottom: -22px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) rotate(var(--label-rotation, 0deg));
   font-weight: 600;
   font-size: 11px;
   color: var(--text-primary);
@@ -561,12 +561,12 @@
 
   .note-name {
     font-size: 10px;
-    top: -22px;
+    bottom: -20px;
   }
 
   .ding-note .note-name {
     font-size: 12px;
-    top: -26px;
+    bottom: -24px;
   }
 }
 
@@ -633,12 +633,12 @@
 
   .note-name {
     font-size: 10px;
-    top: -20px;
+    bottom: -18px;
   }
 
   .ding-note .note-name {
     font-size: 11px;
-    top: -24px;
+    bottom: -22px;
   }
 }
 
@@ -709,12 +709,12 @@
 
   .note-name {
     font-size: 9px;
-    top: -18px;
+    bottom: -16px;
   }
 
   .ding-note .note-name {
     font-size: 10px;
-    top: -22px;
+    bottom: -20px;
   }
 
   .reflection-1 {

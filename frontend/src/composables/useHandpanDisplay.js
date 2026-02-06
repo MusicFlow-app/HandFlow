@@ -581,8 +581,9 @@ export default function useHandpanDisplay(options) {
     return {
       // Apply dynamic scaling based on total notes
       transform: `translate(${x}px, ${y}px) rotate(${rotationDegrees}deg) scale(${scaleFactor})`,
-      boxShadow: `inset 2px 2px 5px rgba(255, 255, 255, 0.4), 
-                  inset -2px -2px 5px rgba(0, 0, 0, 0.2), 
+      '--label-rotation': `${-rotationDegrees}deg`,
+      boxShadow: `inset 2px 2px 5px rgba(255, 255, 255, 0.4),
+                  inset -2px -2px 5px rgba(0, 0, 0, 0.2),
                   0 2px 5px rgba(0, 0, 0, 0.2)`,
       transformOrigin: 'center center', // Ensure rotation happens from the center
       position: 'absolute', // Ensure absolute positioning
@@ -629,8 +630,9 @@ export default function useHandpanDisplay(options) {
     return {
       // Apply dynamic scaling based on total notes
       transform: `translate(${x}px, ${y}px) rotate(${rotationDegrees}deg) scale(${scaleFactor})`,
-      boxShadow: `inset 2px 2px 5px rgba(255, 255, 255, 0.4), 
-                  inset -2px -2px 5px rgba(0, 0, 0, 0.2), 
+      '--label-rotation': `${-rotationDegrees}deg`,
+      boxShadow: `inset 2px 2px 5px rgba(255, 255, 255, 0.4),
+                  inset -2px -2px 5px rgba(0, 0, 0, 0.2),
                   0 2px 5px rgba(0, 0, 0, 0.2)`,
       // Use a slightly different appearance for inner notes
       opacity: '0.92',
@@ -718,8 +720,9 @@ export default function useHandpanDisplay(options) {
     
     return {
       transform: `translate(${x}px, ${y}px) rotate(${rotationDegrees}deg) scale(${scaleFactor})`,
-      boxShadow: `inset 2px 2px 5px rgba(255, 255, 255, 0.4), 
-                  inset -2px -2px 5px rgba(0, 0, 0, 0.2), 
+      '--label-rotation': `${-rotationDegrees}deg`,
+      boxShadow: `inset 2px 2px 5px rgba(255, 255, 255, 0.4),
+                  inset -2px -2px 5px rgba(0, 0, 0, 0.2),
                   0 2px 5px rgba(0, 0, 0, 0.2)`,
       // Use a slightly different appearance for bottom notes
       opacity: '0.95',
