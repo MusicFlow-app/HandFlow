@@ -406,9 +406,23 @@ watch(() => props.currentTime, () => {
   checkForHits();
 });
 
-watch(() => props.events, () => {
+watch(() => props.events, (newEvents) => {
+  console.log('=== FallingNotesOverlay: Events received ===');
+  console.log('Event count:', newEvents?.length || 0);
+  if (newEvents && newEvents.length > 0) {
+    const pitches = newEvents.map(e => e.pitch).filter(p => p > 0);
+    console.log('Unique pitches:', [...new Set(pitches)].sort((a, b) => a - b));
+    console.log('Computed pitch range:', pitchRange.value);
+
+    // Log first few events with their calculated sizes
+    newEvents.slice(0, 5).forEach((event, i) => {
+      const scale = getPitchScale(event.pitch);
+      const size = getToneFieldSize(event.pitch);
+      console.log(`Event ${i}: pitch=${event.pitch}, scale=${scale.toFixed(2)}, size=${size.width.toFixed(1)}x${size.height.toFixed(1)}`);
+    });
+  }
   hitNotes.value.clear();
-});
+}, { immediate: true });
 </script>
 
 <style scoped>
