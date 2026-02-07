@@ -115,6 +115,10 @@ const props = defineProps({
   scoreDuration: {
     type: Number,
     default: 0
+  },
+  leadInMs: {
+    type: Number,
+    default: 3000
   }
 });
 
@@ -342,7 +346,7 @@ const getBeatLineStyle = (beat) => {
   };
 };
 
-// Generate beat markers
+// Generate beat markers (starting after lead-in)
 const allBeatMarkers = computed(() => {
   if (props.scoreDuration <= 0 || props.tempo <= 0) return [];
 
@@ -352,7 +356,8 @@ const allBeatMarkers = computed(() => {
   const msPerMeasure = msPerBeat * beatsPerMeasure;
 
   let measureNumber = 1;
-  let time = 0;
+  // Start beat markers after the lead-in time
+  let time = props.leadInMs;
 
   while (time <= props.scoreDuration + msPerMeasure) {
     markers.push({

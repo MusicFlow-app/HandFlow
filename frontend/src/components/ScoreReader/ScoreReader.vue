@@ -45,6 +45,7 @@
         :current-time="playback.currentTime.value"
         :lead-time="LEAD_TIME"
         :trail-time="TRAIL_TIME"
+        :lead-in-ms="LEAD_IN_MS"
         :note-positions="notePositions"
         :handpan-notes="allHandpanNotes"
         :handpan-center="handpanCenter"
@@ -159,6 +160,7 @@ const emit = defineEmits(['close']);
 // Constants
 const LEAD_TIME = 6000; // 6 seconds ahead (~3 measures at 120 BPM)
 const TRAIL_TIME = 300; // 0.3 seconds behind
+const LEAD_IN_MS = 3000; // 3 seconds empty gap before first note
 
 // Router
 const route = useRoute();

@@ -288,10 +288,10 @@ export default function useNoteScheduler() {
     events.sort((a, b) => a.absoluteTime - b.absoluteTime);
 
     scheduledEvents.value = events;
-    // Include lead-in time in total duration
-    scoreDuration.value = maxTime + leadInOffset;
+    // maxTime already includes leadInOffset since absoluteTime includes it
+    scoreDuration.value = maxTime;
 
-    console.log(`Scheduled ${events.length} note events, duration: ${maxTime + leadInOffset}ms (includes ${leadInOffset}ms lead-in)`);
+    console.log(`Scheduled ${events.length} note events, duration: ${maxTime}ms (includes ${leadInOffset}ms lead-in)`);
 
     return events;
   };
