@@ -397,14 +397,14 @@ const visibleBeatMarkers = computed(() => {
     });
 });
 
-// Check for note hits - simple time-based trigger
+// Check for note hits - trigger before visual hit to compensate for audio latency
 const checkForHits = () => {
   props.events.forEach(event => {
     const timeOffset = event.absoluteTime - props.currentTime;
 
-    // Trigger at hit time (timeOffset near 0)
-    // Small window to catch the moment
-    if (timeOffset <= 0 && timeOffset > -100) {
+    // Trigger 200ms BEFORE scheduled time to sync with visual
+    // (visual appears to be ahead of time calculation)
+    if (timeOffset <= 200 && timeOffset > -50) {
       if (!hitNotes.value.has(event.id)) {
         hitNotes.value.add(event.id);
         emit('note-hit', event);
