@@ -399,12 +399,15 @@ const visibleBeatMarkers = computed(() => {
 
 // Check for note hits
 const checkForHits = () => {
-  const hitTolerance = 30;
+  const hitTolerance = 50;
+  // Trigger slightly before visual hit (compensate for latency)
+  const hitOffset = 30;
 
   props.events.forEach(event => {
     const timeOffset = event.absoluteTime - props.currentTime;
 
-    if (timeOffset <= 0 && timeOffset > -hitTolerance) {
+    // Trigger when note is about to reach tone field (hitOffset ms early)
+    if (timeOffset <= hitOffset && timeOffset > -hitTolerance) {
       if (!hitNotes.value.has(event.id)) {
         hitNotes.value.add(event.id);
         emit('note-hit', event);

@@ -157,7 +157,7 @@ const props = defineProps({
 const emit = defineEmits(['close']);
 
 // Constants
-const LEAD_TIME = 4000; // 4 seconds ahead (~2 measures at 120 BPM)
+const LEAD_TIME = 6000; // 6 seconds ahead (~3 measures at 120 BPM)
 const TRAIL_TIME = 300; // 0.3 seconds behind
 
 // Router
