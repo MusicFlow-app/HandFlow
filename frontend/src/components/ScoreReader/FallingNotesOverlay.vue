@@ -397,22 +397,26 @@ const visibleBeatMarkers = computed(() => {
     });
 });
 
-// Check for note hits - trigger before visual hit to compensate for audio latency
+// Check for note hits - trigger when bar bottom crosses middle of handpan tonefield
 const checkForHits = () => {
   props.events.forEach(event => {
+    const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
+    const targetPos = getNotePosition(noteIndex);
+
+    // Calculate position of bar's bottom (where the falling tonefield is)
     const timeOffset = event.absoluteTime - props.currentTime;
+    const barBottomY = targetPos.y - (timeOffset * pixelsPerMs.value);
 
-    // Trigger 200ms BEFORE scheduled time to sync with visual
-    // (visual appears to be ahead of time calculation)
-    if (timeOffset <= 200 && timeOffset > -50) {
-      if (!hitNotes.value.has(event.id)) {
-        hitNotes.value.add(event.id);
-        emit('note-hit', event);
+    // Target position is the handpan tonefield center (targetPos.y)
+    // Trigger when bar bottom reaches or passes the target
+    // barBottomY >= targetPos.y means bar has reached/passed the handpan tonefield
+    if (barBottomY >= targetPos.y && !hitNotes.value.has(event.id)) {
+      hitNotes.value.add(event.id);
+      emit('note-hit', event);
 
-        setTimeout(() => {
-          hitNotes.value.delete(event.id);
-        }, Math.min(event.duration || 300, 500));
-      }
+      setTimeout(() => {
+        hitNotes.value.delete(event.id);
+      }, Math.min(event.duration || 300, 500));
     }
   });
 };
