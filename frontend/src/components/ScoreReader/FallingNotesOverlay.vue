@@ -401,7 +401,7 @@ const visibleBeatMarkers = computed(() => {
 const checkForHits = () => {
   const hitTolerance = 50;
   // Trigger earlier to sync with visual tone field contact
-  const hitOffset = 100;
+  const hitOffset = 150;
 
   props.events.forEach(event => {
     const timeOffset = event.absoluteTime - props.currentTime;
