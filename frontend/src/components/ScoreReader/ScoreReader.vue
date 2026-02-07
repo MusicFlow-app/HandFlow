@@ -158,7 +158,7 @@ const props = defineProps({
 const emit = defineEmits(['close']);
 
 // Constants
-const LEAD_TIME = 10000; // 10 seconds ahead (~5 measures at 120 BPM) for better anticipation
+const LEAD_TIME = 20000; // 20 seconds ahead - "unzoomed" view for slower falling notes + more preview
 const TRAIL_TIME = 300; // 0.3 seconds behind
 const LEAD_IN_MS = 3000; // 3 seconds empty gap before first note
 
