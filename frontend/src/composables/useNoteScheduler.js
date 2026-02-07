@@ -189,8 +189,8 @@ export default function useNoteScheduler() {
     const bpm = options.bpm || tempo.value;
     tempo.value = bpm;
 
-    // Lead-in measures (empty measures before music starts to let reader prepare)
-    const leadInMeasures = options.leadInMeasures !== undefined ? options.leadInMeasures : 4;
+    // Fixed 3 second lead-in (empty gap before music starts)
+    const leadInOffset = options.leadInMs !== undefined ? options.leadInMs : 3000;
 
     // Select which part to use (default to first)
     const partIndex = options.partIndex || 0;
@@ -205,10 +205,7 @@ export default function useNoteScheduler() {
 
     const events = [];
     let currentTimeSig = { beats: 4, beatType: 4 };
-
-    // Calculate lead-in time offset (4 empty measures by default)
     const msPerBeat = 60000 / bpm;
-    const leadInOffset = leadInMeasures * currentTimeSig.beats * msPerBeat;
     let maxTime = 0;
 
     // Process each measure
@@ -294,7 +291,7 @@ export default function useNoteScheduler() {
     // Include lead-in time in total duration
     scoreDuration.value = maxTime + leadInOffset;
 
-    console.log(`Scheduled ${events.length} note events, duration: ${maxTime + leadInOffset}ms (includes ${leadInMeasures} lead-in measures)`);
+    console.log(`Scheduled ${events.length} note events, duration: ${maxTime + leadInOffset}ms (includes ${leadInOffset}ms lead-in)`);
 
     return events;
   };
