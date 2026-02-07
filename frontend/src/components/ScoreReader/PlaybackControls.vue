@@ -93,6 +93,27 @@
       >
         <PhRepeat :size="20" :weight="loopEnabled ? 'fill' : 'regular'" />
       </button>
+
+      <!-- Zoom controls -->
+      <div class="zoom-controls">
+        <button
+          class="control-button control-button--small"
+          @click="emit('zoom-in')"
+          title="Zoom In (show less measures, faster notes)"
+          :disabled="measuresAhead <= minMeasures"
+        >
+          <PhMagnifyingGlassPlus :size="18" />
+        </button>
+        <span class="zoom-label">{{ measuresAhead }}m</span>
+        <button
+          class="control-button control-button--small"
+          @click="emit('zoom-out')"
+          title="Zoom Out (show more measures, slower notes)"
+          :disabled="measuresAhead >= maxMeasures"
+        >
+          <PhMagnifyingGlassMinus :size="18" />
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -105,7 +126,9 @@ import {
   PhStop,
   PhRepeat,
   PhGauge,
-  PhCaretDown
+  PhCaretDown,
+  PhMagnifyingGlassPlus,
+  PhMagnifyingGlassMinus
 } from '@phosphor-icons/vue';
 
 const props = defineProps({
@@ -146,6 +169,18 @@ const props = defineProps({
       { value: 1.25, label: '1.25x' },
       { value: 1.5, label: '1.5x' }
     ]
+  },
+  measuresAhead: {
+    type: Number,
+    default: 4
+  },
+  minMeasures: {
+    type: Number,
+    default: 2
+  },
+  maxMeasures: {
+    type: Number,
+    default: 16
   }
 });
 
@@ -154,7 +189,9 @@ const emit = defineEmits([
   'stop',
   'seek',
   'set-speed',
-  'toggle-loop'
+  'toggle-loop',
+  'zoom-in',
+  'zoom-out'
 ]);
 
 // Refs
@@ -251,6 +288,14 @@ const handleKeydown = (event) => {
   }
   if (event.code === 'ArrowRight') {
     emit('seek', Math.min(props.duration, props.currentTime + 5000));
+  }
+
+  // +/- for zoom
+  if (event.code === 'Equal' || event.code === 'NumpadAdd') {
+    emit('zoom-in');
+  }
+  if (event.code === 'Minus' || event.code === 'NumpadSubtract') {
+    emit('zoom-out');
   }
 };
 

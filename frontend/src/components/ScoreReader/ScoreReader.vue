@@ -29,11 +29,16 @@
         :loop-start="playback.loopStart.value"
         :loop-end="playback.loopEnd.value"
         :speed-options="playback.speedOptions"
+        :measures-ahead="measuresAhead"
+        :min-measures="MIN_MEASURES"
+        :max-measures="MAX_MEASURES"
         @toggle-play="playback.togglePlay"
         @stop="playback.stop"
         @seek="playback.seek"
         @set-speed="playback.setSpeed"
         @toggle-loop="playback.toggleLoop"
+        @zoom-in="handleZoomIn"
+        @zoom-out="handleZoomOut"
       />
     </div>
 
@@ -43,7 +48,7 @@
       <FallingNotesOverlay
         :events="scheduler.scheduledEvents.value"
         :current-time="playback.currentTime.value"
-        :lead-time="LEAD_TIME"
+        :lead-time="leadTime"
         :trail-time="TRAIL_TIME"
         :lead-in-ms="LEAD_IN_MS"
         :note-positions="notePositions"
@@ -158,9 +163,49 @@ const props = defineProps({
 const emit = defineEmits(['close']);
 
 // Constants
-const LEAD_TIME = 20000; // 20 seconds ahead - "unzoomed" view for slower falling notes + more preview
 const TRAIL_TIME = 300; // 0.3 seconds behind
 const LEAD_IN_MS = 3000; // 3 seconds empty gap before first note
+const MIN_MEASURES = 2;
+const MAX_MEASURES = 16;
+const DEFAULT_MEASURES_BASE = 4; // Base measures at 120 BPM
+
+// Reactive zoom state
+const measuresAhead = ref(DEFAULT_MEASURES_BASE);
+
+// Calculate lead time based on BPM and measures ahead
+// This creates the "zoom" effect - more measures = slower falling notes
+const leadTime = computed(() => {
+  const bpm = scheduler.tempo.value || 120;
+  const beatsPerMeasure = scheduler.timeSignature.value?.beats || 4;
+  const msPerBeat = 60000 / bpm;
+  const msPerMeasure = msPerBeat * beatsPerMeasure;
+  return measuresAhead.value * msPerMeasure;
+});
+
+// Calculate BPM-aware default measures
+// Faster songs show more measures, slower songs show fewer
+// Target: ~8 seconds of lead time as baseline at any BPM
+const calculateDefaultMeasures = (bpm) => {
+  const beatsPerMeasure = scheduler.timeSignature.value?.beats || 4;
+  const msPerBeat = 60000 / bpm;
+  const msPerMeasure = msPerBeat * beatsPerMeasure;
+  const targetLeadTime = 8000; // 8 seconds as target
+  const measures = Math.round(targetLeadTime / msPerMeasure);
+  return Math.max(MIN_MEASURES, Math.min(MAX_MEASURES, measures));
+};
+
+// Zoom handlers
+const handleZoomIn = () => {
+  if (measuresAhead.value > MIN_MEASURES) {
+    measuresAhead.value = Math.max(MIN_MEASURES, measuresAhead.value - 1);
+  }
+};
+
+const handleZoomOut = () => {
+  if (measuresAhead.value < MAX_MEASURES) {
+    measuresAhead.value = Math.min(MAX_MEASURES, measuresAhead.value + 1);
+  }
+};
 
 // Router
 const route = useRoute();
@@ -462,7 +507,11 @@ const loadScore = async (scoreId) => {
     playback.setDuration(scheduler.scoreDuration.value);
     scoreLoaded.value = true;
 
-    console.log(`Loaded score: ${tabData.metadata?.work_title}, ${measures.length} measures, ${scheduler.eventCount.value} events`);
+    // Set BPM-aware default zoom
+    const bpm = tabData.metadata?.tempo || 120;
+    measuresAhead.value = calculateDefaultMeasures(bpm);
+
+    console.log(`Loaded score: ${tabData.metadata?.work_title}, ${measures.length} measures, ${scheduler.eventCount.value} events, zoom: ${measuresAhead.value}m`);
   } catch (err) {
     console.error('Error loading score:', err);
   }
@@ -514,11 +563,14 @@ onMounted(() => {
     if (props.scoreData) {
       // Use provided score data
       scoreMetadata.value = props.scoreData.metadata;
+      const bpm = props.scoreData.metadata?.tempo || 120;
       scheduler.scheduleScore(props.scoreData.score_data, allHandpanNotes.value, {
-        bpm: props.scoreData.metadata?.tempo || 120
+        bpm
       });
       playback.setDuration(scheduler.scoreDuration.value);
       scoreLoaded.value = true;
+      // Set BPM-aware default zoom
+      measuresAhead.value = calculateDefaultMeasures(bpm);
     } else if (scoreId) {
       // Fetch from API
       loadScore(scoreId);

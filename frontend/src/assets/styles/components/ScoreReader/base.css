@@ -266,6 +266,37 @@
 }
 
 /* ========================================
+   Zoom Controls
+   ======================================== */
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 0 var(--spacing-xs);
+  border-left: 1px solid var(--border-color);
+  margin-left: var(--spacing-xs);
+}
+
+.zoom-label {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  min-width: 28px;
+  text-align: center;
+}
+
+.control-button--small {
+  width: 32px;
+  height: 32px;
+}
+
+.control-button--small:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ========================================
    Score Info Header
    ======================================== */
 .score-info {
