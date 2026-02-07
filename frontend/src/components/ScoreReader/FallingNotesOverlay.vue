@@ -397,23 +397,14 @@ const visibleBeatMarkers = computed(() => {
     });
 });
 
-// Check for note hits based on visual position (BPM-independent)
+// Check for note hits - simple time-based trigger
 const checkForHits = () => {
   props.events.forEach(event => {
-    const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
-    const targetPos = getNotePosition(noteIndex);
-
-    // Calculate visual position of the note's tone field
     const timeOffset = event.absoluteTime - props.currentTime;
-    const bottomY = targetPos.y - (timeOffset * pixelsPerMs.value);
 
-    // Trigger when note overlaps its target tone field position
-    // bottomY equals targetPos.y at hit time (when timeOffset = 0)
-    const hitWindow = 5; // pixels before target
-    const passedWindow = 50; // pixels past target
-
-    // Check if bottomY is near targetPos.y (the handpan note position)
-    if (bottomY >= targetPos.y - hitWindow && bottomY < targetPos.y + passedWindow) {
+    // Trigger at hit time (timeOffset near 0)
+    // Small window to catch the moment
+    if (timeOffset <= 0 && timeOffset > -100) {
       if (!hitNotes.value.has(event.id)) {
         hitNotes.value.add(event.id);
         emit('note-hit', event);
