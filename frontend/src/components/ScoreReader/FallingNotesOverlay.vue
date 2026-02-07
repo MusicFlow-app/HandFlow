@@ -218,18 +218,18 @@ const getNoteBarStyle = (event) => {
   const barWidth = getBarWidth(noteIndex);
   const barHeight = durationToPixels(event.duration || 500);
 
-  // Y position: bar top position, bar bottom (tone field) should hit target at timeOffset=0
+  // Y position: bar bottom (tone field) should hit target at timeOffset=0
+  // With bottom-based CSS, translateY moves element up when negative
   const timeOffset = event.absoluteTime - props.currentTime;
   const bottomY = targetPos.y - (timeOffset * pixelsPerMs.value);
-  const topY = bottomY - barHeight;
 
   const currentX = targetPos.x;
 
-  // Fade out notes that are too far up
+  // Fade out notes that are too far up (bottomY very negative = high up)
   let opacity = 1;
-  const distanceFromTop = topY + props.fallHeight;
-  if (distanceFromTop < 50) {
-    opacity = Math.max(0, distanceFromTop / 50);
+  const distanceFromTarget = Math.abs(bottomY - targetPos.y);
+  if (distanceFromTarget > props.fallHeight - 50) {
+    opacity = Math.max(0, (props.fallHeight - distanceFromTarget) / 50);
   }
 
   return {
@@ -238,7 +238,7 @@ const getNoteBarStyle = (event) => {
     '--tone-field-width': `${toneFieldSize.width}px`,
     '--tone-field-height': `${toneFieldSize.height}px`,
     '--tx': `${currentX}px`,
-    '--ty': `${topY}px`,
+    '--ty': `${bottomY}px`,
     width: `var(--bar-width)`,
     height: `var(--bar-height)`,
     transform: `translate(calc(-50% + var(--tx)), var(--ty))`,
@@ -281,13 +281,13 @@ const getLineCoords = (event) => {
   const timeOffset = event.absoluteTime - props.currentTime;
   const bottomY = targetPos.y - (timeOffset * pixelsPerMs.value);
 
-  // SVG uses center-based positioning (50% = center)
-  // bottomY and targetPos.y are offsets from center
+  // SVG uses top-based coords, handpan is 80px from bottom
+  // Offsets are added (negative = higher up)
   return {
     x1: `calc(50% + ${targetPos.x}px)`,
-    y1: `calc(50% + ${bottomY}px)`,
+    y1: `calc(100% - 80px + ${bottomY}px)`,
     x2: `calc(50% + ${targetPos.x}px)`,
-    y2: `calc(50% + ${targetPos.y}px)`
+    y2: `calc(100% - 80px + ${targetPos.y}px)`
   };
 };
 
@@ -303,12 +303,14 @@ const getTargetGlowStyle = (event) => {
   // Use handpanNoteIndex for rank-based sizing (same as handpan display)
   const size = getToneFieldSize(noteIndex);
 
+  // With bottom-based CSS, use targetPos.y directly
+  // Add 50% to center the glow vertically on the target
   return {
     '--tx': `${targetPos.x}px`,
     '--ty': `${targetPos.y}px`,
     '--glow-size': `${Math.max(size.width, size.height) * 1.5}px`,
     '--glow-opacity': event.proximity * 0.6,
-    transform: `translate(calc(-50% + var(--tx)), calc(-50% + var(--ty)))`,
+    transform: `translate(calc(-50% + var(--tx)), calc(50% + var(--ty)))`,
     width: `var(--glow-size)`,
     height: `var(--glow-size)`,
     opacity: `var(--glow-opacity)`
@@ -475,7 +477,7 @@ watch(() => props.events, () => {
 /* Target glow on handpan */
 .target-glow {
   position: absolute;
-  top: 50%; /* Aligned with handpan center */
+  bottom: 80px; /* Aligned with handpan center (80px from bottom) */
   left: 50%;
   border-radius: 50%;
   pointer-events: none;
@@ -495,7 +497,7 @@ watch(() => props.events, () => {
 /* Note bar */
 .note-bar {
   position: absolute;
-  top: 50%; /* Reference point aligned with handpan center */
+  bottom: 80px; /* Reference point aligned with handpan center (80px from bottom) */
   left: 50%;
   border-radius: 3px 3px 0 0;
   pointer-events: none;
@@ -725,7 +727,7 @@ watch(() => props.events, () => {
 /* Beat grid lines */
 .beat-line {
   position: absolute;
-  top: 50%; /* Aligned with handpan center */
+  bottom: 80px; /* Aligned with handpan center (80px from bottom) */
   left: 5%;
   right: 5%;
   height: 1px;
