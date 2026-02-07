@@ -218,16 +218,16 @@ const getNoteBarStyle = (event) => {
   const barWidth = getBarWidth(noteIndex);
   const barHeight = durationToPixels(event.duration || 500);
 
-  // Y position: tone field (bottom of bar) aligns with target at hit time
+  // Y position: bar top position, bar bottom (tone field) should hit target at timeOffset=0
   const timeOffset = event.absoluteTime - props.currentTime;
-  // bottomY = position of tone field (0 at hit time, negative when approaching)
   const bottomY = targetPos.y - (timeOffset * pixelsPerMs.value);
+  const topY = bottomY - barHeight;
 
   const currentX = targetPos.x;
 
   // Fade out notes that are too far up
   let opacity = 1;
-  const distanceFromTop = bottomY + props.fallHeight;
+  const distanceFromTop = topY + props.fallHeight;
   if (distanceFromTop < 50) {
     opacity = Math.max(0, distanceFromTop / 50);
   }
@@ -238,11 +238,9 @@ const getNoteBarStyle = (event) => {
     '--tone-field-width': `${toneFieldSize.width}px`,
     '--tone-field-height': `${toneFieldSize.height}px`,
     '--tx': `${currentX}px`,
-    // With bottom-based CSS positioning, use bottomY (tone field position)
-    '--ty': `${bottomY}px`,
+    '--ty': `${topY}px`,
     width: `var(--bar-width)`,
     height: `var(--bar-height)`,
-    // Transform positions the tone field (bar bottom) at the target
     transform: `translate(calc(-50% + var(--tx)), var(--ty))`,
     opacity,
     zIndex: event.isActive ? 100 : 50
@@ -283,14 +281,13 @@ const getLineCoords = (event) => {
   const timeOffset = event.absoluteTime - props.currentTime;
   const bottomY = targetPos.y - (timeOffset * pixelsPerMs.value);
 
-  // SVG uses bottom-based positioning matching the overlay
-  // Reference is 200px from bottom, inverted for SVG (which uses top-based coords)
-  // Use calc(100% - 200px + offset) to convert from bottom-based to SVG coords
+  // SVG uses center-based positioning (50% = center)
+  // bottomY and targetPos.y are offsets from center
   return {
     x1: `calc(50% + ${targetPos.x}px)`,
-    y1: `calc(100% - 200px - ${bottomY}px)`,
+    y1: `calc(50% + ${bottomY}px)`,
     x2: `calc(50% + ${targetPos.x}px)`,
-    y2: `calc(100% - 200px - ${targetPos.y}px)`
+    y2: `calc(50% + ${targetPos.y}px)`
   };
 };
 
@@ -311,8 +308,7 @@ const getTargetGlowStyle = (event) => {
     '--ty': `${targetPos.y}px`,
     '--glow-size': `${Math.max(size.width, size.height) * 1.5}px`,
     '--glow-opacity': event.proximity * 0.6,
-    // With bottom-based positioning, use +50% for vertical centering
-    transform: `translate(calc(-50% + var(--tx)), calc(50% + var(--ty)))`,
+    transform: `translate(calc(-50% + var(--tx)), calc(-50% + var(--ty)))`,
     width: `var(--glow-size)`,
     height: `var(--glow-size)`,
     opacity: `var(--glow-opacity)`
@@ -338,8 +334,8 @@ const getBeatLineStyle = (beat) => {
 
   return {
     '--ty': `${currentY}px`,
-    // With bottom-based positioning, use +50% for vertical centering
-    transform: `translateY(calc(50% + var(--ty)))`,
+    // Center-based: top:50% is the reference, ty moves from there
+    transform: `translateY(var(--ty))`,
     opacity
   };
 };
@@ -397,20 +393,19 @@ const visibleBeatMarkers = computed(() => {
     });
 });
 
-// Check for note hits - trigger when bar bottom crosses middle of handpan tonefield
+// Check for note hits - trigger when note's scheduled time arrives
+// Use time-based detection for BPM-independent sync
 const checkForHits = () => {
+  // Small anticipation to compensate for audio latency (in ms)
+  const audioLatencyCompensation = 30;
+
   props.events.forEach(event => {
-    const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
-    const targetPos = getNotePosition(noteIndex);
-
-    // Calculate position of bar's bottom (where the falling tonefield is)
+    // Time until note should play (negative = overdue)
     const timeOffset = event.absoluteTime - props.currentTime;
-    const barBottomY = targetPos.y - (timeOffset * pixelsPerMs.value);
 
-    // Target position is the handpan tonefield center (targetPos.y)
-    // Trigger when bar bottom reaches or passes the target
-    // barBottomY >= targetPos.y means bar has reached/passed the handpan tonefield
-    if (barBottomY >= targetPos.y && !hitNotes.value.has(event.id)) {
+    // Fire when we're within the anticipation window
+    // timeOffset <= audioLatencyCompensation means we're close enough to trigger
+    if (timeOffset <= audioLatencyCompensation && !hitNotes.value.has(event.id)) {
       hitNotes.value.add(event.id);
       emit('note-hit', event);
 
@@ -470,7 +465,7 @@ watch(() => props.events, () => {
 /* Target glow on handpan */
 .target-glow {
   position: absolute;
-  bottom: 200px; /* Aligned with handpan center */
+  top: 50%; /* Aligned with handpan center */
   left: 50%;
   border-radius: 50%;
   pointer-events: none;
@@ -490,7 +485,7 @@ watch(() => props.events, () => {
 /* Note bar */
 .note-bar {
   position: absolute;
-  bottom: 200px; /* Reference point aligned with handpan center at bottom */
+  top: 50%; /* Reference point aligned with handpan center */
   left: 50%;
   border-radius: 3px 3px 0 0;
   pointer-events: none;
@@ -720,7 +715,7 @@ watch(() => props.events, () => {
 /* Beat grid lines */
 .beat-line {
   position: absolute;
-  bottom: 200px; /* Aligned with handpan center */
+  top: 50%; /* Aligned with handpan center */
   left: 5%;
   right: 5%;
   height: 1px;
