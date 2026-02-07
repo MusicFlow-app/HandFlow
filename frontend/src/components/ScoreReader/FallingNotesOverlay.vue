@@ -407,12 +407,13 @@ const checkForHits = () => {
     const timeOffset = event.absoluteTime - props.currentTime;
     const bottomY = targetPos.y - (timeOffset * pixelsPerMs.value);
 
-    // Trigger when note perfectly overlaps the tone field (bottomY = 0)
-    // Small window to catch the exact moment
-    const hitWindow = 5; // pixels tolerance
-    const passedWindow = 50; // pixels past before giving up
+    // Trigger when note overlaps its target tone field position
+    // bottomY equals targetPos.y at hit time (when timeOffset = 0)
+    const hitWindow = 5; // pixels before target
+    const passedWindow = 50; // pixels past target
 
-    if (bottomY >= -hitWindow && bottomY < passedWindow) {
+    // Check if bottomY is near targetPos.y (the handpan note position)
+    if (bottomY >= targetPos.y - hitWindow && bottomY < targetPos.y + passedWindow) {
       if (!hitNotes.value.has(event.id)) {
         hitNotes.value.add(event.id);
         emit('note-hit', event);
