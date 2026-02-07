@@ -397,17 +397,22 @@ const visibleBeatMarkers = computed(() => {
     });
 });
 
-// Check for note hits
+// Check for note hits based on visual position (BPM-independent)
 const checkForHits = () => {
-  const hitTolerance = 50;
-  // Trigger earlier to sync with visual tone field contact
-  const hitOffset = 150;
-
   props.events.forEach(event => {
-    const timeOffset = event.absoluteTime - props.currentTime;
+    const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
+    const targetPos = getNotePosition(noteIndex);
 
-    // Trigger when note is about to reach tone field (hitOffset ms early)
-    if (timeOffset <= hitOffset && timeOffset > -hitTolerance) {
+    // Calculate visual position of the note's tone field
+    const timeOffset = event.absoluteTime - props.currentTime;
+    const bottomY = targetPos.y - (timeOffset * pixelsPerMs.value);
+
+    // Trigger when note visually reaches the tone field (bottomY >= 0)
+    // Use small threshold for the hit zone
+    const hitThreshold = 10; // pixels
+    const passedThreshold = -30; // pixels past the target
+
+    if (bottomY >= -hitThreshold && bottomY < -passedThreshold) {
       if (!hitNotes.value.has(event.id)) {
         hitNotes.value.add(event.id);
         emit('note-hit', event);
