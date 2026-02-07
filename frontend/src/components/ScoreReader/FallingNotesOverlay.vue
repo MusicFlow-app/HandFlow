@@ -281,13 +281,13 @@ const getLineCoords = (event) => {
   const timeOffset = event.absoluteTime - props.currentTime;
   const bottomY = targetPos.y - (timeOffset * pixelsPerMs.value);
 
-  // SVG uses top-based coords, handpan center is 300px from bottom
+  // SVG uses top-based coords, handpan center is 250px from bottom
   // Offsets are added (negative = higher up)
   return {
     x1: `calc(50% + ${targetPos.x}px)`,
-    y1: `calc(100% - 300px + ${bottomY}px)`,
+    y1: `calc(100% - 250px + ${bottomY}px)`,
     x2: `calc(50% + ${targetPos.x}px)`,
-    y2: `calc(100% - 300px + ${targetPos.y}px)`
+    y2: `calc(100% - 250px + ${targetPos.y}px)`
   };
 };
 
@@ -477,7 +477,7 @@ watch(() => props.events, () => {
 /* Target glow on handpan */
 .target-glow {
   position: absolute;
-  bottom: 300px; /* Aligned with handpan center (80px padding + ~300px radius) */
+  bottom: 250px; /* Aligned with handpan center (80px padding + ~250px radius) */
   left: 50%;
   border-radius: 50%;
   pointer-events: none;
@@ -497,7 +497,7 @@ watch(() => props.events, () => {
 /* Note bar */
 .note-bar {
   position: absolute;
-  bottom: 300px; /* Reference point aligned with handpan center (80px padding + ~300px radius) */
+  bottom: 250px; /* Reference point aligned with handpan center (80px padding + ~250px radius) */
   left: 50%;
   border-radius: 3px 3px 0 0;
   pointer-events: none;
@@ -727,7 +727,7 @@ watch(() => props.events, () => {
 /* Beat grid lines */
 .beat-line {
   position: absolute;
-  bottom: 300px; /* Aligned with handpan center (80px padding + ~300px radius) */
+  bottom: 250px; /* Aligned with handpan center (80px padding + ~250px radius) */
   left: 5%;
   right: 5%;
   height: 1px;

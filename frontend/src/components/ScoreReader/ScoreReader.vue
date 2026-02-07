@@ -486,9 +486,9 @@ const preloadAudio = () => {
 // Update layout measurements
 const updateLayoutMeasurements = () => {
   if (stageRef.value) {
-    // Calculate fall height - handpan is at bottom (80px padding + ~180px radius)
+    // Calculate fall height - handpan is at bottom (30px padding + ~180px radius)
     // Use most of the remaining height for the piano roll
-    fallHeight.value = Math.max(400, stageRef.value.clientHeight - 300);
+    fallHeight.value = Math.max(400, stageRef.value.clientHeight - 250);
   }
 };
 
@@ -567,11 +567,11 @@ onUnmounted(() => {
   display: flex;
   justify-content: center;
   align-items: flex-end; /* Handpan at bottom */
-  padding-bottom: 80px; /* Space below handpan */
+  padding-bottom: 30px; /* Minimal space below handpan */
   overflow: hidden;
   background: linear-gradient(180deg,
     var(--surface-secondary) 0%,
-    var(--surface-primary) 50%,
+    var(--surface-primary) 60%,
     var(--surface-primary) 100%);
 }
 
