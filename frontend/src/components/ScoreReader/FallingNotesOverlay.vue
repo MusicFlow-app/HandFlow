@@ -218,15 +218,16 @@ const getNoteBarStyle = (event) => {
   const barWidth = getBarWidth(noteIndex);
   const barHeight = durationToPixels(event.duration || 500);
 
-  // Y position: bottom of bar = hit time
+  // Y position: tone field (bottom of bar) aligns with target at hit time
   const timeOffset = event.absoluteTime - props.currentTime;
+  // bottomY = position of tone field (0 at hit time, negative when approaching)
   const bottomY = targetPos.y - (timeOffset * pixelsPerMs.value);
-  const topY = bottomY - barHeight;
 
   const currentX = targetPos.x;
 
+  // Fade out notes that are too far up
   let opacity = 1;
-  const distanceFromTop = topY + props.fallHeight;
+  const distanceFromTop = bottomY + props.fallHeight;
   if (distanceFromTop < 50) {
     opacity = Math.max(0, distanceFromTop / 50);
   }
@@ -237,9 +238,11 @@ const getNoteBarStyle = (event) => {
     '--tone-field-width': `${toneFieldSize.width}px`,
     '--tone-field-height': `${toneFieldSize.height}px`,
     '--tx': `${currentX}px`,
-    '--ty': `${topY}px`,
+    // With bottom-based CSS positioning, use bottomY (tone field position)
+    '--ty': `${bottomY}px`,
     width: `var(--bar-width)`,
     height: `var(--bar-height)`,
+    // Transform positions the tone field (bar bottom) at the target
     transform: `translate(calc(-50% + var(--tx)), var(--ty))`,
     opacity,
     zIndex: event.isActive ? 100 : 50

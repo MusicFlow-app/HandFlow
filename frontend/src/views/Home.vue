@@ -190,7 +190,7 @@ const closeScoreReader = () => {
       @reuse="onScoreSelected"
     />
     <UploadZone :is-open="showUploadModal" @close="closeUploadModal" />
-    <FeaturesApp />
+    <FeaturesApp v-if="currentStage < 6" />
   </div>
 </template>
 
