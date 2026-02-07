@@ -393,25 +393,33 @@ const visibleBeatMarkers = computed(() => {
     });
 });
 
-// Check for note hits - trigger when note's scheduled time arrives
-// Use time-based detection for BPM-independent sync
+// Track the last processed time to detect seeks/resets
+const lastProcessedTime = ref(0);
+
+// Check for note hits - trigger exactly when note time arrives
 const checkForHits = () => {
-  // Small anticipation to compensate for audio latency (in ms)
-  const audioLatencyCompensation = 30;
+  const currentTime = props.currentTime;
+  const prevTime = lastProcessedTime.value;
+
+  // Detect if we seeked backwards - clear hit notes to allow replay
+  if (currentTime < prevTime - 100) {
+    hitNotes.value.clear();
+  }
+
+  lastProcessedTime.value = currentTime;
 
   props.events.forEach(event => {
-    // Time until note should play (negative = overdue)
-    const timeOffset = event.absoluteTime - props.currentTime;
+    // Skip if already played
+    if (hitNotes.value.has(event.id)) return;
 
-    // Fire when we're within the anticipation window
-    // timeOffset <= audioLatencyCompensation means we're close enough to trigger
-    if (timeOffset <= audioLatencyCompensation && !hitNotes.value.has(event.id)) {
+    const timeOffset = event.absoluteTime - currentTime;
+
+    // Fire when:
+    // 1. We've reached or just passed the note time (timeOffset <= 0)
+    // 2. We haven't gone too far past it (within 100ms grace period)
+    if (timeOffset <= 0 && timeOffset > -100) {
       hitNotes.value.add(event.id);
       emit('note-hit', event);
-
-      setTimeout(() => {
-        hitNotes.value.delete(event.id);
-      }, Math.min(event.duration || 300, 500));
     }
   });
 };
@@ -420,8 +428,10 @@ watch(() => props.currentTime, () => {
   checkForHits();
 });
 
+// Clear hit notes when events change (new score loaded)
 watch(() => props.events, () => {
   hitNotes.value.clear();
+  lastProcessedTime.value = 0;
 }, { immediate: true });
 </script>
 
