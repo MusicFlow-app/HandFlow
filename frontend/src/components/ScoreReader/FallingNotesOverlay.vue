@@ -280,13 +280,14 @@ const getLineCoords = (event) => {
   const timeOffset = event.absoluteTime - props.currentTime;
   const bottomY = targetPos.y - (timeOffset * pixelsPerMs.value);
 
-  // SVG is centered at 50%, 50% of overlay
-  // Convert to SVG coordinates (center = 50%, 50%)
+  // SVG uses bottom-based positioning matching the overlay
+  // Reference is 200px from bottom, inverted for SVG (which uses top-based coords)
+  // Use calc(100% - 200px + offset) to convert from bottom-based to SVG coords
   return {
     x1: `calc(50% + ${targetPos.x}px)`,
-    y1: `calc(50% + ${bottomY}px)`,
+    y1: `calc(100% - 200px - ${bottomY}px)`,
     x2: `calc(50% + ${targetPos.x}px)`,
-    y2: `calc(50% + ${targetPos.y}px)`
+    y2: `calc(100% - 200px - ${targetPos.y}px)`
   };
 };
 
@@ -307,7 +308,8 @@ const getTargetGlowStyle = (event) => {
     '--ty': `${targetPos.y}px`,
     '--glow-size': `${Math.max(size.width, size.height) * 1.5}px`,
     '--glow-opacity': event.proximity * 0.6,
-    transform: `translate(calc(-50% + var(--tx)), calc(-50% + var(--ty)))`,
+    // With bottom-based positioning, use +50% for vertical centering
+    transform: `translate(calc(-50% + var(--tx)), calc(50% + var(--ty)))`,
     width: `var(--glow-size)`,
     height: `var(--glow-size)`,
     opacity: `var(--glow-opacity)`
@@ -333,7 +335,8 @@ const getBeatLineStyle = (beat) => {
 
   return {
     '--ty': `${currentY}px`,
-    transform: `translateY(calc(-50% + var(--ty)))`,
+    // With bottom-based positioning, use +50% for vertical centering
+    transform: `translateY(calc(50% + var(--ty)))`,
     opacity
   };
 };
@@ -460,7 +463,7 @@ watch(() => props.events, () => {
 /* Target glow on handpan */
 .target-glow {
   position: absolute;
-  top: 50%;
+  bottom: 200px; /* Aligned with handpan center */
   left: 50%;
   border-radius: 50%;
   pointer-events: none;
@@ -480,7 +483,7 @@ watch(() => props.events, () => {
 /* Note bar */
 .note-bar {
   position: absolute;
-  top: 50%;
+  bottom: 200px; /* Reference point aligned with handpan center at bottom */
   left: 50%;
   border-radius: 3px 3px 0 0;
   pointer-events: none;
@@ -710,7 +713,7 @@ watch(() => props.events, () => {
 /* Beat grid lines */
 .beat-line {
   position: absolute;
-  top: 50%;
+  bottom: 200px; /* Aligned with handpan center */
   left: 5%;
   right: 5%;
   height: 1px;
