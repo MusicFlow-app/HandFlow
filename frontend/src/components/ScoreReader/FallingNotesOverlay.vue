@@ -396,7 +396,7 @@ const visibleBeatMarkers = computed(() => {
 // Track the last processed time to detect seeks/resets
 const lastProcessedTime = ref(0);
 
-// Check for note hits - trigger exactly when note time arrives
+// Check for note hits - trigger when falling tone field visually overlaps target
 const checkForHits = () => {
   const currentTime = props.currentTime;
   const prevTime = lastProcessedTime.value;
@@ -414,10 +414,10 @@ const checkForHits = () => {
 
     const timeOffset = event.absoluteTime - currentTime;
 
-    // Fire when:
-    // 1. We've reached or just passed the note time (timeOffset <= 0)
-    // 2. We haven't gone too far past it (within 100ms grace period)
-    if (timeOffset <= 0 && timeOffset > -100) {
+    // Fire when the falling tone field center reaches the handpan tone field center
+    // Add small delay (-30ms) to ensure visual has caught up with timing
+    // timeOffset <= -30 means we're 30ms past the scheduled time
+    if (timeOffset <= -30 && timeOffset > -150) {
       hitNotes.value.add(event.id);
       emit('note-hit', event);
     }

@@ -566,8 +566,7 @@ onUnmounted(() => {
   position: relative;
   display: flex;
   justify-content: center;
-  align-items: flex-end; /* Handpan at bottom */
-  padding-bottom: 40px; /* Some breathing room */
+  align-items: center; /* Handpan in center */
   overflow: hidden;
   background: linear-gradient(180deg,
     var(--surface-secondary) 0%,
