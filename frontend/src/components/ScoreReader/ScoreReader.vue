@@ -157,7 +157,7 @@ const props = defineProps({
 const emit = defineEmits(['close']);
 
 // Constants
-const LEAD_TIME = 2500; // 2.5 seconds ahead (longer for more visual anticipation)
+const LEAD_TIME = 4000; // 4 seconds ahead (~2 measures at 120 BPM)
 const TRAIL_TIME = 300; // 0.3 seconds behind
 
 // Router
@@ -486,8 +486,9 @@ const preloadAudio = () => {
 // Update layout measurements
 const updateLayoutMeasurements = () => {
   if (stageRef.value) {
-    // Calculate fall height based on stage size
-    fallHeight.value = stageRef.value.clientHeight * 0.6;
+    // Calculate fall height - use most of stage height since handpan is at bottom
+    // Leave room for handpan (~200px) and some margin
+    fallHeight.value = Math.max(400, stageRef.value.clientHeight - 250);
   }
 };
 
