@@ -407,12 +407,12 @@ const checkForHits = () => {
     const timeOffset = event.absoluteTime - props.currentTime;
     const bottomY = targetPos.y - (timeOffset * pixelsPerMs.value);
 
-    // Trigger when note visually reaches the tone field (bottomY >= 0)
-    // Use small threshold for the hit zone
-    const hitThreshold = 10; // pixels
-    const passedThreshold = -30; // pixels past the target
+    // Trigger when note perfectly overlaps the tone field (bottomY = 0)
+    // Small window to catch the exact moment
+    const hitWindow = 5; // pixels tolerance
+    const passedWindow = 50; // pixels past before giving up
 
-    if (bottomY >= -hitThreshold && bottomY < -passedThreshold) {
+    if (bottomY >= -hitWindow && bottomY < passedWindow) {
       if (!hitNotes.value.has(event.id)) {
         hitNotes.value.add(event.id);
         emit('note-hit', event);
