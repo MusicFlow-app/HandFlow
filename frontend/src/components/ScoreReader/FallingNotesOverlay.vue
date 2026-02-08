@@ -14,28 +14,16 @@
       <span v-if="beat.type === 'measure'" class="beat-line__label">{{ beat.measureNumber }}</span>
     </div>
 
-    <!-- Connecting lines from notes to targets -->
-    <svg class="connection-lines" v-if="approachingEvents.length > 0">
-      <line
-        v-for="event in approachingEvents"
-        :key="`line-${event.id}`"
-        class="connection-line"
-        :class="`connection-line--${event.hand}`"
-        :x1="getLineCoords(event).x1"
-        :y1="getLineCoords(event).y1"
-        :x2="getLineCoords(event).x2"
-        :y2="getLineCoords(event).y2"
-        :style="{ opacity: getLineOpacity(event) }"
-      />
-    </svg>
-
-    <!-- Target glow indicators on handpan positions -->
+    <!-- Amber concentric halo indicators for approaching notes -->
     <div
-      v-for="event in approachingEvents"
-      :key="`glow-${event.id}`"
-      class="target-glow"
-      :class="`target-glow--${event.hand}`"
-      :style="getTargetGlowStyle(event)"
+      v-for="event in haloEvents"
+      :key="`halo-${event.id}`"
+      class="approach-halo"
+      :class="[
+        `approach-halo--${event.hand}`,
+        { 'approach-halo--hit': event.haloProgress >= 1 }
+      ]"
+      :style="getHaloStyle(event)"
     ></div>
 
     <!-- Synthesia-style falling note bars with tone field bottom -->
@@ -47,6 +35,7 @@
         `note-bar--${event.hand}`,
         { 'note-bar--active': event.isActive },
         { 'note-bar--past': event.isPast },
+        { 'note-bar--landed': event.isLanded },
         { 'note-bar--ding': event.handpanNoteIndex === 0 }
       ]"
       :style="getNoteBarStyle(event)"
@@ -130,13 +119,39 @@ const hitNotes = ref(new Set());
 // Pixels per millisecond (fall speed)
 const pixelsPerMs = computed(() => props.fallHeight / props.leadTime);
 
-// Get scale factor from notePositions (passed from ScoreReader, matches handpan exactly)
-const getScaleForNoteIndex = (handpanNoteIndex) => {
-  const notePos = props.notePositions[handpanNoteIndex];
-  if (notePos && notePos.scale !== undefined) {
-    return notePos.scale;
+// Halo timing constants
+const HALO_START_TIME = 800; // Start showing halo 800ms before hit
+const HALO_START_SCALE = 1.2; // Start at 120% of target size
+
+// Build fixed lane grid from notePositions (stable across all measures)
+// This ensures all notes snap to consistent handpan mapping
+const laneGrid = computed(() => {
+  const grid = {};
+  props.notePositions.forEach((pos, index) => {
+    grid[index] = {
+      x: pos.x,
+      y: pos.y,
+      rotation: pos.rotation || 0,
+      scale: pos.scale || 1.0,
+      isDing: pos.isDing || false
+    };
+  });
+  return grid;
+});
+
+// Get fixed lane position for a note (from pre-computed grid)
+const getLanePosition = (handpanNoteIndex) => {
+  const lane = laneGrid.value[handpanNoteIndex];
+  if (lane) {
+    return lane;
   }
-  return 1.0;
+  // Fallback for unmapped notes
+  return { x: 0, y: 0, rotation: 0, scale: 1.0, isDing: false };
+};
+
+// Get scale factor from fixed lane grid
+const getScaleForNoteIndex = (handpanNoteIndex) => {
+  return getLanePosition(handpanNoteIndex).scale;
 };
 
 // Bar width based on scale from handpan
@@ -171,12 +186,9 @@ const durationToPixels = (durationMs) => {
   return Math.max(20, durationMs * pixelsPerMs.value);
 };
 
-// Get position for a handpan note index
+// Get position for a handpan note index (uses fixed lane grid)
 const getNotePosition = (noteIndex) => {
-  if (noteIndex < 0 || noteIndex >= props.notePositions.length) {
-    return { x: 0, y: 0, rotation: 0 };
-  }
-  return props.notePositions[noteIndex] || { x: 0, y: 0, rotation: 0 };
+  return getLanePosition(noteIndex);
 };
 
 // Filter and enhance visible events
@@ -194,21 +206,28 @@ const visibleEvents = computed(() => {
       const isActive = props.currentTime >= event.absoluteTime &&
                        props.currentTime <= event.absoluteTime + event.duration;
       const isPast = props.currentTime > event.absoluteTime + event.duration;
-      return { ...event, isHit, isActive, isPast };
+      // Note is "landed" when it has reached the target (clamped at handpan)
+      const timeOffset = event.absoluteTime - props.currentTime;
+      const isLanded = timeOffset <= 0;
+      return { ...event, isHit, isActive, isPast, isLanded };
     });
 });
 
-// Events that are approaching (within 800ms of hitting)
-const approachingEvents = computed(() => {
+// Events that get an amber halo (within HALO_START_TIME of hitting)
+const haloEvents = computed(() => {
   return props.events
     .filter(event => {
       const timeOffset = event.absoluteTime - props.currentTime;
-      return timeOffset > 0 && timeOffset < 800;
+      // Show halo from HALO_START_TIME before hit until note is past
+      return timeOffset > -100 && timeOffset < HALO_START_TIME;
     })
     .map(event => {
       const timeOffset = event.absoluteTime - props.currentTime;
-      const proximity = 1 - (timeOffset / 800); // 0 = far, 1 = very close
-      return { ...event, proximity };
+      // haloProgress: 0 = just appeared, 1 = hit moment
+      const haloProgress = 1 - Math.max(0, timeOffset / HALO_START_TIME);
+      // haloScale: starts at HALO_START_SCALE, shrinks to 1.0 at hit
+      const haloScale = HALO_START_SCALE - (haloProgress * (HALO_START_SCALE - 1));
+      return { ...event, haloProgress, haloScale };
     });
 });
 
@@ -225,8 +244,13 @@ const getNoteBarStyle = (event) => {
   // Y position: bar bottom (tone field) should hit target at timeOffset=0
   // With bottom-based CSS, translateY moves element up when negative
   const timeOffset = event.absoluteTime - props.currentTime;
-  const bottomY = targetPos.y - (timeOffset * pixelsPerMs.value);
+  const rawY = targetPos.y - (timeOffset * pixelsPerMs.value);
 
+  // CLAMP: Never let the note go below the target (no overshoot)
+  // targetPos.y is the resting position, rawY grows positive as note falls past
+  const bottomY = Math.min(rawY, targetPos.y);
+
+  // Fixed lane X position (never changes per-event)
   const currentX = targetPos.x;
 
   // Fade out notes that are too far up (bottomY very negative = high up)
@@ -234,6 +258,14 @@ const getNoteBarStyle = (event) => {
   const distanceFromTarget = Math.abs(bottomY - targetPos.y);
   if (distanceFromTarget > props.fallHeight - 50) {
     opacity = Math.max(0, (props.fallHeight - distanceFromTarget) / 50);
+  }
+
+  // Fade out landed notes that are past their duration (let handpan hit effect take over)
+  if (event.isLanded && event.isPast) {
+    opacity = 0.15;
+  } else if (event.isLanded && event.isActive) {
+    // Active notes stay visible but slightly dimmed
+    opacity = 0.8;
   }
 
   return {
@@ -277,47 +309,38 @@ const getToneFieldStyle = (event) => {
   };
 };
 
-// Get connecting line coordinates
-const getLineCoords = (event) => {
+// Amber halo style - concentric shrinking halo around target
+const getHaloStyle = (event) => {
   const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
   const targetPos = getNotePosition(noteIndex);
-
-  const timeOffset = event.absoluteTime - props.currentTime;
-  const bottomY = targetPos.y - (timeOffset * pixelsPerMs.value);
-
-  // SVG uses top-based coords, handpan center is 250px from bottom
-  // Offsets are added (negative = higher up)
-  return {
-    x1: `calc(50% + ${targetPos.x}px)`,
-    y1: `calc(100% - 250px + ${bottomY}px)`,
-    x2: `calc(50% + ${targetPos.x}px)`,
-    y2: `calc(100% - 250px + ${targetPos.y}px)`
-  };
-};
-
-// Line opacity based on proximity
-const getLineOpacity = (event) => {
-  return 0.15 + (event.proximity * 0.35);
-};
-
-// Target glow style
-const getTargetGlowStyle = (event) => {
-  const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
-  const targetPos = getNotePosition(noteIndex);
-  // Use handpanNoteIndex for rank-based sizing (same as handpan display)
   const size = getToneFieldSize(noteIndex);
 
-  // With bottom-based CSS, use targetPos.y directly
-  // Add 50% to center the glow vertically on the target
+  // Base size from tone field
+  const baseSize = Math.max(size.width, size.height);
+  // Current scale based on approach progress (shrinks from HALO_START_SCALE to 1.0)
+  const currentScale = event.haloScale;
+  const haloSize = baseSize * currentScale;
+
+  // Opacity: fade in during first 20% of approach, stays visible until hit
+  let opacity = 1;
+  if (event.haloProgress < 0.2) {
+    opacity = event.haloProgress / 0.2;
+  }
+  // Flash brighter at hit moment
+  if (event.haloProgress >= 0.95) {
+    opacity = 1.2;
+  }
+
   return {
     '--tx': `${targetPos.x}px`,
     '--ty': `${targetPos.y}px`,
-    '--glow-size': `${Math.max(size.width, size.height) * 1.5}px`,
-    '--glow-opacity': event.proximity * 0.6,
+    '--halo-size': `${haloSize}px`,
+    '--halo-opacity': opacity * 0.7,
+    '--halo-progress': event.haloProgress,
     transform: `translate(calc(-50% + var(--tx)), calc(50% + var(--ty)))`,
-    width: `var(--glow-size)`,
-    height: `var(--glow-size)`,
-    opacity: `var(--glow-opacity)`
+    width: `var(--halo-size)`,
+    height: `var(--halo-size)`,
+    opacity: `var(--halo-opacity)`
   };
 };
 
@@ -454,49 +477,62 @@ watch(() => props.events, () => {
   z-index: 15;
 }
 
-/* SVG for connection lines */
-.connection-lines {
+/* Amber concentric halo for approaching notes */
+.approach-halo {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 10;
-}
-
-.connection-line {
-  stroke-width: 2;
-  stroke-dasharray: 4 4;
-  fill: none;
-}
-
-.connection-line--left {
-  stroke: rgba(90, 138, 176, 0.5);
-}
-
-.connection-line--right {
-  stroke: rgba(176, 106, 90, 0.5);
-}
-
-/* Target glow on handpan */
-.target-glow {
-  position: absolute;
-  bottom: 250px; /* Aligned with handpan center (80px padding + ~250px radius) */
+  bottom: 250px; /* Aligned with handpan center */
   left: 50%;
   border-radius: 50%;
   pointer-events: none;
   z-index: 8;
+  /* Amber/gold color for anticipation cue */
+  background: radial-gradient(circle,
+    transparent 40%,
+    rgba(255, 191, 0, 0.15) 50%,
+    rgba(255, 170, 0, 0.3) 70%,
+    rgba(255, 150, 0, 0.15) 85%,
+    transparent 100%);
+  box-shadow:
+    0 0 20px rgba(255, 180, 0, 0.2),
+    inset 0 0 10px rgba(255, 200, 50, 0.1);
+  transition: opacity 0.05s ease-out;
 }
 
-.target-glow--left {
-  background: radial-gradient(circle, rgba(90, 138, 176, 0.4) 0%, transparent 70%);
-  box-shadow: 0 0 30px rgba(90, 138, 176, 0.5);
+/* Hand-colored halos (slight tint variation) */
+.approach-halo--left {
+  background: radial-gradient(circle,
+    transparent 40%,
+    rgba(200, 180, 80, 0.15) 50%,
+    rgba(220, 170, 60, 0.3) 70%,
+    rgba(200, 160, 50, 0.15) 85%,
+    transparent 100%);
+  box-shadow:
+    0 0 20px rgba(200, 180, 80, 0.25),
+    inset 0 0 10px rgba(220, 200, 100, 0.1);
 }
 
-.target-glow--right {
-  background: radial-gradient(circle, rgba(176, 106, 90, 0.4) 0%, transparent 70%);
-  box-shadow: 0 0 30px rgba(176, 106, 90, 0.5);
+.approach-halo--right {
+  background: radial-gradient(circle,
+    transparent 40%,
+    rgba(255, 180, 80, 0.15) 50%,
+    rgba(255, 160, 60, 0.35) 70%,
+    rgba(255, 140, 50, 0.15) 85%,
+    transparent 100%);
+  box-shadow:
+    0 0 20px rgba(255, 170, 60, 0.25),
+    inset 0 0 10px rgba(255, 190, 100, 0.1);
+}
+
+/* Flash effect when halo reaches hit moment */
+.approach-halo--hit {
+  background: radial-gradient(circle,
+    rgba(255, 255, 200, 0.3) 0%,
+    rgba(255, 220, 100, 0.5) 40%,
+    rgba(255, 180, 50, 0.3) 70%,
+    transparent 100%);
+  box-shadow:
+    0 0 40px rgba(255, 200, 50, 0.6),
+    0 0 80px rgba(255, 180, 0, 0.3);
 }
 
 /* Note bar */
@@ -556,6 +592,17 @@ watch(() => props.events, () => {
 
 .note-bar--past {
   opacity: 0.2 !important;
+}
+
+/* Landed notes (clamped at handpan, waiting for duration to complete) */
+.note-bar--landed {
+  /* Subtle glow when note is at target */
+  filter: brightness(1.1);
+}
+
+.note-bar--landed.note-bar--active {
+  /* Active landed notes have enhanced glow */
+  filter: brightness(1.2);
 }
 
 /* Ding notes have a wider bar */
@@ -800,22 +847,28 @@ watch(() => props.events, () => {
   border-color: rgba(156, 86, 70, 0.25);
 }
 
-:root[data-theme="light"] .connection-line--left {
-  stroke: rgba(70, 118, 156, 0.4);
+/* Light theme halos - slightly darker amber for visibility */
+:root[data-theme="light"] .approach-halo {
+  background: radial-gradient(circle,
+    transparent 40%,
+    rgba(220, 160, 0, 0.2) 50%,
+    rgba(200, 140, 0, 0.4) 70%,
+    rgba(180, 120, 0, 0.2) 85%,
+    transparent 100%);
+  box-shadow:
+    0 0 20px rgba(200, 150, 0, 0.3),
+    inset 0 0 10px rgba(220, 180, 50, 0.15);
 }
 
-:root[data-theme="light"] .connection-line--right {
-  stroke: rgba(156, 86, 70, 0.4);
-}
-
-:root[data-theme="light"] .target-glow--left {
-  background: radial-gradient(circle, rgba(70, 118, 156, 0.3) 0%, transparent 70%);
-  box-shadow: 0 0 25px rgba(70, 118, 156, 0.4);
-}
-
-:root[data-theme="light"] .target-glow--right {
-  background: radial-gradient(circle, rgba(156, 86, 70, 0.3) 0%, transparent 70%);
-  box-shadow: 0 0 25px rgba(156, 86, 70, 0.4);
+:root[data-theme="light"] .approach-halo--hit {
+  background: radial-gradient(circle,
+    rgba(255, 240, 180, 0.4) 0%,
+    rgba(255, 200, 80, 0.6) 40%,
+    rgba(220, 160, 40, 0.4) 70%,
+    transparent 100%);
+  box-shadow:
+    0 0 40px rgba(220, 170, 40, 0.7),
+    0 0 80px rgba(200, 150, 0, 0.4);
 }
 
 :root[data-theme="light"] .beat-line--measure {
