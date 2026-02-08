@@ -201,14 +201,18 @@ const calculateDefaultMeasures = (bpm) => {
 
 // Zoom handlers
 const handleZoomIn = () => {
+  console.log('Zoom IN clicked, current:', measuresAhead.value, 'min:', MIN_MEASURES);
   if (measuresAhead.value > MIN_MEASURES) {
     measuresAhead.value = Math.max(MIN_MEASURES, measuresAhead.value - 1);
+    console.log('Zoomed in to:', measuresAhead.value, 'measures, fallHeight:', fallHeight.value);
   }
 };
 
 const handleZoomOut = () => {
+  console.log('Zoom OUT clicked, current:', measuresAhead.value, 'max:', MAX_MEASURES);
   if (measuresAhead.value < MAX_MEASURES) {
     measuresAhead.value = Math.min(MAX_MEASURES, measuresAhead.value + 1);
+    console.log('Zoomed out to:', measuresAhead.value, 'measures, fallHeight:', fallHeight.value);
   }
 };
 

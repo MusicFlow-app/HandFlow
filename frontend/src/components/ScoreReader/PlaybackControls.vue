@@ -98,7 +98,7 @@
       <div class="zoom-controls">
         <button
           class="control-button control-button--small"
-          @click="emit('zoom-in')"
+          @click="handleZoomIn"
           title="Zoom In (show less measures, faster notes)"
           :disabled="measuresAhead <= minMeasures"
         >
@@ -107,7 +107,7 @@
         <span class="zoom-label">{{ measuresAhead }}m</span>
         <button
           class="control-button control-button--small"
-          @click="emit('zoom-out')"
+          @click="handleZoomOut"
           title="Zoom Out (show more measures, slower notes)"
           :disabled="measuresAhead >= maxMeasures"
         >
@@ -267,6 +267,17 @@ const handleClickOutside = (event) => {
   if (speedSelector.value && !speedSelector.value.contains(event.target)) {
     showSpeedDropdown.value = false;
   }
+};
+
+// Zoom button handlers with debug logging
+const handleZoomIn = () => {
+  console.log('PlaybackControls: zoom-in button clicked');
+  emit('zoom-in');
+};
+
+const handleZoomOut = () => {
+  console.log('PlaybackControls: zoom-out button clicked');
+  emit('zoom-out');
 };
 
 // Keyboard shortcuts
