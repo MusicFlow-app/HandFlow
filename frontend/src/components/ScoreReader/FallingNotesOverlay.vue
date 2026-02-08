@@ -323,6 +323,9 @@ const getToneFieldStyle = (event) => {
 };
 
 // Amber halo style - concentric shrinking halo around target
+// Halo is positioned slightly above the tone field center for earlier visual cue
+const HALO_Y_OFFSET = -15; // Pixels above tone field center
+
 const getHaloStyle = (event) => {
   const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
   const targetPos = getNotePosition(noteIndex);
@@ -346,7 +349,7 @@ const getHaloStyle = (event) => {
 
   return {
     '--tx': `${targetPos.x}px`,
-    '--ty': `${targetPos.y}px`,
+    '--ty': `${targetPos.y + HALO_Y_OFFSET}px`,
     '--halo-size': `${haloSize}px`,
     '--halo-opacity': opacity * 0.7,
     '--halo-progress': event.haloProgress,

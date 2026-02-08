@@ -168,6 +168,8 @@ const LEAD_IN_MS = 3000; // 3 seconds empty gap before first note
 const MIN_MEASURES = 2;
 const MAX_MEASURES = 16;
 const DEFAULT_MEASURES_BASE = 4; // Base measures at 120 BPM
+const HANDPAN_HEIGHT = 360; // Handpan diameter in pixels
+const MEASURE_HEIGHT = HANDPAN_HEIGHT; // Each measure = 1 handpan height
 
 // Reactive zoom state
 const measuresAhead = ref(DEFAULT_MEASURES_BASE);
@@ -536,17 +538,20 @@ const preloadAudio = () => {
 
 // Update layout measurements
 const updateLayoutMeasurements = () => {
-  if (stageRef.value) {
-    // Calculate fall height - handpan is at bottom (30px padding + ~180px radius)
-    // Use most of the remaining height for the piano roll
-    fallHeight.value = Math.max(400, stageRef.value.clientHeight - 250);
-  }
+  // Fall height = number of measures * measure height (each measure = handpan height)
+  // This ensures consistent visual spacing for rhythm across all zoom levels
+  fallHeight.value = measuresAhead.value * MEASURE_HEIGHT;
 };
 
 // Watch for handpan changes to reload audio
 watch(allHandpanNotes, () => {
   preloadAudio();
 }, { deep: true });
+
+// Update fall height when zoom (measuresAhead) changes
+watch(measuresAhead, () => {
+  updateLayoutMeasurements();
+});
 
 // Initialize
 onMounted(() => {
