@@ -324,6 +324,7 @@ const getToneFieldStyle = (event) => {
 
 // Amber halo style - concentric shrinking halo around target
 // Halo is positioned slightly above the tone field center for earlier visual cue
+// Halo now matches tone field shape: elliptical with same rotation
 const HALO_Y_OFFSET = -15; // Pixels above tone field center
 
 const getHaloStyle = (event) => {
@@ -331,11 +332,13 @@ const getHaloStyle = (event) => {
   const targetPos = getNotePosition(noteIndex);
   const size = getToneFieldSize(noteIndex);
 
-  // Base size from tone field
-  const baseSize = Math.max(size.width, size.height);
-  // Current scale based on approach progress (shrinks from HALO_START_SCALE to 1.0)
+  // Use ellipse dimensions (matching tone field), not just max size
   const currentScale = event.haloScale;
-  const haloSize = baseSize * currentScale;
+  const haloWidth = size.width * currentScale;
+  const haloHeight = size.height * currentScale;
+
+  // Rotation matches the tone field (ding has no rotation)
+  const rotation = targetPos.isDing ? 0 : (targetPos.rotation || 0);
 
   // Opacity: fade in during first 20% of approach, stays visible until hit
   let opacity = 1;
@@ -350,12 +353,14 @@ const getHaloStyle = (event) => {
   return {
     '--tx': `${targetPos.x}px`,
     '--ty': `${targetPos.y + HALO_Y_OFFSET}px`,
-    '--halo-size': `${haloSize}px`,
+    '--rotation': `${rotation}deg`,
+    '--halo-width': `${haloWidth}px`,
+    '--halo-height': `${haloHeight}px`,
     '--halo-opacity': opacity * 0.7,
     '--halo-progress': event.haloProgress,
-    transform: `translate(calc(-50% + var(--tx)), calc(50% + var(--ty)))`,
-    width: `var(--halo-size)`,
-    height: `var(--halo-size)`,
+    transform: `translate(calc(-50% + var(--tx)), calc(50% + var(--ty))) rotate(var(--rotation))`,
+    width: `var(--halo-width)`,
+    height: `var(--halo-height)`,
     opacity: `var(--halo-opacity)`
   };
 };

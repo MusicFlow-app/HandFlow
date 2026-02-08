@@ -130,7 +130,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { PhMetronome, PhMusicNotes, PhArrowLeft } from '@phosphor-icons/vue';
 import { apiUrl } from '@/services/api';
@@ -168,6 +168,11 @@ const LEAD_IN_MS = 3000; // 3 seconds empty gap before first note
 const MIN_MEASURES = 2;
 const MAX_MEASURES = 16;
 const DEFAULT_MEASURES_BASE = 4; // Base measures at 120 BPM
+
+// Measure height calculation: 64th note = handpan height (360px)
+// So each measure = 64 × 360px = 23,040px
+const HANDPAN_HEIGHT = 360;
+const MEASURE_HEIGHT = 64 * HANDPAN_HEIGHT; // 23,040px per measure
 
 // Reactive zoom state
 const measuresAhead = ref(DEFAULT_MEASURES_BASE);
@@ -234,7 +239,12 @@ const audioCache = ref({});
 
 // Computed position data for the falling notes overlay
 const handpanCenter = ref({ x: 0, y: 0 });
-const fallHeight = ref(400);
+
+// Fall height based on measures ahead × measure height
+// Each measure = 64 × handpan height = 23,040px
+const fallHeight = computed(() => {
+  return measuresAhead.value * MEASURE_HEIGHT;
+});
 
 // Composables
 const scheduler = useNoteScheduler();
@@ -534,14 +544,8 @@ const preloadAudio = () => {
   });
 };
 
-// Update layout measurements
-const updateLayoutMeasurements = () => {
-  if (stageRef.value) {
-    // Calculate fall height based on visible stage area
-    // Handpan is at bottom (30px padding + ~180px radius)
-    fallHeight.value = Math.max(400, stageRef.value.clientHeight - 250);
-  }
-};
+// Layout measurements are now calculated based on MEASURE_HEIGHT constant
+// No DOM measurement needed - fallHeight is computed from measuresAhead
 
 // Watch for handpan changes to reload audio
 watch(allHandpanNotes, () => {
@@ -554,11 +558,6 @@ onMounted(() => {
 
   if (isHandpanReady.value) {
     preloadAudio();
-
-    // Wait for DOM to be ready then measure
-    nextTick(() => {
-      updateLayoutMeasurements();
-    });
 
     if (props.scoreData) {
       // Use provided score data
@@ -576,9 +575,6 @@ onMounted(() => {
       loadScore(scoreId);
     }
   }
-
-  // Listen for resize
-  window.addEventListener('resize', updateLayoutMeasurements);
 });
 
 // Cleanup
@@ -586,7 +582,6 @@ onUnmounted(() => {
   playback.cleanup();
   scheduler.clearSchedule();
   cleanupHandpanDisplay();
-  window.removeEventListener('resize', updateLayoutMeasurements);
 
   Object.values(audioCache.value).forEach(audio => {
     try {
