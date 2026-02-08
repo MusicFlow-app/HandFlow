@@ -239,11 +239,24 @@ const getNoteBarStyle = (event) => {
   // Use handpanNoteIndex for rank-based sizing (same as handpan display)
   const toneFieldSize = getToneFieldSize(noteIndex);
   const barWidth = getBarWidth(noteIndex);
-  const barHeight = durationToPixels(event.duration || 500);
+
+  // Calculate bar height based on remaining duration
+  const fullDuration = event.duration || 500;
+  const timeOffset = event.absoluteTime - props.currentTime;
+
+  let barHeight;
+  if (timeOffset >= 0) {
+    // Note hasn't landed yet - show full duration
+    barHeight = durationToPixels(fullDuration);
+  } else {
+    // Note is playing - shrink bar based on remaining time
+    const elapsedTime = -timeOffset; // How long since note started
+    const remainingDuration = Math.max(0, fullDuration - elapsedTime);
+    barHeight = durationToPixels(remainingDuration);
+  }
 
   // Y position: bar bottom (tone field) should hit target at timeOffset=0
   // With bottom-based CSS, translateY moves element up when negative
-  const timeOffset = event.absoluteTime - props.currentTime;
   const rawY = targetPos.y - (timeOffset * pixelsPerMs.value);
 
   // CLAMP: Never let the note go below the target (no overshoot)
