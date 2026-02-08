@@ -130,7 +130,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { PhMetronome, PhMusicNotes, PhArrowLeft } from '@phosphor-icons/vue';
 import { apiUrl } from '@/services/api';
@@ -166,13 +166,8 @@ const emit = defineEmits(['close']);
 const TRAIL_TIME = 300; // 0.3 seconds behind
 const LEAD_IN_MS = 3000; // 3 seconds empty gap before first note
 const MIN_MEASURES = 2;
-const MAX_MEASURES = 16;
+const MAX_MEASURES = 32;
 const DEFAULT_MEASURES_BASE = 4; // Base measures at 120 BPM
-
-// Measure height calculation: 64th note = handpan height (360px)
-// So each measure = 64 × 360px = 23,040px
-const HANDPAN_HEIGHT = 360;
-const MEASURE_HEIGHT = 64 * HANDPAN_HEIGHT; // 23,040px per measure
 
 // Reactive zoom state
 const measuresAhead = ref(DEFAULT_MEASURES_BASE);
@@ -201,18 +196,14 @@ const calculateDefaultMeasures = (bpm) => {
 
 // Zoom handlers
 const handleZoomIn = () => {
-  console.log('Zoom IN clicked, current:', measuresAhead.value, 'min:', MIN_MEASURES);
   if (measuresAhead.value > MIN_MEASURES) {
     measuresAhead.value = Math.max(MIN_MEASURES, measuresAhead.value - 1);
-    console.log('Zoomed in to:', measuresAhead.value, 'measures, fallHeight:', fallHeight.value);
   }
 };
 
 const handleZoomOut = () => {
-  console.log('Zoom OUT clicked, current:', measuresAhead.value, 'max:', MAX_MEASURES);
   if (measuresAhead.value < MAX_MEASURES) {
     measuresAhead.value = Math.min(MAX_MEASURES, measuresAhead.value + 1);
-    console.log('Zoomed out to:', measuresAhead.value, 'measures, fallHeight:', fallHeight.value);
   }
 };
 
@@ -244,11 +235,10 @@ const audioCache = ref({});
 // Computed position data for the falling notes overlay
 const handpanCenter = ref({ x: 0, y: 0 });
 
-// Fall height based on measures ahead × measure height
-// Each measure = 64 × handpan height = 23,040px
-const fallHeight = computed(() => {
-  return measuresAhead.value * MEASURE_HEIGHT;
-});
+// Fall height = visible screen area (fixed based on stage size)
+// This stays constant - zoom works by changing leadTime, not fallHeight
+// pixelsPerMs = fallHeight / leadTime, so more measures = slower notes
+const fallHeight = ref(500);
 
 // Composables
 const scheduler = useNoteScheduler();
@@ -548,8 +538,13 @@ const preloadAudio = () => {
   });
 };
 
-// Layout measurements are now calculated based on MEASURE_HEIGHT constant
-// No DOM measurement needed - fallHeight is computed from measuresAhead
+// Update layout measurements based on screen size
+const updateLayoutMeasurements = () => {
+  if (stageRef.value) {
+    // Fall height = stage height minus handpan area (bottom ~250px)
+    fallHeight.value = Math.max(400, stageRef.value.clientHeight - 250);
+  }
+};
 
 // Watch for handpan changes to reload audio
 watch(allHandpanNotes, () => {
@@ -562,6 +557,11 @@ onMounted(() => {
 
   if (isHandpanReady.value) {
     preloadAudio();
+
+    // Measure stage size for fall height
+    nextTick(() => {
+      updateLayoutMeasurements();
+    });
 
     if (props.scoreData) {
       // Use provided score data
@@ -579,6 +579,9 @@ onMounted(() => {
       loadScore(scoreId);
     }
   }
+
+  // Listen for window resize
+  window.addEventListener('resize', updateLayoutMeasurements);
 });
 
 // Cleanup
@@ -586,6 +589,7 @@ onUnmounted(() => {
   playback.cleanup();
   scheduler.clearSchedule();
   cleanupHandpanDisplay();
+  window.removeEventListener('resize', updateLayoutMeasurements);
 
   Object.values(audioCache.value).forEach(audio => {
     try {
