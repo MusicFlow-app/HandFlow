@@ -231,6 +231,10 @@ const haloEvents = computed(() => {
     });
 });
 
+// Transition zone: notes fan out from normalized path to actual targets
+// This distance (in pixels) before the target where notes start diverging
+const FAN_OUT_DISTANCE = 200;
+
 // Style for note bars
 const getNoteBarStyle = (event) => {
   const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
@@ -255,16 +259,33 @@ const getNoteBarStyle = (event) => {
     barHeight = durationToPixels(remainingDuration);
   }
 
-  // Y position: bar bottom (tone field) should hit target at timeOffset=0
-  // With bottom-based CSS, translateY moves element up when negative
-  const rawY = targetPos.y - (timeOffset * pixelsPerMs.value);
+  // NORMALIZED FALL PATH: All notes fall toward y=0 (center) during most of the fall
+  // This ensures notes at the same time appear at the same visual height
+  // Only in the final approach do they fan out to their actual target positions
+
+  // Calculate normalized Y (all notes at same level for same timeOffset)
+  // Reference point is y=0 (center of handpan)
+  const normalizedY = 0 - (timeOffset * pixelsPerMs.value);
+
+  // Calculate fan-out progress: 0 = still on normalized path, 1 = at target position
+  // Fan-out starts when note is within FAN_OUT_DISTANCE of the center (y=0)
+  const distanceFromCenter = Math.abs(normalizedY);
+  const fanOutProgress = distanceFromCenter < FAN_OUT_DISTANCE
+    ? 1 - (distanceFromCenter / FAN_OUT_DISTANCE)
+    : 0;
+
+  // Smooth easing for fan-out (ease-out curve)
+  const easedFanOut = 1 - Math.pow(1 - fanOutProgress, 2);
+
+  // Interpolate Y from normalized path to actual target position
+  const rawY = normalizedY + (targetPos.y * easedFanOut);
 
   // CLAMP: Never let the note go below the target (no overshoot)
-  // targetPos.y is the resting position, rawY grows positive as note falls past
   const bottomY = Math.min(rawY, targetPos.y);
 
-  // Fixed lane X position (never changes per-event)
-  const currentX = targetPos.x;
+  // Interpolate X from center (0) to actual target lane
+  // Notes converge from center as they approach the handpan
+  const currentX = targetPos.x * easedFanOut;
 
   // Fade out notes that are too far up (bottomY very negative = high up)
   let opacity = 1;
