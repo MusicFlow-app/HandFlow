@@ -259,19 +259,19 @@ const getNoteBarStyle = (event) => {
     barHeight = durationToPixels(remainingDuration);
   }
 
-  // NORMALIZED FALL PATH: All notes fall toward y=0 (center) during most of the fall
-  // This ensures notes at the same time appear at the same visual height
-  // Only in the final approach do they fan out to their actual target positions
+  // NORMALIZED FALL PATH: All notes at the same time appear at the same visual height
+  // The Y offset from target is based purely on timeOffset, not on target position
+  // This prevents notes from appearing "ahead" or "behind" due to different target Y positions
 
-  // Calculate normalized Y (all notes at same level for same timeOffset)
-  // Reference point is y=0 (center of handpan)
+  // Calculate normalized Y: all notes fall toward y=0 reference, then offset to their target
+  // The key insight: timeOffset determines visual height, targetPos.y only matters at landing
   const normalizedY = 0 - (timeOffset * pixelsPerMs.value);
 
   // Calculate fan-out progress: 0 = still on normalized path, 1 = at target position
-  // Fan-out starts when note is within FAN_OUT_DISTANCE of the center (y=0)
-  const distanceFromCenter = Math.abs(normalizedY);
-  const fanOutProgress = distanceFromCenter < FAN_OUT_DISTANCE
-    ? 1 - (distanceFromCenter / FAN_OUT_DISTANCE)
+  // Fan-out starts when note is within FAN_OUT_DISTANCE of the reference (y=0)
+  const distanceFromReference = Math.abs(normalizedY);
+  const fanOutProgress = distanceFromReference < FAN_OUT_DISTANCE
+    ? 1 - (distanceFromReference / FAN_OUT_DISTANCE)
     : 0;
 
   // Smooth easing for fan-out (ease-out curve)
@@ -283,9 +283,8 @@ const getNoteBarStyle = (event) => {
   // CLAMP: Never let the note go below the target (no overshoot)
   const bottomY = Math.min(rawY, targetPos.y);
 
-  // Interpolate X from center (0) to actual target lane
-  // Notes converge from center as they approach the handpan
-  const currentX = targetPos.x * easedFanOut;
+  // X position: FIXED to target lane throughout the fall (no center convergence)
+  const currentX = targetPos.x;
 
   // Fade out notes that are too far up (bottomY very negative = high up)
   let opacity = 1;
