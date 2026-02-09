@@ -214,7 +214,8 @@ const getBarHeight = (event) => {
 };
 
 // VISUAL SPACING PASS
-// Calculates adjusted Y positions to ensure minimum gaps between notes
+// Calculates adjusted Y positions with per-note padding based on handpan geometry
+// Each note gets padding = distance from handpan edge (like an "invisible handpan" around it)
 // This is purely visual - timing/playback is NOT affected
 const visualSpacingMap = computed(() => {
   const spacingMap = new Map();
@@ -232,8 +233,8 @@ const visualSpacingMap = computed(() => {
   const sortedByTime = [...eventsInWindow].sort((a, b) => a.absoluteTime - b.absoluteTime);
 
   // Process each event and calculate visual spacing adjustment
-  // Earlier notes are processed first and "claim" their visual space
-  // Later notes are pushed up if they're too close to earlier notes
+  // Earlier notes are processed first and "claim" their visual space (including padding)
+  // Later notes are pushed up if they intrude into an earlier note's padded zone
 
   for (const event of sortedByTime) {
     const rawY = getRawY(event);
@@ -241,28 +242,31 @@ const visualSpacingMap = computed(() => {
     const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
     const targetPos = getLanePosition(noteIndex);
 
-    // The top of this note bar (rawY is bottom position)
-    const rawTop = rawY - barHeight;
+    // Get this note's padding (based on handpan geometry)
+    const notePadding = getNotePadding(noteIndex);
 
     let adjustedY = rawY;
 
     // Check against all previously processed (earlier) notes
-    // Find the highest (most negative Y) bottom edge among notes that might overlap
     for (const [prevId, prevData] of spacingMap) {
-      // Check if notes are in the same or nearby lane (X overlap)
-      const xDistance = Math.abs(targetPos.x - prevData.x);
-      const combinedWidth = 50; // Approximate lane width for overlap detection
+      // The earlier note's "padded zone" extends from:
+      // - Top: prevData.adjustedY - prevData.barHeight - prevData.paddingTop
+      // - Bottom: prevData.adjustedY + prevData.paddingBottom
 
-      if (xDistance < combinedWidth) {
-        // Notes are in overlapping lanes - check vertical spacing
-        const prevBottom = prevData.adjustedY;
-        const currentTop = adjustedY - barHeight;
-        const gap = prevBottom - currentTop;
+      // This note's padded zone would be:
+      // - Top: adjustedY - barHeight - notePadding
+      // - Bottom: adjustedY + notePadding
 
-        // If gap is less than minimum, push this note up
-        if (gap > -MIN_NOTE_GAP) {
-          adjustedY = prevBottom - barHeight - MIN_NOTE_GAP;
-        }
+      // For notes not to overlap (including their padding zones):
+      // This note's bottom (with padding) must be above previous note's top (with padding)
+
+      const prevTopWithPadding = prevData.adjustedY - prevData.barHeight - prevData.padding;
+      const currentBottomWithPadding = adjustedY + notePadding;
+
+      // If this note's padded zone overlaps with the previous note's padded zone
+      if (currentBottomWithPadding > prevTopWithPadding) {
+        // Push this note up so its padded bottom is at the previous note's padded top
+        adjustedY = prevTopWithPadding - notePadding;
       }
     }
 
@@ -272,6 +276,7 @@ const visualSpacingMap = computed(() => {
       adjustedY,
       barHeight,
       x: targetPos.x,
+      padding: notePadding,
       // Visual offset = difference between adjusted and raw
       visualOffset: adjustedY - rawY
     });
@@ -326,11 +331,22 @@ const haloEvents = computed(() => {
 });
 
 // VISUAL SPACING CONSTANTS
-// Minimum vertical gap (in pixels) between adjacent notes for readability
-const MIN_NOTE_GAP = 40;
+// Handpan radius - used to calculate per-note padding
+const HANDPAN_RADIUS = 180;
 
 // Minimum height for any note bar (ensures visibility even for very short notes)
 const MIN_BAR_HEIGHT = 30;
+
+// Calculate padding for a note based on its distance from handpan edge
+// Notes closer to center get more padding, notes near edge get less
+const getNotePadding = (noteIndex) => {
+  const pos = getLanePosition(noteIndex);
+  // Distance from center = sqrt(x² + y²)
+  const distanceFromCenter = Math.sqrt(pos.x * pos.x + pos.y * pos.y);
+  // Padding = space between tone field and handpan edge
+  const padding = Math.max(20, HANDPAN_RADIUS - distanceFromCenter);
+  return padding;
+};
 
 // Style for note bars
 const getNoteBarStyle = (event) => {
