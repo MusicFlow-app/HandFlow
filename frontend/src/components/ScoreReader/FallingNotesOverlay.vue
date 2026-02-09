@@ -123,6 +123,14 @@ const pixelsPerMs = computed(() => props.fallHeight / props.leadTime);
 const HALO_START_TIME = 800; // Start showing halo 800ms before hit
 const HALO_START_SCALE = 1.2; // Start at 120% of target size
 
+// ============================================================
+// LANE GEOMETRY CONSTANTS (for visual readability)
+// ============================================================
+const LANE_WIDTH = 70;        // Pixels - fits tone field (65px) + small gutter
+const LANE_GUTTER = 6;        // Min visual gap between adjacent lanes
+const MIN_Y_GAP = 50;         // Min vertical gap between notes in same lane
+const TIME_PROXIMITY_MS = 80; // Notes within this window are "visually close"
+
 // Build fixed lane grid from notePositions (stable across all measures)
 // This ensures all notes snap to consistent handpan mapping
 const laneGrid = computed(() => {
@@ -138,6 +146,43 @@ const laneGrid = computed(() => {
   });
   return grid;
 });
+
+// ============================================================
+// LANE COLUMN MAPPING (circular handpan → linear piano roll columns)
+// ============================================================
+// Maps handpan note index to a column index for clearer visual separation
+// Ding (0) → center, then alternating left/right based on handpan layout
+const laneColumnMap = computed(() => {
+  const columnMap = {};
+  const noteCount = props.notePositions.length;
+
+  if (noteCount === 0) return columnMap;
+
+  // Ding is always center (column 0)
+  columnMap[0] = 0;
+
+  // For other notes, assign columns based on their X position
+  // Sort by X to create left-to-right ordering
+  const otherNotes = props.notePositions
+    .map((pos, index) => ({ index, x: pos.x }))
+    .filter(n => n.index !== 0)
+    .sort((a, b) => a.x - b.x);
+
+  // Assign column numbers: negative for left, positive for right
+  const halfCount = Math.ceil(otherNotes.length / 2);
+  otherNotes.forEach((note, i) => {
+    // Maps to columns: -4, -3, -2, -1, 1, 2, 3, 4 (skipping 0 for ding)
+    columnMap[note.index] = i < halfCount ? (i - halfCount) : (i - halfCount + 1);
+  });
+
+  return columnMap;
+});
+
+// Get column-based X position for a note (linearized for piano roll)
+const getColumnX = (handpanNoteIndex) => {
+  const column = laneColumnMap.value[handpanNoteIndex] || 0;
+  return column * (LANE_WIDTH + LANE_GUTTER);
+};
 
 // Get fixed lane position for a note (from pre-computed grid)
 const getLanePosition = (handpanNoteIndex) => {
@@ -190,6 +235,86 @@ const durationToPixels = (durationMs) => {
 const getNotePosition = (noteIndex) => {
   return getLanePosition(noteIndex);
 };
+
+// ============================================================
+// READABILITY PASS: Compute visual Y adjustments for dense groups
+// ============================================================
+// This pass detects notes that would visually overlap and adds
+// micro-offsets to make play order clear. Timing is NOT changed.
+const readabilityAdjustments = computed(() => {
+  const adjustments = new Map(); // eventId -> { yOffset: number }
+
+  // Get all events sorted by absoluteTime
+  const sortedEvents = [...props.events].sort((a, b) => a.absoluteTime - b.absoluteTime);
+
+  // Track the last rendered Y position per lane (column)
+  // Key: column index, Value: { eventId, adjustedBottomY, time }
+  const laneLastNote = new Map();
+
+  for (const event of sortedEvents) {
+    const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
+    const column = laneColumnMap.value[noteIndex] || 0;
+
+    // Calculate raw Y for this event (same formula as getNoteBarStyle)
+    const targetPos = getLanePosition(noteIndex);
+    const timeOffset = event.absoluteTime - props.currentTime;
+    const rawY = targetPos.y - (timeOffset * pixelsPerMs.value);
+
+    let yOffset = 0;
+
+    // Check if this lane has a recent note that would overlap
+    const lastInLane = laneLastNote.get(column);
+
+    if (lastInLane) {
+      const timeDiff = event.absoluteTime - lastInLane.time;
+
+      // Only adjust if notes are close in time but NOT a chord (exact same time)
+      if (timeDiff > 0 && timeDiff < TIME_PROXIMITY_MS) {
+        // Calculate visual gap
+        const currentBottomY = rawY;
+        const prevBottomY = lastInLane.adjustedBottomY;
+        const visualGap = prevBottomY - currentBottomY; // Positive = gap exists
+
+        // If gap is too small, push this note up
+        if (visualGap < MIN_Y_GAP) {
+          yOffset = -(MIN_Y_GAP - visualGap);
+        }
+      }
+    }
+
+    // Store adjustment
+    adjustments.set(event.id, { yOffset });
+
+    // Update lane tracking with adjusted position
+    laneLastNote.set(column, {
+      eventId: event.id,
+      adjustedBottomY: rawY + yOffset,
+      time: event.absoluteTime
+    });
+
+    // Also check adjacent lanes for very dense passages
+    // (notes in adjacent columns that are very close in time)
+    for (const [adjColumn, adjData] of laneLastNote) {
+      if (Math.abs(adjColumn - column) === 1) { // Adjacent lane
+        const timeDiff = event.absoluteTime - adjData.time;
+        if (timeDiff > 0 && timeDiff < TIME_PROXIMITY_MS / 2) {
+          // Very close adjacent notes - ensure some separation
+          const currentY = rawY + yOffset;
+          const adjY = adjData.adjustedBottomY;
+          const gap = Math.abs(currentY - adjY);
+
+          if (gap < MIN_Y_GAP / 2) {
+            // Add small offset to separate
+            const additionalOffset = -(MIN_Y_GAP / 2 - gap);
+            adjustments.set(event.id, { yOffset: yOffset + additionalOffset });
+          }
+        }
+      }
+    }
+  }
+
+  return adjustments;
+});
 
 // Filter and enhance visible events
 const visibleEvents = computed(() => {
@@ -259,9 +384,29 @@ const getNoteBarStyle = (event) => {
   // With bottom-based CSS, translateY moves element up when negative
   const rawY = targetPos.y - (timeOffset * pixelsPerMs.value);
 
+  // ============================================================
+  // READABILITY ADJUSTMENT: Apply visual Y offset for dense passages
+  // This offset ONLY affects visual position, not timing
+  // ============================================================
+  const adjustment = readabilityAdjustments.value.get(event.id);
+  const readabilityOffset = adjustment?.yOffset || 0;
+
+  // Apply readability offset only while note is falling (not yet landed)
+  // As note approaches landing, fade out the offset for smooth transition
+  let effectiveOffset = 0;
+  if (timeOffset > 0) {
+    // Note is still falling - apply full offset at top, fade as it approaches
+    const fadeDistance = 200; // Start fading offset 200px before landing
+    const distanceToTarget = timeOffset * pixelsPerMs.value;
+    const offsetFade = Math.min(1, distanceToTarget / fadeDistance);
+    effectiveOffset = readabilityOffset * offsetFade;
+  }
+
+  const adjustedY = rawY + effectiveOffset;
+
   // CLAMP: Never let the note go below the target (no overshoot)
   // targetPos.y is the resting position, rawY grows positive as note falls past
-  const bottomY = Math.min(rawY, targetPos.y);
+  const bottomY = Math.min(adjustedY, targetPos.y);
 
   // Fixed lane X position (never changes per-event)
   const currentX = targetPos.x;
