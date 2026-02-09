@@ -125,12 +125,15 @@ const HALO_START_SCALE = 1.2; // Start at 120% of target size
 
 // ============================================================
 // MEASURE-BASED VISUAL LAYOUT CONSTANTS
+// Critical rule: 1 measure = exactly 1 handpan height
 // ============================================================
-const HANDPAN_HEIGHT = 360;                    // Full handpan visual height
-const VISUAL_SCALE = 0.5;                      // 50% scale for falling notes
-const MEASURE_VISUAL_HEIGHT = HANDPAN_HEIGHT * VISUAL_SCALE; // 180px per measure block
-const LANE_WIDTH = 70 * VISUAL_SCALE;          // Scaled lane width
-const LANE_GUTTER = 6;                         // Min visual gap between lanes
+const HANDPAN_HEIGHT_PX = 360;                           // Handpan diameter in pixels
+const MEASURE_BLOCK_HEIGHT_PX = HANDPAN_HEIGHT_PX;       // 1 measure = 1 handpan height
+const SUBDIVISIONS_PER_MEASURE = 16;                     // 16th note resolution
+const SUBDIVISION_STEP_PX = MEASURE_BLOCK_HEIGHT_PX / SUBDIVISIONS_PER_MEASURE; // 22.5px per subdivision
+const VISUAL_SCALE = 0.5;                                // 50% scale for note rendering
+const LANE_WIDTH = 70 * VISUAL_SCALE;                    // Scaled lane width
+const LANE_GUTTER = 6;                                   // Min visual gap between lanes
 
 // Build fixed lane grid from notePositions (stable across all measures)
 // This ensures all notes snap to consistent handpan mapping
@@ -250,10 +253,10 @@ const getNotePosition = (noteIndex) => {
 // ============================================================
 // MEASURE-BASED VISUAL LAYOUT
 // ============================================================
-// Each measure gets a fixed visual height (MEASURE_VISUAL_HEIGHT).
-// Notes are positioned within their measure block based on beat position.
-// This creates consistent spacing and prevents clumping.
-// Timing is NOT changed - this is visual-only.
+// Critical rule: 1 measure = exactly 1 handpan height (360px)
+// Notes are positioned inside their measure block based on subdivision
+// Chords (same chord array) share the same Y position
+// Timing is NOT changed - this is visual-only normalization
 
 // Calculate ms per measure based on tempo and time signature
 const msPerMeasure = computed(() => {
@@ -262,47 +265,55 @@ const msPerMeasure = computed(() => {
   return msPerBeat * beatsPerMeasure;
 });
 
-// Calculate visual Y position using measure-based layout
-// Returns the visual offset to add to the raw timing-based position
-const getMeasureBasedOffset = (event) => {
-  // Get timing info
+// Calculate ms per subdivision (16th note resolution)
+const msPerSubdivision = computed(() => {
+  return msPerMeasure.value / SUBDIVISIONS_PER_MEASURE;
+});
+
+// Calculate the VISUAL Y position for an event using measure-based layout
+// This maps timing to a fixed grid: 1 measure = MEASURE_BLOCK_HEIGHT_PX
+const getVisualY = (event) => {
   const measureDuration = msPerMeasure.value;
   const leadInMs = props.leadInMs || 3000;
 
   // Calculate which measure this note is in (0-indexed, after lead-in)
-  const noteTimeAfterLeadIn = event.absoluteTime - leadInMs;
+  const noteTimeAfterLeadIn = Math.max(0, event.absoluteTime - leadInMs);
   const measureIndex = Math.floor(noteTimeAfterLeadIn / measureDuration);
 
-  // Calculate position within measure (0 = start of measure, 1 = end)
-  const positionInMeasure = (noteTimeAfterLeadIn % measureDuration) / measureDuration;
+  // Calculate subdivision index within measure (0-15 for 16th notes)
+  const timeInMeasure = noteTimeAfterLeadIn % measureDuration;
+  const subdivisionIndex = Math.floor(timeInMeasure / msPerSubdivision.value);
 
-  // Calculate where this note SHOULD be visually (measure-based)
-  // Each measure is MEASURE_VISUAL_HEIGHT pixels tall
-  // Measure 0 starts at Y=0, measure 1 at Y=-MEASURE_VISUAL_HEIGHT, etc.
-  const measureStartY = -measureIndex * MEASURE_VISUAL_HEIGHT;
-  const positionWithinMeasureY = -positionInMeasure * MEASURE_VISUAL_HEIGHT;
-  const targetVisualY = measureStartY + positionWithinMeasureY;
+  // Calculate visual Y position
+  // measureTopY = where this measure's top edge is (relative to playhead at Y=0)
+  // Each measure scrolls by at MEASURE_BLOCK_HEIGHT_PX
+  const currentMeasureFloat = (props.currentTime - leadInMs) / measureDuration;
 
-  // Calculate where the note would be with pure timing
-  const timeOffset = event.absoluteTime - props.currentTime;
-  const rawY = -timeOffset * pixelsPerMs.value; // Negative because notes fall down
+  // Distance in measures from current playhead position
+  const measureOffset = measureIndex - currentMeasureFloat;
 
-  // The offset is the difference between measure-based and timing-based
-  // But we want to blend this - apply offset more when far from target
+  // Convert to pixels: each measure = MEASURE_BLOCK_HEIGHT_PX
+  const measureTopY = -measureOffset * MEASURE_BLOCK_HEIGHT_PX;
+
+  // Note position within measure block
+  const noteHeadY = measureTopY + (subdivisionIndex * SUBDIVISION_STEP_PX);
+
   return {
     measureIndex,
-    positionInMeasure,
-    targetVisualY,
-    rawY
+    subdivisionIndex,
+    measureTopY,
+    noteHeadY,
+    // Also return the raw timing-based Y for comparison
+    rawTimingY: -(event.absoluteTime - props.currentTime) * pixelsPerMs.value
   };
 };
 
-// Compute layout adjustments for all events
+// Compute layout for all events
 const measureLayoutMap = computed(() => {
   const layoutMap = new Map();
 
   for (const event of props.events) {
-    const layout = getMeasureBasedOffset(event);
+    const layout = getVisualY(event);
     layoutMap.set(event.id, layout);
   }
 
@@ -373,38 +384,34 @@ const getNoteBarStyle = (event) => {
     barHeight = durationToPixels(remainingDuration);
   }
 
-  // Y position: bar bottom (tone field) should hit target at timeOffset=0
-  // With bottom-based CSS, translateY moves element up when negative
-  const rawY = targetPos.y - (timeOffset * pixelsPerMs.value);
+  // ============================================================
+  // MEASURE-BASED VISUAL Y POSITIONING
+  // ============================================================
+  // Use measure-based layout: 1 measure = 1 handpan height (360px)
+  // Notes are positioned by subdivision within their measure block
 
-  // ============================================================
-  // MEASURE-BASED VISUAL LAYOUT
-  // ============================================================
-  // Get measure layout info for visual spacing
   const layout = measureLayoutMap.value.get(event.id);
 
-  // Calculate visual offset based on measure position
-  // This spreads notes evenly within their measure block
-  let visualOffset = 0;
+  let visualY;
   if (layout && timeOffset > 0) {
-    // Use measure-based spacing while falling
-    // Each measure has MEASURE_VISUAL_HEIGHT of visual space
-    const measureSpacing = layout.positionInMeasure * MEASURE_VISUAL_HEIGHT;
-
-    // Blend between timing-based and measure-based as note approaches
-    const fadeDistance = MEASURE_VISUAL_HEIGHT * 2;
-    const distanceToTarget = timeOffset * pixelsPerMs.value;
-    const blendFactor = Math.min(1, distanceToTarget / fadeDistance);
-
-    // Apply measure-based offset (pushes notes apart within measure)
-    visualOffset = -measureSpacing * blendFactor * 0.5; // Gentle offset
+    // Note is still falling - use measure-based Y position
+    // This ensures notes are evenly spaced within their measure block
+    visualY = layout.noteHeadY;
+  } else {
+    // Note has landed or is playing - use target position
+    visualY = targetPos.y;
   }
 
-  const adjustedY = rawY + visualOffset;
+  // Blend to landing: as note approaches target, transition from
+  // measure-based position to actual target position
+  const landingBlendDistance = MEASURE_BLOCK_HEIGHT_PX * 0.5; // Start blend 180px before landing
+  if (timeOffset > 0 && timeOffset * pixelsPerMs.value < landingBlendDistance) {
+    const blendProgress = (timeOffset * pixelsPerMs.value) / landingBlendDistance;
+    visualY = targetPos.y + (layout.noteHeadY - targetPos.y) * blendProgress;
+  }
 
   // CLAMP: Never let the note go below the target (no overshoot)
-  // targetPos.y is the resting position, rawY grows positive as note falls past
-  const bottomY = Math.min(adjustedY, targetPos.y);
+  const bottomY = Math.min(visualY, targetPos.y);
 
   // Fixed lane X position (never changes per-event)
   const currentX = targetPos.x;
@@ -508,26 +515,37 @@ const getHaloStyle = (event) => {
   };
 };
 
-// Beat grid line style
+// Beat grid line style - using measure-based positioning
 const getBeatLineStyle = (beat) => {
-  const timeOffset = beat.absoluteTime - props.currentTime;
-  const progress = 1 - (timeOffset / props.leadTime);
-  const clampedProgress = Math.max(0, progress);
+  const measureDuration = msPerMeasure.value;
+  const leadInMs = props.leadInMs || 3000;
 
-  const startY = -props.fallHeight;
-  const endY = 0;
-  const currentY = startY + (endY - startY) * clampedProgress;
+  // Calculate measure position for this beat
+  const beatTimeAfterLeadIn = Math.max(0, beat.absoluteTime - leadInMs);
+  const measureIndex = Math.floor(beatTimeAfterLeadIn / measureDuration);
 
+  // Current playhead position in measures
+  const currentMeasureFloat = (props.currentTime - leadInMs) / measureDuration;
+
+  // Distance in measures from current playhead
+  const measureOffset = measureIndex - currentMeasureFloat;
+
+  // Convert to pixels: each measure = MEASURE_BLOCK_HEIGHT_PX
+  const currentY = -measureOffset * MEASURE_BLOCK_HEIGHT_PX;
+
+  // Calculate opacity based on distance
+  const maxVisibleMeasures = 4;
   let opacity = 1;
-  if (clampedProgress < 0.1) {
-    opacity = clampedProgress / 0.1;
-  } else if (progress > 1) {
-    opacity = Math.max(0, 1 - (progress - 1) * 3);
+  if (measureOffset > maxVisibleMeasures) {
+    opacity = 0;
+  } else if (measureOffset > maxVisibleMeasures - 1) {
+    opacity = maxVisibleMeasures - measureOffset;
+  } else if (measureOffset < -0.5) {
+    opacity = Math.max(0, 0.5 + measureOffset);
   }
 
   return {
     '--ty': `${currentY}px`,
-    // Center-based: top:50% is the reference, ty moves from there
     transform: `translateY(var(--ty))`,
     opacity
   };
