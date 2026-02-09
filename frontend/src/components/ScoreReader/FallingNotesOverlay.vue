@@ -231,10 +231,6 @@ const haloEvents = computed(() => {
     });
 });
 
-// Transition zone: notes fan out from normalized path to actual targets
-// This distance (in pixels) before the target where notes start diverging
-const FAN_OUT_DISTANCE = 200;
-
 // Style for note bars
 const getNoteBarStyle = (event) => {
   const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
@@ -259,31 +255,17 @@ const getNoteBarStyle = (event) => {
     barHeight = durationToPixels(remainingDuration);
   }
 
-  // NORMALIZED FALL PATH: All notes at the same time appear at the same visual height
-  // The Y offset from target is based purely on timeOffset, not on target position
-  // This prevents notes from appearing "ahead" or "behind" due to different target Y positions
-
-  // Calculate normalized Y: all notes fall toward y=0 reference, then offset to their target
-  // The key insight: timeOffset determines visual height, targetPos.y only matters at landing
-  const normalizedY = 0 - (timeOffset * pixelsPerMs.value);
-
-  // Calculate fan-out progress: 0 = still on normalized path, 1 = at target position
-  // Fan-out starts when note is within FAN_OUT_DISTANCE of the reference (y=0)
-  const distanceFromReference = Math.abs(normalizedY);
-  const fanOutProgress = distanceFromReference < FAN_OUT_DISTANCE
-    ? 1 - (distanceFromReference / FAN_OUT_DISTANCE)
-    : 0;
-
-  // Smooth easing for fan-out (ease-out curve)
-  const easedFanOut = 1 - Math.pow(1 - fanOutProgress, 2);
-
-  // Interpolate Y from normalized path to actual target position
-  const rawY = normalizedY + (targetPos.y * easedFanOut);
+  // Y POSITION: Simple linear fall toward target
+  // Each note falls straight down to its target position
+  // timeOffset > 0: note is above target (falling)
+  // timeOffset = 0: note reaches target
+  // timeOffset < 0: note is past target (clamped)
+  const rawY = targetPos.y - (timeOffset * pixelsPerMs.value);
 
   // CLAMP: Never let the note go below the target (no overshoot)
   const bottomY = Math.min(rawY, targetPos.y);
 
-  // X position: FIXED to target lane throughout the fall (no center convergence)
+  // X position: FIXED to target lane throughout the fall
   const currentX = targetPos.x;
 
   // Fade out notes that are too far up (bottomY very negative = high up)
