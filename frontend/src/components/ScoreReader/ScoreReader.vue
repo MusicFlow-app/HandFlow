@@ -183,13 +183,14 @@ const leadTime = computed(() => {
 });
 
 // Calculate BPM-aware default measures
-// Faster songs show more measures, slower songs show fewer
-// Target: ~8 seconds of lead time as baseline at any BPM
+// Target: enough time to see notes coming, but with good spacing
+// Fewer measures = more pixels per note = better readability
 const calculateDefaultMeasures = (bpm) => {
   const beatsPerMeasure = scheduler.timeSignature.value?.beats || 4;
   const msPerBeat = 60000 / bpm;
   const msPerMeasure = msPerBeat * beatsPerMeasure;
-  const targetLeadTime = 8000; // 8 seconds as target
+  // Target 4 seconds of lead time for readable spacing
+  const targetLeadTime = 4000;
   const measures = Math.round(targetLeadTime / msPerMeasure);
   return Math.max(MIN_MEASURES, Math.min(MAX_MEASURES, measures));
 };
@@ -235,10 +236,11 @@ const audioCache = ref({});
 // Computed position data for the falling notes overlay
 const handpanCenter = ref({ x: 0, y: 0 });
 
-// Fall height = visible screen area (fixed based on stage size)
-// This stays constant - zoom works by changing leadTime, not fallHeight
-// pixelsPerMs = fallHeight / leadTime, so more measures = slower notes
-const fallHeight = ref(500);
+// Fall height = virtual height for note spacing (much larger than screen)
+// Larger fallHeight = more pixels per ms = more spacing between notes
+// Notes spawn above visible area and scroll down
+const FALL_HEIGHT_BASE = 2000; // Base height for good note separation
+const fallHeight = ref(FALL_HEIGHT_BASE);
 
 // Composables
 const scheduler = useNoteScheduler();
