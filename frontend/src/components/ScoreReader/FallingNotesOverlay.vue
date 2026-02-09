@@ -231,6 +231,11 @@ const haloEvents = computed(() => {
     });
 });
 
+// Scale factor for Y offset during fall
+// This keeps notes visually ordered while maintaining "invisible handpan" grouping
+// 0 = all notes at same Y (no handpan layout), 1 = full handpan layout
+const Y_OFFSET_SCALE = 0.3;
+
 // Style for note bars
 const getNoteBarStyle = (event) => {
   const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
@@ -255,14 +260,25 @@ const getNoteBarStyle = (event) => {
     barHeight = durationToPixels(remainingDuration);
   }
 
-  // NORMALIZED Y POSITION:
-  // All notes at the same timeOffset appear at the same visual Y level
-  // This ensures visual order matches playback order
-  // The tone field offset (targetPos.y) is handled separately in getToneFieldStyle
-  const normalizedY = -(timeOffset * pixelsPerMs.value);
+  // INVISIBLE HANDPAN CONCEPT:
+  // Each note falls as if on an invisible handpan
+  // Notes at the same time share the same invisible handpan
+  // The Y offset (targetPos.y) is SCALED to prevent visual ordering issues
+  // This keeps notes clearly separated by time while showing handpan layout
 
-  // CLAMP: Never let the note go below y=0 (the reference point)
-  const bottomY = Math.min(normalizedY, 0);
+  // Base position of the "invisible handpan" for this time
+  const handpanBaseY = -(timeOffset * pixelsPerMs.value);
+
+  // Scaled Y offset within the invisible handpan
+  // This is smaller than the actual offset to prevent later notes appearing below earlier ones
+  const scaledYOffset = targetPos.y * Y_OFFSET_SCALE;
+
+  // Final Y position: handpan base + scaled offset
+  const rawY = handpanBaseY + scaledYOffset;
+
+  // CLAMP: Never let the note go below its landing position
+  const landingY = targetPos.y;
+  const bottomY = Math.min(rawY, landingY);
 
   // X position: FIXED to target lane throughout the fall
   const currentX = targetPos.x;
@@ -298,23 +314,23 @@ const getNoteBarStyle = (event) => {
 };
 
 // Style for the tone field at bottom of bar - matches handpan note exactly
-// The tone field has an additional Y offset to land at the correct target position
-// This offset compensates for the normalized Y position of the note bar
+// The tone field has an additional Y offset to compensate for the scaled offset in the note bar
+// This ensures the tone field lands at the correct target position on the handpan
 const getToneFieldStyle = (event) => {
   const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
   const targetPos = getNotePosition(noteIndex);
   const size = getToneFieldSize(noteIndex);
 
-  // Target Y offset - this makes the tone field land at the correct handpan position
-  // The note bar is at normalized Y (same for all notes at same time)
-  // The tone field offset positions it at the actual target
-  const targetYOffset = targetPos.y;
+  // The note bar uses scaled Y offset (targetPos.y * Y_OFFSET_SCALE)
+  // The tone field needs the REMAINING offset to land at the correct position
+  // Remaining offset = actual - scaled = targetPos.y * (1 - Y_OFFSET_SCALE)
+  const remainingYOffset = targetPos.y * (1 - Y_OFFSET_SCALE);
 
   // Ding is circular, no rotation needed
   if (targetPos.isDing) {
     return {
       '--rotation': '0deg',
-      '--target-y-offset': `${targetYOffset}px`,
+      '--target-y-offset': `${remainingYOffset}px`,
       width: `${size.width}px`,
       height: `${size.height}px`,
       borderRadius: '50%',
@@ -325,7 +341,7 @@ const getToneFieldStyle = (event) => {
   // Tone fields are elliptical with rotation matching handpan
   return {
     '--rotation': `${targetPos.rotation || 0}deg`,
-    '--target-y-offset': `${targetYOffset}px`,
+    '--target-y-offset': `${remainingYOffset}px`,
     width: `${size.width}px`,
     height: `${size.height}px`,
     transform: `translateX(-50%) translateY(var(--target-y-offset)) rotate(var(--rotation))`
