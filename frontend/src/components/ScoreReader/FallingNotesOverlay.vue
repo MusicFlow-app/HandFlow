@@ -334,17 +334,24 @@ const haloEvents = computed(() => {
 // Handpan radius - used to calculate per-note padding
 const HANDPAN_RADIUS = 180;
 
+// Padding range (scaled down for smoother flow)
+const MIN_PADDING = 30;  // Edge notes
+const MAX_PADDING = 60;  // Center notes (ding)
+
 // Minimum height for any note bar (ensures visibility even for very short notes)
 const MIN_BAR_HEIGHT = 30;
 
 // Calculate padding for a note based on its distance from handpan edge
 // Notes closer to center get more padding, notes near edge get less
+// Scaled to 30-60px range for smoother visual flow
 const getNotePadding = (noteIndex) => {
   const pos = getLanePosition(noteIndex);
   // Distance from center = sqrt(x² + y²)
   const distanceFromCenter = Math.sqrt(pos.x * pos.x + pos.y * pos.y);
-  // Padding = space between tone field and handpan edge
-  const padding = Math.max(20, HANDPAN_RADIUS - distanceFromCenter);
+  // Normalize distance (0 = center, 1 = edge)
+  const normalizedDistance = Math.min(1, distanceFromCenter / HANDPAN_RADIUS);
+  // Map to padding range: center gets MAX_PADDING, edge gets MIN_PADDING
+  const padding = MAX_PADDING - (normalizedDistance * (MAX_PADDING - MIN_PADDING));
   return padding;
 };
 
