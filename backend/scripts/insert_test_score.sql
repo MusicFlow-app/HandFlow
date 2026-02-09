@@ -54,6 +54,32 @@ VALUES (
             "id": 3,
             "time_signature": null,
             "chords": [
+              [
+                {"pitch": 50, "duration": "Quarter", "note_type": "Normal", "hand": "Right"},
+                {"pitch": 65, "duration": "Quarter", "note_type": "Normal", "hand": "Left"},
+                {"pitch": 69, "duration": "Quarter", "note_type": "Normal", "hand": "Right"}
+              ],
+              [
+                {"pitch": 57, "duration": "Quarter", "note_type": "Normal", "hand": "Left"},
+                {"pitch": 60, "duration": "Quarter", "note_type": "Normal", "hand": "Right"},
+                {"pitch": 64, "duration": "Quarter", "note_type": "Normal", "hand": "Left"}
+              ],
+              [
+                {"pitch": 62, "duration": "Quarter", "note_type": "Normal", "hand": "Right"},
+                {"pitch": 67, "duration": "Quarter", "note_type": "Normal", "hand": "Left"},
+                {"pitch": 72, "duration": "Quarter", "note_type": "Normal", "hand": "Right"}
+              ],
+              [
+                {"pitch": 60, "duration": "Quarter", "note_type": "Normal", "hand": "Left"},
+                {"pitch": 64, "duration": "Quarter", "note_type": "Normal", "hand": "Right"},
+                {"pitch": 67, "duration": "Quarter", "note_type": "Normal", "hand": "Left"}
+              ]
+            ]
+          },
+          {
+            "id": 4,
+            "time_signature": null,
+            "chords": [
               [{"pitch": 50, "duration": "Quarter", "note_type": "Normal", "hand": "Right"}],
               [{"pitch": 57, "duration": "Quarter", "note_type": "Normal", "hand": "Left"}],
               [{"pitch": 60, "duration": "Quarter", "note_type": "Normal", "hand": "Right"}],
@@ -61,7 +87,7 @@ VALUES (
             ]
           },
           {
-            "id": 4,
+            "id": 5,
             "time_signature": null,
             "chords": [
               [{"pitch": 64, "duration": "Quarter", "note_type": "Normal", "hand": "Right"}],
@@ -71,7 +97,7 @@ VALUES (
             ]
           },
           {
-            "id": 5,
+            "id": 6,
             "time_signature": null,
             "chords": [
               [{"pitch": 72, "duration": "Half", "note_type": "Normal", "hand": "Right"}],
@@ -79,7 +105,7 @@ VALUES (
             ]
           },
           {
-            "id": 6,
+            "id": 7,
             "time_signature": null,
             "chords": [
               [{"pitch": 67, "duration": "Quarter", "note_type": "Normal", "hand": "Right"}],
@@ -89,7 +115,7 @@ VALUES (
             ]
           },
           {
-            "id": 7,
+            "id": 8,
             "time_signature": null,
             "chords": [
               [{"pitch": 60, "duration": "Eighth", "note_type": "Normal", "hand": "Right"}],
@@ -101,7 +127,7 @@ VALUES (
             ]
           },
           {
-            "id": 8,
+            "id": 9,
             "time_signature": null,
             "chords": [
               [{"pitch": 50, "duration": "Half", "note_type": "Normal", "hand": "Right"}],
@@ -110,7 +136,7 @@ VALUES (
             ]
           },
           {
-            "id": 9,
+            "id": 10,
             "time_signature": null,
             "chords": [
               [{"pitch": 62, "duration": "Quarter", "note_type": "Ghost", "hand": "Left"}],
@@ -120,7 +146,7 @@ VALUES (
             ]
           },
           {
-            "id": 10,
+            "id": 11,
             "time_signature": null,
             "chords": [
               [{"pitch": 50, "duration": "Whole", "note_type": "Normal", "hand": "Right"}]
