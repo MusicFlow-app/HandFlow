@@ -191,6 +191,95 @@ const getNotePosition = (noteIndex) => {
   return getLanePosition(noteIndex);
 };
 
+// Calculate raw Y position for an event (based purely on timing)
+const getRawY = (event) => {
+  const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
+  const targetPos = getLanePosition(noteIndex);
+  const timeOffset = event.absoluteTime - props.currentTime;
+  return targetPos.y - (timeOffset * pixelsPerMs.value);
+};
+
+// Calculate bar height for an event
+const getBarHeight = (event) => {
+  const fullDuration = event.duration || 500;
+  const timeOffset = event.absoluteTime - props.currentTime;
+
+  if (timeOffset >= 0) {
+    return Math.max(MIN_BAR_HEIGHT, durationToPixels(fullDuration));
+  } else {
+    const elapsedTime = -timeOffset;
+    const remainingDuration = Math.max(0, fullDuration - elapsedTime);
+    return Math.max(MIN_BAR_HEIGHT, durationToPixels(remainingDuration));
+  }
+};
+
+// VISUAL SPACING PASS
+// Calculates adjusted Y positions to ensure minimum gaps between notes
+// This is purely visual - timing/playback is NOT affected
+const visualSpacingMap = computed(() => {
+  const spacingMap = new Map();
+
+  // Get all events in the visible window
+  const windowStart = props.currentTime - props.trailTime;
+  const windowEnd = props.currentTime + props.leadTime;
+
+  const eventsInWindow = props.events.filter(event => {
+    const noteEnd = event.absoluteTime + event.duration;
+    return noteEnd >= windowStart && event.absoluteTime <= windowEnd;
+  });
+
+  // Sort events by absoluteTime (earliest first = will be lowest on screen)
+  const sortedByTime = [...eventsInWindow].sort((a, b) => a.absoluteTime - b.absoluteTime);
+
+  // Process each event and calculate visual spacing adjustment
+  // Earlier notes are processed first and "claim" their visual space
+  // Later notes are pushed up if they're too close to earlier notes
+
+  for (const event of sortedByTime) {
+    const rawY = getRawY(event);
+    const barHeight = getBarHeight(event);
+    const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
+    const targetPos = getLanePosition(noteIndex);
+
+    // The top of this note bar (rawY is bottom position)
+    const rawTop = rawY - barHeight;
+
+    let adjustedY = rawY;
+
+    // Check against all previously processed (earlier) notes
+    // Find the highest (most negative Y) bottom edge among notes that might overlap
+    for (const [prevId, prevData] of spacingMap) {
+      // Check if notes are in the same or nearby lane (X overlap)
+      const xDistance = Math.abs(targetPos.x - prevData.x);
+      const combinedWidth = 50; // Approximate lane width for overlap detection
+
+      if (xDistance < combinedWidth) {
+        // Notes are in overlapping lanes - check vertical spacing
+        const prevBottom = prevData.adjustedY;
+        const currentTop = adjustedY - barHeight;
+        const gap = prevBottom - currentTop;
+
+        // If gap is less than minimum, push this note up
+        if (gap > -MIN_NOTE_GAP) {
+          adjustedY = prevBottom - barHeight - MIN_NOTE_GAP;
+        }
+      }
+    }
+
+    // Store the adjusted position
+    spacingMap.set(event.id, {
+      rawY,
+      adjustedY,
+      barHeight,
+      x: targetPos.x,
+      // Visual offset = difference between adjusted and raw
+      visualOffset: adjustedY - rawY
+    });
+  }
+
+  return spacingMap;
+});
+
 // Filter and enhance visible events
 const visibleEvents = computed(() => {
   const windowStart = props.currentTime - props.trailTime;
@@ -209,7 +298,12 @@ const visibleEvents = computed(() => {
       // Note is "landed" when it has reached the target (clamped at handpan)
       const timeOffset = event.absoluteTime - props.currentTime;
       const isLanded = timeOffset <= 0;
-      return { ...event, isHit, isActive, isPast, isLanded };
+
+      // Get visual spacing adjustment
+      const spacingData = visualSpacingMap.value.get(event.id);
+      const visualOffset = spacingData ? spacingData.visualOffset : 0;
+
+      return { ...event, isHit, isActive, isPast, isLanded, visualOffset };
     });
 });
 
@@ -231,10 +325,12 @@ const haloEvents = computed(() => {
     });
 });
 
-// Scale factor for Y offset during fall
-// This keeps notes visually ordered while maintaining "invisible handpan" grouping
-// 0 = all notes at same Y (no handpan layout), 1 = full handpan layout
-const Y_OFFSET_SCALE = 0.3;
+// VISUAL SPACING CONSTANTS
+// Minimum vertical gap (in pixels) between adjacent notes for readability
+const MIN_NOTE_GAP = 40;
+
+// Minimum height for any note bar (ensures visibility even for very short notes)
+const MIN_BAR_HEIGHT = 30;
 
 // Style for note bars
 const getNoteBarStyle = (event) => {
@@ -252,33 +348,28 @@ const getNoteBarStyle = (event) => {
   let barHeight;
   if (timeOffset >= 0) {
     // Note hasn't landed yet - show full duration
-    barHeight = durationToPixels(fullDuration);
+    barHeight = Math.max(MIN_BAR_HEIGHT, durationToPixels(fullDuration));
   } else {
     // Note is playing - shrink bar based on remaining time
     const elapsedTime = -timeOffset; // How long since note started
     const remainingDuration = Math.max(0, fullDuration - elapsedTime);
-    barHeight = durationToPixels(remainingDuration);
+    barHeight = Math.max(MIN_BAR_HEIGHT, durationToPixels(remainingDuration));
   }
 
-  // INVISIBLE HANDPAN CONCEPT:
-  // Each note falls as if on an invisible handpan
-  // Notes at the same time share the same invisible handpan
-  // The Y offset (targetPos.y) is SCALED to prevent visual ordering issues
-  // This keeps notes clearly separated by time while showing handpan layout
+  // Y POSITION CALCULATION:
+  // 1. Calculate raw Y based on timing (determines when note hits target)
+  // 2. Apply visual spacing offset (for readability, does NOT affect timing)
+  // Timing is NEVER modified - this is purely visual positioning
+  const rawY = targetPos.y - (timeOffset * pixelsPerMs.value);
 
-  // Base position of the "invisible handpan" for this time
-  const handpanBaseY = -(timeOffset * pixelsPerMs.value);
+  // Apply visual spacing offset (calculated in visualSpacingMap)
+  // This pushes notes apart for better readability
+  const visualOffset = event.visualOffset || 0;
+  const adjustedY = rawY + visualOffset;
 
-  // Scaled Y offset within the invisible handpan
-  // This is smaller than the actual offset to prevent later notes appearing below earlier ones
-  const scaledYOffset = targetPos.y * Y_OFFSET_SCALE;
-
-  // Final Y position: handpan base + scaled offset
-  const rawY = handpanBaseY + scaledYOffset;
-
-  // CLAMP: Never let the note go below its landing position
-  const landingY = targetPos.y;
-  const bottomY = Math.min(rawY, landingY);
+  // CLAMP: Never let the note go below its landing position (no overshoot)
+  // Use rawY for clamping (not adjustedY) to ensure correct landing
+  const bottomY = Math.min(adjustedY, targetPos.y);
 
   // X position: FIXED to target lane throughout the fall
   const currentX = targetPos.x;
@@ -314,37 +405,30 @@ const getNoteBarStyle = (event) => {
 };
 
 // Style for the tone field at bottom of bar - matches handpan note exactly
-// The tone field has an additional Y offset to compensate for the scaled offset in the note bar
-// This ensures the tone field lands at the correct target position on the handpan
 const getToneFieldStyle = (event) => {
   const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
   const targetPos = getNotePosition(noteIndex);
   const size = getToneFieldSize(noteIndex);
 
-  // The note bar uses scaled Y offset (targetPos.y * Y_OFFSET_SCALE)
-  // The tone field needs the REMAINING offset to land at the correct position
-  // Remaining offset = actual - scaled = targetPos.y * (1 - Y_OFFSET_SCALE)
-  const remainingYOffset = targetPos.y * (1 - Y_OFFSET_SCALE);
-
   // Ding is circular, no rotation needed
   if (targetPos.isDing) {
     return {
       '--rotation': '0deg',
-      '--target-y-offset': `${remainingYOffset}px`,
+      '--target-y-offset': '0px',
       width: `${size.width}px`,
       height: `${size.height}px`,
       borderRadius: '50%',
-      transform: `translateX(-50%) translateY(var(--target-y-offset))`
+      transform: `translateX(-50%)`
     };
   }
 
   // Tone fields are elliptical with rotation matching handpan
   return {
     '--rotation': `${targetPos.rotation || 0}deg`,
-    '--target-y-offset': `${remainingYOffset}px`,
+    '--target-y-offset': '0px',
     width: `${size.width}px`,
     height: `${size.height}px`,
-    transform: `translateX(-50%) translateY(var(--target-y-offset)) rotate(var(--rotation))`
+    transform: `translateX(-50%) rotate(var(--rotation))`
   };
 };
 
