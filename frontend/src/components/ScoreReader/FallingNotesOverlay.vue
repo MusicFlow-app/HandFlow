@@ -214,8 +214,8 @@ const getBarHeight = (event) => {
 };
 
 // VISUAL SPACING PASS
-// Calculates adjusted Y positions with per-note padding based on handpan geometry
-// Each note gets padding = distance from handpan edge (like an "invisible handpan" around it)
+// Groups notes by play time (chords stay together) and applies spacing between time slices
+// Notes at the same absoluteTime get the same visual offset - they fall as a unit
 // This is purely visual - timing/playback is NOT affected
 const visualSpacingMap = computed(() => {
   const spacingMap = new Map();
@@ -229,57 +229,71 @@ const visualSpacingMap = computed(() => {
     return noteEnd >= windowStart && event.absoluteTime <= windowEnd;
   });
 
-  // Sort events by absoluteTime (earliest first = will be lowest on screen)
-  const sortedByTime = [...eventsInWindow].sort((a, b) => a.absoluteTime - b.absoluteTime);
+  // Group events by absoluteTime (notes at same time = chord = single visual unit)
+  const timeGroups = new Map();
+  for (const event of eventsInWindow) {
+    // Round to nearest ms to group simultaneous notes
+    const timeKey = Math.round(event.absoluteTime);
+    if (!timeGroups.has(timeKey)) {
+      timeGroups.set(timeKey, []);
+    }
+    timeGroups.get(timeKey).push(event);
+  }
 
-  // Process each event and calculate visual spacing adjustment
-  // Earlier notes are processed first and "claim" their visual space (including padding)
-  // Later notes are pushed up if they intrude into an earlier note's padded zone
+  // Sort time groups by time (earliest first)
+  const sortedTimes = [...timeGroups.keys()].sort((a, b) => a - b);
 
-  for (const event of sortedByTime) {
-    const rawY = getRawY(event);
-    const barHeight = getBarHeight(event);
-    const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
-    const targetPos = getLanePosition(noteIndex);
+  // Track the visual bottom of previous time slice (for spacing between slices)
+  let previousSliceTop = Infinity;
 
-    // Get this note's padding (based on handpan geometry)
-    const notePadding = getNotePadding(noteIndex);
+  // Process each time slice as a unit
+  for (const timeKey of sortedTimes) {
+    const eventsAtTime = timeGroups.get(timeKey);
 
-    let adjustedY = rawY;
+    // Calculate the raw Y and bar height for all notes in this time slice
+    // Find the maximum extent (lowest point on screen = highest Y value)
+    let sliceRawY = -Infinity;
+    let sliceMaxBarHeight = 0;
 
-    // Check against all previously processed (earlier) notes
-    for (const [prevId, prevData] of spacingMap) {
-      // The earlier note's "padded zone" extends from:
-      // - Top: prevData.adjustedY - prevData.barHeight - prevData.paddingTop
-      // - Bottom: prevData.adjustedY + prevData.paddingBottom
-
-      // This note's padded zone would be:
-      // - Top: adjustedY - barHeight - notePadding
-      // - Bottom: adjustedY + notePadding
-
-      // For notes not to overlap (including their padding zones):
-      // This note's bottom (with padding) must be above previous note's top (with padding)
-
-      const prevTopWithPadding = prevData.adjustedY - prevData.barHeight - prevData.padding;
-      const currentBottomWithPadding = adjustedY + notePadding;
-
-      // If this note's padded zone overlaps with the previous note's padded zone
-      if (currentBottomWithPadding > prevTopWithPadding) {
-        // Push this note up so its padded bottom is at the previous note's padded top
-        adjustedY = prevTopWithPadding - notePadding;
-      }
+    for (const event of eventsAtTime) {
+      const rawY = getRawY(event);
+      const barHeight = getBarHeight(event);
+      sliceRawY = Math.max(sliceRawY, rawY);
+      sliceMaxBarHeight = Math.max(sliceMaxBarHeight, barHeight);
     }
 
-    // Store the adjusted position
-    spacingMap.set(event.id, {
-      rawY,
-      adjustedY,
-      barHeight,
-      x: targetPos.x,
-      padding: notePadding,
-      // Visual offset = difference between adjusted and raw
-      visualOffset: adjustedY - rawY
-    });
+    // Use uniform padding for the whole time slice (average of HANDPAN_RADIUS range)
+    const slicePadding = (MIN_PADDING + MAX_PADDING) / 2; // ~45px
+
+    // Check if this slice would overlap with previous slice
+    let visualOffset = 0;
+    const sliceBottomWithPadding = sliceRawY + slicePadding;
+
+    if (sliceBottomWithPadding > previousSliceTop) {
+      // Push this slice up so it doesn't overlap
+      visualOffset = previousSliceTop - slicePadding - sliceRawY;
+    }
+
+    // Calculate the top of this slice (for next iteration)
+    const adjustedY = sliceRawY + visualOffset;
+    previousSliceTop = adjustedY - sliceMaxBarHeight - slicePadding;
+
+    // Apply the SAME visual offset to ALL notes in this time slice
+    for (const event of eventsAtTime) {
+      const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
+      const targetPos = getLanePosition(noteIndex);
+      const rawY = getRawY(event);
+      const barHeight = getBarHeight(event);
+
+      spacingMap.set(event.id, {
+        rawY,
+        adjustedY: rawY + visualOffset,
+        barHeight,
+        x: targetPos.x,
+        padding: slicePadding,
+        visualOffset
+      });
+    }
   }
 
   return spacingMap;
