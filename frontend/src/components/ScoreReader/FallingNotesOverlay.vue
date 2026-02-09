@@ -255,15 +255,14 @@ const getNoteBarStyle = (event) => {
     barHeight = durationToPixels(remainingDuration);
   }
 
-  // Y POSITION: Simple linear fall toward target
-  // Each note falls straight down to its target position
-  // timeOffset > 0: note is above target (falling)
-  // timeOffset = 0: note reaches target
-  // timeOffset < 0: note is past target (clamped)
-  const rawY = targetPos.y - (timeOffset * pixelsPerMs.value);
+  // NORMALIZED Y POSITION:
+  // All notes at the same timeOffset appear at the same visual Y level
+  // This ensures visual order matches playback order
+  // The tone field offset (targetPos.y) is handled separately in getToneFieldStyle
+  const normalizedY = -(timeOffset * pixelsPerMs.value);
 
-  // CLAMP: Never let the note go below the target (no overshoot)
-  const bottomY = Math.min(rawY, targetPos.y);
+  // CLAMP: Never let the note go below y=0 (the reference point)
+  const bottomY = Math.min(normalizedY, 0);
 
   // X position: FIXED to target lane throughout the fall
   const currentX = targetPos.x;
@@ -299,28 +298,37 @@ const getNoteBarStyle = (event) => {
 };
 
 // Style for the tone field at bottom of bar - matches handpan note exactly
+// The tone field has an additional Y offset to land at the correct target position
+// This offset compensates for the normalized Y position of the note bar
 const getToneFieldStyle = (event) => {
   const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
   const targetPos = getNotePosition(noteIndex);
   const size = getToneFieldSize(noteIndex);
 
+  // Target Y offset - this makes the tone field land at the correct handpan position
+  // The note bar is at normalized Y (same for all notes at same time)
+  // The tone field offset positions it at the actual target
+  const targetYOffset = targetPos.y;
+
   // Ding is circular, no rotation needed
   if (targetPos.isDing) {
     return {
       '--rotation': '0deg',
+      '--target-y-offset': `${targetYOffset}px`,
       width: `${size.width}px`,
       height: `${size.height}px`,
       borderRadius: '50%',
-      transform: `translateX(-50%)`
+      transform: `translateX(-50%) translateY(var(--target-y-offset))`
     };
   }
 
   // Tone fields are elliptical with rotation matching handpan
   return {
     '--rotation': `${targetPos.rotation || 0}deg`,
+    '--target-y-offset': `${targetYOffset}px`,
     width: `${size.width}px`,
     height: `${size.height}px`,
-    transform: `translateX(-50%) rotate(var(--rotation))`
+    transform: `translateX(-50%) translateY(var(--target-y-offset)) rotate(var(--rotation))`
   };
 };
 
@@ -930,15 +938,15 @@ watch(() => props.events, () => {
     font-size: 10px;
   }
 
-  /* Scale down tone fields on tablet - maintain center rotation */
+  /* Scale down tone fields on tablet - maintain center rotation and target offset */
   .note-bar__tone-field {
-    transform: translateX(-50%) rotate(var(--rotation, 0deg)) scale(0.77);
+    transform: translateX(-50%) translateY(var(--target-y-offset, 0px)) rotate(var(--rotation, 0deg)) scale(0.77);
     bottom: calc(-0.5 * var(--tone-field-height) * 0.77);
   }
 
   /* Ding doesn't rotate but still scales */
   .note-bar__tone-field--ding {
-    transform: translateX(-50%) scale(0.77);
+    transform: translateX(-50%) translateY(var(--target-y-offset, 0px)) scale(0.77);
     bottom: calc(-0.5 * var(--tone-field-height) * 0.77);
   }
 }
@@ -952,15 +960,15 @@ watch(() => props.events, () => {
     display: none;
   }
 
-  /* Scale down tone fields on mobile - maintain center rotation */
+  /* Scale down tone fields on mobile - maintain center rotation and target offset */
   .note-bar__tone-field {
-    transform: translateX(-50%) rotate(var(--rotation, 0deg)) scale(0.68);
+    transform: translateX(-50%) translateY(var(--target-y-offset, 0px)) rotate(var(--rotation, 0deg)) scale(0.68);
     bottom: calc(-0.5 * var(--tone-field-height) * 0.68);
   }
 
   /* Ding doesn't rotate but still scales */
   .note-bar__tone-field--ding {
-    transform: translateX(-50%) scale(0.68);
+    transform: translateX(-50%) translateY(var(--target-y-offset, 0px)) scale(0.68);
     bottom: calc(-0.5 * var(--tone-field-height) * 0.68);
   }
 }
