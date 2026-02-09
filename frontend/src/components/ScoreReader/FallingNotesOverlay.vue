@@ -124,12 +124,13 @@ const HALO_START_TIME = 800; // Start showing halo 800ms before hit
 const HALO_START_SCALE = 1.2; // Start at 120% of target size
 
 // ============================================================
-// LANE GEOMETRY CONSTANTS (for visual readability)
+// MEASURE-BASED VISUAL LAYOUT CONSTANTS
 // ============================================================
-const LANE_WIDTH = 70;        // Pixels - fits tone field (65px) + small gutter
-const LANE_GUTTER = 6;        // Min visual gap between adjacent lanes
-const MIN_Y_GAP = 50;         // Min vertical gap between notes in same lane
-const TIME_PROXIMITY_MS = 80; // Notes within this window are "visually close"
+const HANDPAN_HEIGHT = 360;                    // Full handpan visual height
+const VISUAL_SCALE = 0.5;                      // 50% scale for falling notes
+const MEASURE_VISUAL_HEIGHT = HANDPAN_HEIGHT * VISUAL_SCALE; // 180px per measure block
+const LANE_WIDTH = 70 * VISUAL_SCALE;          // Scaled lane width
+const LANE_GUTTER = 6;                         // Min visual gap between lanes
 
 // Build fixed lane grid from notePositions (stable across all measures)
 // This ensures all notes snap to consistent handpan mapping
@@ -184,11 +185,18 @@ const getColumnX = (handpanNoteIndex) => {
   return column * (LANE_WIDTH + LANE_GUTTER);
 };
 
-// Get fixed lane position for a note (from pre-computed grid)
+// Get fixed lane position for a note (from pre-computed grid, scaled by VISUAL_SCALE)
 const getLanePosition = (handpanNoteIndex) => {
   const lane = laneGrid.value[handpanNoteIndex];
   if (lane) {
-    return lane;
+    // Apply VISUAL_SCALE to X and Y positions for falling notes
+    return {
+      x: lane.x * VISUAL_SCALE,
+      y: lane.y * VISUAL_SCALE,
+      rotation: lane.rotation,
+      scale: lane.scale,
+      isDing: lane.isDing
+    };
   }
   // Fallback for unmapped notes
   return { x: 0, y: 0, rotation: 0, scale: 1.0, isDing: false };
@@ -199,30 +207,33 @@ const getScaleForNoteIndex = (handpanNoteIndex) => {
   return getLanePosition(handpanNoteIndex).scale;
 };
 
-// Bar width based on scale from handpan
+// Bar width based on scale from handpan (with VISUAL_SCALE applied)
 const getBarWidth = (handpanNoteIndex) => {
   const notePos = props.notePositions[handpanNoteIndex];
   // Ding uses a wider bar to match its 110px width
   if (notePos?.isDing) {
-    return 30; // Wider bar for ding (proportional to 110px width)
+    return 30 * VISUAL_SCALE; // Wider bar for ding, scaled
   }
   const scale = getScaleForNoteIndex(handpanNoteIndex);
   const baseWidth = 20;
-  return baseWidth * scale;
+  return baseWidth * scale * VISUAL_SCALE;
 };
 
-// Tone field dimensions - match handpan exactly
+// Tone field dimensions - match handpan but scaled by VISUAL_SCALE
 const getToneFieldSize = (handpanNoteIndex) => {
   const notePos = props.notePositions[handpanNoteIndex];
   // Ding is elliptical (110x90 on handpan, matching handpan3d.css .ding-note)
   if (notePos?.isDing) {
-    return { width: 110, height: 90 };
+    return {
+      width: 110 * VISUAL_SCALE,
+      height: 90 * VISUAL_SCALE
+    };
   }
-  // Tone fields are 65x52 base, scaled by the handpan's scale factor
+  // Tone fields are 65x52 base, scaled by the handpan's scale factor and VISUAL_SCALE
   const scale = getScaleForNoteIndex(handpanNoteIndex);
   return {
-    width: 65 * scale,
-    height: 52 * scale
+    width: 65 * scale * VISUAL_SCALE,
+    height: 52 * scale * VISUAL_SCALE
   };
 };
 
@@ -237,83 +248,65 @@ const getNotePosition = (noteIndex) => {
 };
 
 // ============================================================
-// READABILITY PASS: Compute visual Y adjustments for dense groups
+// MEASURE-BASED VISUAL LAYOUT
 // ============================================================
-// This pass detects notes that would visually overlap and adds
-// micro-offsets to make play order clear. Timing is NOT changed.
-const readabilityAdjustments = computed(() => {
-  const adjustments = new Map(); // eventId -> { yOffset: number }
+// Each measure gets a fixed visual height (MEASURE_VISUAL_HEIGHT).
+// Notes are positioned within their measure block based on beat position.
+// This creates consistent spacing and prevents clumping.
+// Timing is NOT changed - this is visual-only.
 
-  // Get all events sorted by absoluteTime
-  const sortedEvents = [...props.events].sort((a, b) => a.absoluteTime - b.absoluteTime);
+// Calculate ms per measure based on tempo and time signature
+const msPerMeasure = computed(() => {
+  const msPerBeat = 60000 / (props.tempo || 120);
+  const beatsPerMeasure = props.timeSignature?.beats || 4;
+  return msPerBeat * beatsPerMeasure;
+});
 
-  // Track the last rendered Y position per lane (column)
-  // Key: column index, Value: { eventId, adjustedBottomY, time }
-  const laneLastNote = new Map();
+// Calculate visual Y position using measure-based layout
+// Returns the visual offset to add to the raw timing-based position
+const getMeasureBasedOffset = (event) => {
+  // Get timing info
+  const measureDuration = msPerMeasure.value;
+  const leadInMs = props.leadInMs || 3000;
 
-  for (const event of sortedEvents) {
-    const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
-    const column = laneColumnMap.value[noteIndex] || 0;
+  // Calculate which measure this note is in (0-indexed, after lead-in)
+  const noteTimeAfterLeadIn = event.absoluteTime - leadInMs;
+  const measureIndex = Math.floor(noteTimeAfterLeadIn / measureDuration);
 
-    // Calculate raw Y for this event (same formula as getNoteBarStyle)
-    const targetPos = getLanePosition(noteIndex);
-    const timeOffset = event.absoluteTime - props.currentTime;
-    const rawY = targetPos.y - (timeOffset * pixelsPerMs.value);
+  // Calculate position within measure (0 = start of measure, 1 = end)
+  const positionInMeasure = (noteTimeAfterLeadIn % measureDuration) / measureDuration;
 
-    let yOffset = 0;
+  // Calculate where this note SHOULD be visually (measure-based)
+  // Each measure is MEASURE_VISUAL_HEIGHT pixels tall
+  // Measure 0 starts at Y=0, measure 1 at Y=-MEASURE_VISUAL_HEIGHT, etc.
+  const measureStartY = -measureIndex * MEASURE_VISUAL_HEIGHT;
+  const positionWithinMeasureY = -positionInMeasure * MEASURE_VISUAL_HEIGHT;
+  const targetVisualY = measureStartY + positionWithinMeasureY;
 
-    // Check if this lane has a recent note that would overlap
-    const lastInLane = laneLastNote.get(column);
+  // Calculate where the note would be with pure timing
+  const timeOffset = event.absoluteTime - props.currentTime;
+  const rawY = -timeOffset * pixelsPerMs.value; // Negative because notes fall down
 
-    if (lastInLane) {
-      const timeDiff = event.absoluteTime - lastInLane.time;
+  // The offset is the difference between measure-based and timing-based
+  // But we want to blend this - apply offset more when far from target
+  return {
+    measureIndex,
+    positionInMeasure,
+    targetVisualY,
+    rawY
+  };
+};
 
-      // Only adjust if notes are close in time but NOT a chord (exact same time)
-      if (timeDiff > 0 && timeDiff < TIME_PROXIMITY_MS) {
-        // Calculate visual gap
-        const currentBottomY = rawY;
-        const prevBottomY = lastInLane.adjustedBottomY;
-        const visualGap = prevBottomY - currentBottomY; // Positive = gap exists
+// Compute layout adjustments for all events
+const measureLayoutMap = computed(() => {
+  const layoutMap = new Map();
 
-        // If gap is too small, push this note up
-        if (visualGap < MIN_Y_GAP) {
-          yOffset = -(MIN_Y_GAP - visualGap);
-        }
-      }
-    }
-
-    // Store adjustment
-    adjustments.set(event.id, { yOffset });
-
-    // Update lane tracking with adjusted position
-    laneLastNote.set(column, {
-      eventId: event.id,
-      adjustedBottomY: rawY + yOffset,
-      time: event.absoluteTime
-    });
-
-    // Also check adjacent lanes for very dense passages
-    // (notes in adjacent columns that are very close in time)
-    for (const [adjColumn, adjData] of laneLastNote) {
-      if (Math.abs(adjColumn - column) === 1) { // Adjacent lane
-        const timeDiff = event.absoluteTime - adjData.time;
-        if (timeDiff > 0 && timeDiff < TIME_PROXIMITY_MS / 2) {
-          // Very close adjacent notes - ensure some separation
-          const currentY = rawY + yOffset;
-          const adjY = adjData.adjustedBottomY;
-          const gap = Math.abs(currentY - adjY);
-
-          if (gap < MIN_Y_GAP / 2) {
-            // Add small offset to separate
-            const additionalOffset = -(MIN_Y_GAP / 2 - gap);
-            adjustments.set(event.id, { yOffset: yOffset + additionalOffset });
-          }
-        }
-      }
-    }
+  for (const event of props.events) {
+    const layout = getMeasureBasedOffset(event);
+    layoutMap.set(event.id, layout);
   }
 
-  return adjustments;
+  return layoutMap;
 });
 
 // Filter and enhance visible events
@@ -385,24 +378,29 @@ const getNoteBarStyle = (event) => {
   const rawY = targetPos.y - (timeOffset * pixelsPerMs.value);
 
   // ============================================================
-  // READABILITY ADJUSTMENT: Apply visual Y offset for dense passages
-  // This offset ONLY affects visual position, not timing
+  // MEASURE-BASED VISUAL LAYOUT
   // ============================================================
-  const adjustment = readabilityAdjustments.value.get(event.id);
-  const readabilityOffset = adjustment?.yOffset || 0;
+  // Get measure layout info for visual spacing
+  const layout = measureLayoutMap.value.get(event.id);
 
-  // Apply readability offset only while note is falling (not yet landed)
-  // As note approaches landing, fade out the offset for smooth transition
-  let effectiveOffset = 0;
-  if (timeOffset > 0) {
-    // Note is still falling - apply full offset at top, fade as it approaches
-    const fadeDistance = 200; // Start fading offset 200px before landing
+  // Calculate visual offset based on measure position
+  // This spreads notes evenly within their measure block
+  let visualOffset = 0;
+  if (layout && timeOffset > 0) {
+    // Use measure-based spacing while falling
+    // Each measure has MEASURE_VISUAL_HEIGHT of visual space
+    const measureSpacing = layout.positionInMeasure * MEASURE_VISUAL_HEIGHT;
+
+    // Blend between timing-based and measure-based as note approaches
+    const fadeDistance = MEASURE_VISUAL_HEIGHT * 2;
     const distanceToTarget = timeOffset * pixelsPerMs.value;
-    const offsetFade = Math.min(1, distanceToTarget / fadeDistance);
-    effectiveOffset = readabilityOffset * offsetFade;
+    const blendFactor = Math.min(1, distanceToTarget / fadeDistance);
+
+    // Apply measure-based offset (pushes notes apart within measure)
+    visualOffset = -measureSpacing * blendFactor * 0.5; // Gentle offset
   }
 
-  const adjustedY = rawY + effectiveOffset;
+  const adjustedY = rawY + visualOffset;
 
   // CLAMP: Never let the note go below the target (no overshoot)
   // targetPos.y is the resting position, rawY grows positive as note falls past
