@@ -191,114 +191,6 @@ const getNotePosition = (noteIndex) => {
   return getLanePosition(noteIndex);
 };
 
-// Calculate raw Y position for an event (based purely on timing)
-const getRawY = (event) => {
-  const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
-  const targetPos = getLanePosition(noteIndex);
-  const timeOffset = event.absoluteTime - props.currentTime;
-  return targetPos.y - (timeOffset * pixelsPerMs.value);
-};
-
-// Calculate bar height for an event
-const getBarHeight = (event) => {
-  const fullDuration = event.duration || 500;
-  const timeOffset = event.absoluteTime - props.currentTime;
-
-  if (timeOffset >= 0) {
-    return Math.max(MIN_BAR_HEIGHT, durationToPixels(fullDuration));
-  } else {
-    const elapsedTime = -timeOffset;
-    const remainingDuration = Math.max(0, fullDuration - elapsedTime);
-    return Math.max(MIN_BAR_HEIGHT, durationToPixels(remainingDuration));
-  }
-};
-
-// VISUAL SPACING PASS
-// Groups notes by play time (chords stay together) and applies spacing between time slices
-// Notes at the same absoluteTime get the same visual offset - they fall as a unit
-// This is purely visual - timing/playback is NOT affected
-const visualSpacingMap = computed(() => {
-  const spacingMap = new Map();
-
-  // Get all events in the visible window
-  const windowStart = props.currentTime - props.trailTime;
-  const windowEnd = props.currentTime + props.leadTime;
-
-  const eventsInWindow = props.events.filter(event => {
-    const noteEnd = event.absoluteTime + event.duration;
-    return noteEnd >= windowStart && event.absoluteTime <= windowEnd;
-  });
-
-  // Group events by absoluteTime (notes at same time = chord = single visual unit)
-  const timeGroups = new Map();
-  for (const event of eventsInWindow) {
-    // Round to nearest ms to group simultaneous notes
-    const timeKey = Math.round(event.absoluteTime);
-    if (!timeGroups.has(timeKey)) {
-      timeGroups.set(timeKey, []);
-    }
-    timeGroups.get(timeKey).push(event);
-  }
-
-  // Sort time groups by time (earliest first)
-  const sortedTimes = [...timeGroups.keys()].sort((a, b) => a - b);
-
-  // Track the visual bottom of previous time slice (for spacing between slices)
-  let previousSliceTop = Infinity;
-
-  // Process each time slice as a unit
-  for (const timeKey of sortedTimes) {
-    const eventsAtTime = timeGroups.get(timeKey);
-
-    // Calculate the raw Y and bar height for all notes in this time slice
-    // Find the maximum extent (lowest point on screen = highest Y value)
-    let sliceRawY = -Infinity;
-    let sliceMaxBarHeight = 0;
-
-    for (const event of eventsAtTime) {
-      const rawY = getRawY(event);
-      const barHeight = getBarHeight(event);
-      sliceRawY = Math.max(sliceRawY, rawY);
-      sliceMaxBarHeight = Math.max(sliceMaxBarHeight, barHeight);
-    }
-
-    // Use uniform padding for the whole time slice (average of HANDPAN_RADIUS range)
-    const slicePadding = (MIN_PADDING + MAX_PADDING) / 2; // ~45px
-
-    // Check if this slice would overlap with previous slice
-    let visualOffset = 0;
-    const sliceBottomWithPadding = sliceRawY + slicePadding;
-
-    if (sliceBottomWithPadding > previousSliceTop) {
-      // Push this slice up so it doesn't overlap
-      visualOffset = previousSliceTop - slicePadding - sliceRawY;
-    }
-
-    // Calculate the top of this slice (for next iteration)
-    const adjustedY = sliceRawY + visualOffset;
-    previousSliceTop = adjustedY - sliceMaxBarHeight - slicePadding;
-
-    // Apply the SAME visual offset to ALL notes in this time slice
-    for (const event of eventsAtTime) {
-      const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
-      const targetPos = getLanePosition(noteIndex);
-      const rawY = getRawY(event);
-      const barHeight = getBarHeight(event);
-
-      spacingMap.set(event.id, {
-        rawY,
-        adjustedY: rawY + visualOffset,
-        barHeight,
-        x: targetPos.x,
-        padding: slicePadding,
-        visualOffset
-      });
-    }
-  }
-
-  return spacingMap;
-});
-
 // Filter and enhance visible events
 const visibleEvents = computed(() => {
   const windowStart = props.currentTime - props.trailTime;
@@ -317,12 +209,7 @@ const visibleEvents = computed(() => {
       // Note is "landed" when it has reached the target (clamped at handpan)
       const timeOffset = event.absoluteTime - props.currentTime;
       const isLanded = timeOffset <= 0;
-
-      // Get visual spacing adjustment
-      const spacingData = visualSpacingMap.value.get(event.id);
-      const visualOffset = spacingData ? spacingData.visualOffset : 0;
-
-      return { ...event, isHit, isActive, isPast, isLanded, visualOffset };
+      return { ...event, isHit, isActive, isPast, isLanded };
     });
 });
 
@@ -344,31 +231,6 @@ const haloEvents = computed(() => {
     });
 });
 
-// VISUAL SPACING CONSTANTS
-// Handpan radius - used to calculate per-note padding
-const HANDPAN_RADIUS = 180;
-
-// Padding range (scaled down for smoother flow)
-const MIN_PADDING = 30;  // Edge notes
-const MAX_PADDING = 60;  // Center notes (ding)
-
-// Minimum height for any note bar (ensures visibility even for very short notes)
-const MIN_BAR_HEIGHT = 30;
-
-// Calculate padding for a note based on its distance from handpan edge
-// Notes closer to center get more padding, notes near edge get less
-// Scaled to 30-60px range for smoother visual flow
-const getNotePadding = (noteIndex) => {
-  const pos = getLanePosition(noteIndex);
-  // Distance from center = sqrt(x² + y²)
-  const distanceFromCenter = Math.sqrt(pos.x * pos.x + pos.y * pos.y);
-  // Normalize distance (0 = center, 1 = edge)
-  const normalizedDistance = Math.min(1, distanceFromCenter / HANDPAN_RADIUS);
-  // Map to padding range: center gets MAX_PADDING, edge gets MIN_PADDING
-  const padding = MAX_PADDING - (normalizedDistance * (MAX_PADDING - MIN_PADDING));
-  return padding;
-};
-
 // Style for note bars
 const getNoteBarStyle = (event) => {
   const noteIndex = event.handpanNoteIndex >= 0 ? event.handpanNoteIndex : 0;
@@ -385,30 +247,23 @@ const getNoteBarStyle = (event) => {
   let barHeight;
   if (timeOffset >= 0) {
     // Note hasn't landed yet - show full duration
-    barHeight = Math.max(MIN_BAR_HEIGHT, durationToPixels(fullDuration));
+    barHeight = durationToPixels(fullDuration);
   } else {
     // Note is playing - shrink bar based on remaining time
     const elapsedTime = -timeOffset; // How long since note started
     const remainingDuration = Math.max(0, fullDuration - elapsedTime);
-    barHeight = Math.max(MIN_BAR_HEIGHT, durationToPixels(remainingDuration));
+    barHeight = durationToPixels(remainingDuration);
   }
 
-  // Y POSITION CALCULATION:
-  // 1. Calculate raw Y based on timing (determines when note hits target)
-  // 2. Apply visual spacing offset (for readability, does NOT affect timing)
-  // Timing is NEVER modified - this is purely visual positioning
+  // Y position: bar bottom (tone field) should hit target at timeOffset=0
+  // With bottom-based CSS, translateY moves element up when negative
   const rawY = targetPos.y - (timeOffset * pixelsPerMs.value);
 
-  // Apply visual spacing offset (calculated in visualSpacingMap)
-  // This pushes notes apart for better readability
-  const visualOffset = event.visualOffset || 0;
-  const adjustedY = rawY + visualOffset;
+  // CLAMP: Never let the note go below the target (no overshoot)
+  // targetPos.y is the resting position, rawY grows positive as note falls past
+  const bottomY = Math.min(rawY, targetPos.y);
 
-  // CLAMP: Never let the note go below its landing position (no overshoot)
-  // Use rawY for clamping (not adjustedY) to ensure correct landing
-  const bottomY = Math.min(adjustedY, targetPos.y);
-
-  // X position: FIXED to target lane throughout the fall
+  // Fixed lane X position (never changes per-event)
   const currentX = targetPos.x;
 
   // Fade out notes that are too far up (bottomY very negative = high up)
@@ -451,7 +306,6 @@ const getToneFieldStyle = (event) => {
   if (targetPos.isDing) {
     return {
       '--rotation': '0deg',
-      '--target-y-offset': '0px',
       width: `${size.width}px`,
       height: `${size.height}px`,
       borderRadius: '50%',
@@ -462,7 +316,6 @@ const getToneFieldStyle = (event) => {
   // Tone fields are elliptical with rotation matching handpan
   return {
     '--rotation': `${targetPos.rotation || 0}deg`,
-    '--target-y-offset': '0px',
     width: `${size.width}px`,
     height: `${size.height}px`,
     transform: `translateX(-50%) rotate(var(--rotation))`
@@ -1075,15 +928,15 @@ watch(() => props.events, () => {
     font-size: 10px;
   }
 
-  /* Scale down tone fields on tablet - maintain center rotation and target offset */
+  /* Scale down tone fields on tablet - maintain center rotation */
   .note-bar__tone-field {
-    transform: translateX(-50%) translateY(var(--target-y-offset, 0px)) rotate(var(--rotation, 0deg)) scale(0.77);
+    transform: translateX(-50%) rotate(var(--rotation, 0deg)) scale(0.77);
     bottom: calc(-0.5 * var(--tone-field-height) * 0.77);
   }
 
   /* Ding doesn't rotate but still scales */
   .note-bar__tone-field--ding {
-    transform: translateX(-50%) translateY(var(--target-y-offset, 0px)) scale(0.77);
+    transform: translateX(-50%) scale(0.77);
     bottom: calc(-0.5 * var(--tone-field-height) * 0.77);
   }
 }
@@ -1097,15 +950,15 @@ watch(() => props.events, () => {
     display: none;
   }
 
-  /* Scale down tone fields on mobile - maintain center rotation and target offset */
+  /* Scale down tone fields on mobile - maintain center rotation */
   .note-bar__tone-field {
-    transform: translateX(-50%) translateY(var(--target-y-offset, 0px)) rotate(var(--rotation, 0deg)) scale(0.68);
+    transform: translateX(-50%) rotate(var(--rotation, 0deg)) scale(0.68);
     bottom: calc(-0.5 * var(--tone-field-height) * 0.68);
   }
 
   /* Ding doesn't rotate but still scales */
   .note-bar__tone-field--ding {
-    transform: translateX(-50%) translateY(var(--target-y-offset, 0px)) scale(0.68);
+    transform: translateX(-50%) scale(0.68);
     bottom: calc(-0.5 * var(--tone-field-height) * 0.68);
   }
 }
